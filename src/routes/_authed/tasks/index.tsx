@@ -1311,7 +1311,7 @@ function TasksPage() {
                 {paginatedTasks.map((task) => (
                   <tr
                     key={task.id}
-                    className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 cursor-pointer transition-colors group"
+                    className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 cursor-pointer transition-colors"
                     onClick={() =>
                       router.navigate({
                         to: '/tasks/$taskId',
@@ -1365,7 +1365,7 @@ function TasksPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div
-                        className="flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="flex items-center justify-center gap-0.5"
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       >
