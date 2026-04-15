@@ -19,7 +19,7 @@ import {
   type TaskStatus,
 } from '@/features/tasks/types'
 import { cn } from '@/lib/utils'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import {
   DndContext,
   type DragEndEvent,
@@ -43,8 +43,11 @@ import {
   useRouter,
 } from '@tanstack/react-router'
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronsUpDown,
   Columns,
   List,
   Pencil,
@@ -851,9 +854,26 @@ const MOCK_TASKS: Task[] = [
   },
 ]
 
+type SortBy =
+  | 'start_date'
+  | 'created_at'
+  | 'received_amount'
+  | 'execution_cost'
+  | 'profit'
+
 const searchSchema = z.object({
   mode: z.enum(['list', 'board']).optional().default('list'),
   page: z.coerce.number().optional().default(1),
+  sortBy: z
+    .enum([
+      'start_date',
+      'created_at',
+      'received_amount',
+      'execution_cost',
+      'profit',
+    ])
+    .optional(),
+  sortDir: z.enum(['asc', 'desc']).optional().default('asc'),
 })
 
 export const Route = createFileRoute('/_authed/tasks/')({
@@ -893,6 +913,20 @@ const formatMarketingSummary = (task: Task): string => {
   return task.task_marketings
     .map((m) => `${m.marketing_types?.name ?? '?'} ${m.count}건`)
     .join(', ')
+}
+
+const SortIcon = ({
+  col,
+  sortBy,
+  sortDir,
+}: { col: SortBy; sortBy?: SortBy; sortDir?: string }) => {
+  if (sortBy !== col)
+    return <ChevronsUpDown className="w-3 h-3 opacity-30 shrink-0" />
+  return sortDir === 'asc' ? (
+    <ChevronUp className="w-3 h-3 shrink-0" />
+  ) : (
+    <ChevronDown className="w-3 h-3 shrink-0" />
+  )
 }
 
 const KanbanCard = ({ task }: { task: Task }) => {
@@ -982,7 +1016,7 @@ const KanbanColumn = ({
 }
 
 function TasksPage() {
-  const { mode, page } = Route.useSearch()
+  const { mode, page, sortBy, sortDir } = Route.useSearch()
   const router = useRouter()
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
@@ -1045,8 +1079,50 @@ function TasksPage() {
     }
   }
 
-  const totalPages = Math.ceil(tasks.length / PAGE_SIZE)
-  const paginatedTasks = tasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const handleSort = (col: SortBy) => {
+    if (sortBy === col) {
+      navigate({
+        search: {
+          mode,
+          page: 1,
+          sortBy: col,
+          sortDir: sortDir === 'asc' ? 'desc' : 'asc',
+        },
+      })
+    } else {
+      navigate({ search: { mode, page: 1, sortBy: col, sortDir: 'asc' } })
+    }
+  }
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (!sortBy) return 0
+    let aVal: number | string
+    let bVal: number | string
+    if (sortBy === 'start_date') {
+      aVal = a.start_date
+      bVal = b.start_date
+    } else if (sortBy === 'created_at') {
+      aVal = a.created_at
+      bVal = b.created_at
+    } else if (sortBy === 'received_amount') {
+      aVal = a.received_amount
+      bVal = b.received_amount
+    } else if (sortBy === 'execution_cost') {
+      aVal = a.execution_cost
+      bVal = b.execution_cost
+    } else {
+      aVal = a.profit || 0
+      bVal = b.profit || 0
+    }
+    const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+    return sortDir === 'asc' ? cmp : -cmp
+  })
+
+  const totalPages = Math.ceil(sortedTasks.length / PAGE_SIZE)
+  const paginatedTasks = sortedTasks.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  )
 
   const tasksByStatus = STATUS_ORDER.reduce(
     (acc, s) => {
@@ -1124,6 +1200,7 @@ function TasksPage() {
                 <col className="w-36" />
                 <col className="w-24" />
                 <col className="w-24" />
+                <col className="w-36" />
                 <col className="w-16" />
               </colgroup>
               <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
@@ -1137,23 +1214,89 @@ function TasksPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     비고
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-                    받은금액
+                  <th
+                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => handleSort('received_amount')}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleSort('received_amount')
+                    }
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      받은금액
+                      <SortIcon
+                        col="received_amount"
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                      />
+                    </div>
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-                    실행비
+                  <th
+                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => handleSort('execution_cost')}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleSort('execution_cost')
+                    }
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      실행비
+                      <SortIcon
+                        col="execution_cost"
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                      />
+                    </div>
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-                    수익
+                  <th
+                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => handleSort('profit')}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSort('profit')}
+                  >
+                    <div className="flex items-center justify-end gap-1">
+                      수익
+                      <SortIcon
+                        col="profit"
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                      />
+                    </div>
                   </th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     상태
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-                    시작일
+                  <th
+                    className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => handleSort('start_date')}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleSort('start_date')
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      시작일
+                      <SortIcon
+                        col="start_date"
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                      />
+                    </div>
                   </th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     종료일
+                  </th>
+                  <th
+                    className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => handleSort('created_at')}
+                    onKeyDown={(e) =>
+                      e.key === 'Enter' && handleSort('created_at')
+                    }
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      등록일
+                      <SortIcon
+                        col="created_at"
+                        sortBy={sortBy}
+                        sortDir={sortDir}
+                      />
+                    </div>
                   </th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -1162,7 +1305,7 @@ function TasksPage() {
                 {paginatedTasks.length === 0 && (
                   <tr>
                     <td
-                      colSpan={10}
+                      colSpan={11}
                       className="text-center py-20 text-xs text-gray-400 dark:text-slate-500"
                     >
                       등록된 업무가 없습니다
@@ -1220,6 +1363,9 @@ function TasksPage() {
                     </td>
                     <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-slate-400 tabular-nums truncate">
                       {formatDate(task.end_date)}
+                    </td>
+                    <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-slate-500 tabular-nums truncate">
+                      {formatDateTime(task.created_at)}
                     </td>
                     <td className="px-4 py-3">
                       <div
