@@ -117,9 +117,9 @@ function TaskDetailPage() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 {task.company_name}
-              </h1>
+              </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                 {formatDateTime(task.created_at)} 등록
               </p>
@@ -207,7 +207,7 @@ function TaskDetailPage() {
               onValueChange={(v) => v && statusMutation.mutate(v)}
             >
               <SelectTrigger className="w-44 h-8 text-xs border-gray-200 dark:border-gray-700 bg-transparent">
-                <SelectValue />
+                <SelectValue>{TASK_STATUS_LABELS[task.status]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(TASK_STATUS_LABELS).map(([value, label]) => (

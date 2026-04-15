@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
 import {
   deleteTask,
@@ -52,6 +53,7 @@ import {
   List,
   Pencil,
   Plus,
+  Search,
   Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -872,8 +874,20 @@ const searchSchema = z.object({
       'execution_cost',
       'profit',
     ])
-    .optional(),
-  sortDir: z.enum(['asc', 'desc']).optional().default('asc'),
+    .optional()
+    .default('created_at'),
+  sortDir: z.enum(['asc', 'desc']).optional().default('desc'),
+  search: z.string().optional().default(''),
+  filterStatus: z
+    .enum([
+      'all',
+      'not_started',
+      'in_progress',
+      'done_settled',
+      'done_unsettled',
+    ])
+    .optional()
+    .default('all'),
 })
 
 export const Route = createFileRoute('/_authed/tasks/')({
@@ -1016,7 +1030,8 @@ const KanbanColumn = ({
 }
 
 function TasksPage() {
-  const { mode, page, sortBy, sortDir } = Route.useSearch()
+  const { mode, page, sortBy, sortDir, search, filterStatus } =
+    Route.useSearch()
   const router = useRouter()
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
@@ -1081,17 +1096,51 @@ function TasksPage() {
 
   const handleSort = (col: SortBy) => {
     if (sortBy !== col) {
-      navigate({ search: { mode, page: 1, sortBy: col, sortDir: 'desc' } })
+      navigate({
+        search: {
+          mode,
+          page: 1,
+          sortBy: col,
+          sortDir: 'desc',
+          search,
+          filterStatus,
+        },
+      })
     } else if (sortDir === 'desc') {
-      navigate({ search: { mode, page: 1, sortBy: col, sortDir: 'asc' } })
+      navigate({
+        search: {
+          mode,
+          page: 1,
+          sortBy: col,
+          sortDir: 'asc',
+          search,
+          filterStatus,
+        },
+      })
     } else {
       navigate({
-        search: { mode, page: 1, sortBy: undefined, sortDir: 'desc' },
+        search: {
+          mode,
+          page: 1,
+          sortBy: 'created_at',
+          sortDir: 'desc',
+          search,
+          filterStatus,
+        },
       })
     }
   }
 
-  const sortedTasks = [...tasks].sort((a, b) => {
+  const filteredTasks = tasks.filter((t) => {
+    const matchSearch = search
+      ? t.company_name.toLowerCase().includes(search.toLowerCase())
+      : true
+    const matchStatus =
+      filterStatus && filterStatus !== 'all' ? t.status === filterStatus : true
+    return matchSearch && matchStatus
+  })
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
     if (!sortBy) return 0
     let aVal: number | string
     let bVal: number | string
@@ -1132,52 +1181,124 @@ function TasksPage() {
   return (
     <div className="h-full flex flex-col gap-4 p-6">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            업무 목록
-          </span>
-          <span className="text-xs text-gray-400 dark:text-slate-500">
-            총 {tasks.length}건
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 gap-0.5">
-            <button
-              type="button"
-              onClick={() => navigate({ search: { mode: 'list', page: 1 } })}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                mode === 'list'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-gray-200',
-              )}
-            >
-              <List className="w-3.5 h-3.5" />
-              목록
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate({ search: { mode: 'board', page: 1 } })}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
-                mode === 'board'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-gray-200',
-              )}
-            >
-              <Columns className="w-3.5 h-3.5" />
-              칸반
-            </button>
+      <div className="shrink-0 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
+              업무 목록
+            </span>
+            <span className="text-xs text-gray-400 dark:text-slate-500">
+              {filteredTasks.length !== tasks.length
+                ? `${filteredTasks.length} / ${tasks.length}건`
+                : `총 ${tasks.length}건`}
+            </span>
           </div>
-          <Link to="/tasks/new">
-            <Button
-              size="sm"
-              className="gap-1.5 h-8 text-xs text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 shadow-sm shadow-purple-200 dark:shadow-none"
-            >
-              <Plus className="w-3.5 h-3.5" />새 업무
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 gap-0.5">
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    search: { mode: 'list', page: 1, search, filterStatus },
+                  })
+                }
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  mode === 'list'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-gray-200',
+                )}
+              >
+                <List className="w-3.5 h-3.5" />
+                목록
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    search: { mode: 'board', page: 1, search, filterStatus },
+                  })
+                }
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  mode === 'board'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-gray-200',
+                )}
+              >
+                <Columns className="w-3.5 h-3.5" />
+                칸반
+              </button>
+            </div>
+            <Link to="/tasks/new">
+              <Button
+                size="sm"
+                className="gap-1.5 h-8 text-xs text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 shadow-sm shadow-purple-200 dark:shadow-none"
+              >
+                <Plus className="w-3.5 h-3.5" />새 업무
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Search + filter row */}
+        <div className="flex items-center gap-2">
+          <div className="relative w-56">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-slate-500 pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) =>
+                navigate({
+                  search: {
+                    mode,
+                    page: 1,
+                    sortBy,
+                    sortDir,
+                    search: e.target.value,
+                    filterStatus,
+                  },
+                })
+              }
+              placeholder="업체명 검색"
+              className="h-8 pl-8 text-xs rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 placeholder:text-gray-300 dark:placeholder:text-slate-600 focus-visible:ring-purple-500/30 focus-visible:border-purple-400"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            {(
+              [
+                ['all', '전체'],
+                ['not_started', '시작 전'],
+                ['in_progress', '진행 중'],
+                ['done_settled', '정산완료'],
+                ['done_unsettled', '정산미완료'],
+              ] as const
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() =>
+                  navigate({
+                    search: {
+                      mode,
+                      page: 1,
+                      sortBy,
+                      sortDir,
+                      search,
+                      filterStatus: val,
+                    },
+                  })
+                }
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
+                  filterStatus === val
+                    ? 'bg-purple-600 text-white dark:bg-purple-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-700',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -1404,7 +1525,18 @@ function TasksPage() {
               size="icon"
               disabled={page <= 1}
               className="h-7 w-7 text-gray-500 dark:text-slate-400"
-              onClick={() => navigate({ search: { mode, page: page - 1 } })}
+              onClick={() =>
+                navigate({
+                  search: {
+                    mode,
+                    page: page - 1,
+                    sortBy,
+                    sortDir,
+                    search,
+                    filterStatus,
+                  },
+                })
+              }
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -1422,7 +1554,18 @@ function TasksPage() {
                     ? 'bg-purple-600 text-white hover:bg-purple-700'
                     : 'text-gray-500 dark:text-slate-400',
                 )}
-                onClick={() => navigate({ search: { mode, page: p } })}
+                onClick={() =>
+                  navigate({
+                    search: {
+                      mode,
+                      page: p,
+                      sortBy,
+                      sortDir,
+                      search,
+                      filterStatus,
+                    },
+                  })
+                }
               >
                 {p}
               </Button>
@@ -1432,7 +1575,18 @@ function TasksPage() {
               size="icon"
               disabled={page >= totalPages}
               className="h-7 w-7 text-gray-500 dark:text-slate-400"
-              onClick={() => navigate({ search: { mode, page: page + 1 } })}
+              onClick={() =>
+                navigate({
+                  search: {
+                    mode,
+                    page: page + 1,
+                    sortBy,
+                    sortDir,
+                    search,
+                    filterStatus,
+                  },
+                })
+              }
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
