@@ -13,7 +13,7 @@ export async function fetchTasks() {
         marketing_types (id, name)
       )
     `)
-    .order('created_at', { ascending: false })
+    .order('start_date', { ascending: false })
 
   if (error) throw error
   return data as Task[]

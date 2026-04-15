@@ -139,7 +139,9 @@ function DashboardPage() {
     })
     .filter((d) => d.count > 0)
 
-  const recentTasks = [...tasks].slice(0, 5)
+  const recentTasks = [...tasks]
+    .sort((a, b) => b.start_date.localeCompare(a.start_date))
+    .slice(0, 5)
 
   const tooltipStyle = {
     fontSize: 12,
@@ -330,6 +332,8 @@ function DashboardPage() {
                     outerRadius={78}
                     paddingAngle={3}
                     dataKey="value"
+                    style={{ outline: 'none' }}
+                    strokeWidth={0}
                   >
                     {statusData.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
@@ -397,6 +401,11 @@ function DashboardPage() {
                   <Tooltip
                     contentStyle={tooltipStyle}
                     formatter={((v: number) => [`${v}건`]) as never}
+                    cursor={{
+                      fill: isDark
+                        ? 'rgba(255,255,255,0.04)'
+                        : 'rgba(0,0,0,0.03)',
+                    }}
                   />
                   <Bar
                     dataKey="count"
@@ -417,7 +426,7 @@ function DashboardPage() {
           </Card>
 
           <Card className="col-span-2 border-gray-200 dark:border-gray-800 shadow-none">
-            <CardHeader className="pb-2 pt-4 px-4">
+            <CardHeader className="pb-2 pt-3 px-4">
               <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 최근 업무
               </CardTitle>
@@ -429,27 +438,39 @@ function DashboardPage() {
                 </p>
               ) : (
                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {recentTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between py-2.5"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                  {recentTasks.map((task) => {
+                    const marketingSummary = task.task_marketings?.length
+                      ? task.task_marketings
+                          .map(
+                            (m) =>
+                              `${m.marketing_types?.name ?? '?'} ${m.count}건`,
+                          )
+                          .join(' · ')
+                      : null
+                    return (
+                      <div
+                        key={task.id}
+                        className="flex items-center justify-between py-2 gap-3"
+                      >
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate min-w-0 w-32 shrink-0">
                           {task.company_name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        <TaskStatusBadge status={task.status} />
+                        <p className="text-xs text-gray-400 dark:text-slate-500 truncate flex-1 min-w-0">
                           {formatDate(task.start_date)}
+                          {task.end_date
+                            ? ` ~ ${formatDate(task.end_date)}`
+                            : ''}
+                          {marketingSummary ? ` · ${marketingSummary}` : ''}
+                        </p>
+                        <p
+                          className={`text-sm font-semibold tabular-nums shrink-0 ${(task.profit || 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}
+                        >
+                          {formatCurrency(task.profit || 0)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3 ml-4 shrink-0">
-                        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                          {formatCurrency(task.profit || 0)}
-                        </span>
-                        <TaskStatusBadge status={task.status} />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </CardContent>

@@ -8,6 +8,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
 import {
   deleteTask,
@@ -22,20 +29,11 @@ import {
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import {
-  DndContext,
-  type DragEndEvent,
-  DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+  DragDropContext,
+  Draggable,
+  type DropResult,
+  Droppable,
+} from '@hello-pangea/dnd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Link,
@@ -55,806 +53,11 @@ import {
   Plus,
   Search,
   Trash2,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
-
-const MOCK_TASKS: Task[] = [
-  {
-    id: 'm01',
-    company_name: '강남 카페 블루문',
-    received_amount: 650000,
-    execution_cost: 420000,
-    profit: 230000,
-    status: 'done_settled',
-    start_date: '2025-10-05',
-    end_date: '2025-10-30',
-    note: '재계약 가능성 높음',
-    created_at: '2025-10-05T00:00:00Z',
-    updated_at: '2025-10-05T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm01',
-        task_id: 'm01',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '블로그 체험단',
-          sort_order: 3,
-          created_at: '',
-        },
-      },
-      {
-        id: 'mm02',
-        task_id: 'm01',
-        marketing_type_id: '',
-        count: 3,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm02',
-    company_name: '홍대 파스타 하우스',
-    received_amount: 880000,
-    execution_cost: 540000,
-    profit: 340000,
-    status: 'in_progress',
-    start_date: '2025-11-01',
-    end_date: null,
-    note: '월 정기 진행',
-    created_at: '2025-11-01T00:00:00Z',
-    updated_at: '2025-11-01T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm03',
-        task_id: 'm02',
-        marketing_type_id: '',
-        count: 10,
-        marketing_types: {
-          id: '',
-          name: '카페 바이럴',
-          sort_order: 1,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm03',
-    company_name: '분당 네일아트 살롱',
-    received_amount: 450000,
-    execution_cost: 280000,
-    profit: 170000,
-    status: 'done_settled',
-    start_date: '2025-10-15',
-    end_date: '2025-11-10',
-    note: '',
-    created_at: '2025-10-15T00:00:00Z',
-    updated_at: '2025-10-15T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm04',
-    company_name: '서초 헬스케어 클리닉',
-    received_amount: 1200000,
-    execution_cost: 750000,
-    profit: 450000,
-    status: 'done_unsettled',
-    start_date: '2025-11-10',
-    end_date: '2025-12-05',
-    note: '정산 11월 말 예정',
-    created_at: '2025-11-10T00:00:00Z',
-    updated_at: '2025-11-10T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm04',
-        task_id: 'm04',
-        marketing_type_id: '',
-        count: 8,
-        marketing_types: {
-          id: '',
-          name: '블로그 기자단',
-          sort_order: 2,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm05',
-    company_name: '마포 브런치 카페',
-    received_amount: 320000,
-    execution_cost: 190000,
-    profit: 130000,
-    status: 'done_settled',
-    start_date: '2025-09-20',
-    end_date: '2025-10-05',
-    note: '',
-    created_at: '2025-09-20T00:00:00Z',
-    updated_at: '2025-09-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm06',
-    company_name: '이태원 버거랩',
-    received_amount: 780000,
-    execution_cost: 480000,
-    profit: 300000,
-    status: 'in_progress',
-    start_date: '2025-12-01',
-    end_date: null,
-    note: '유튜버 연계 검토 중',
-    created_at: '2025-12-01T00:00:00Z',
-    updated_at: '2025-12-01T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm05',
-        task_id: 'm06',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm07',
-    company_name: '신촌 치킨왕',
-    received_amount: 540000,
-    execution_cost: 330000,
-    profit: 210000,
-    status: 'done_settled',
-    start_date: '2025-10-01',
-    end_date: '2025-10-28',
-    note: '',
-    created_at: '2025-10-01T00:00:00Z',
-    updated_at: '2025-10-01T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm08',
-    company_name: '송파 케이크공방',
-    received_amount: 390000,
-    execution_cost: 240000,
-    profit: 150000,
-    status: 'done_settled',
-    start_date: '2025-09-10',
-    end_date: '2025-09-30',
-    note: '',
-    created_at: '2025-09-10T00:00:00Z',
-    updated_at: '2025-09-10T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm09',
-    company_name: '강서 피부과',
-    received_amount: 1500000,
-    execution_cost: 900000,
-    profit: 600000,
-    status: 'in_progress',
-    start_date: '2025-12-05',
-    end_date: null,
-    note: '장기계약 3개월',
-    created_at: '2025-12-05T00:00:00Z',
-    updated_at: '2025-12-05T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm06',
-        task_id: 'm09',
-        marketing_type_id: '',
-        count: 1,
-        marketing_types: {
-          id: '',
-          name: '네이버 키워드 광고',
-          sort_order: 9,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm10',
-    company_name: '목동 필라테스',
-    received_amount: 420000,
-    execution_cost: 260000,
-    profit: 160000,
-    status: 'done_settled',
-    start_date: '2025-10-20',
-    end_date: '2025-11-15',
-    note: '',
-    created_at: '2025-10-20T00:00:00Z',
-    updated_at: '2025-10-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm11',
-    company_name: '잠실 삼겹살 명가',
-    received_amount: 690000,
-    execution_cost: 420000,
-    profit: 270000,
-    status: 'done_unsettled',
-    start_date: '2025-11-15',
-    end_date: '2025-12-10',
-    note: '대표 연락 안됨',
-    created_at: '2025-11-15T00:00:00Z',
-    updated_at: '2025-11-15T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm07',
-        task_id: 'm11',
-        marketing_type_id: '',
-        count: 8,
-        marketing_types: {
-          id: '',
-          name: '카페 바이럴',
-          sort_order: 1,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm12',
-    company_name: '노원 미용실 어반컷',
-    received_amount: 310000,
-    execution_cost: 185000,
-    profit: 125000,
-    status: 'done_settled',
-    start_date: '2025-08-15',
-    end_date: '2025-09-05',
-    note: '',
-    created_at: '2025-08-15T00:00:00Z',
-    updated_at: '2025-08-15T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm13',
-    company_name: '판교 IT 스타트업',
-    received_amount: 950000,
-    execution_cost: 580000,
-    profit: 370000,
-    status: 'in_progress',
-    start_date: '2025-12-10',
-    end_date: null,
-    note: 'B2B 콘텐츠 중심',
-    created_at: '2025-12-10T00:00:00Z',
-    updated_at: '2025-12-10T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm08',
-        task_id: 'm13',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '블로그 기자단',
-          sort_order: 2,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm14',
-    company_name: '상암 빈티지 카페',
-    received_amount: 280000,
-    execution_cost: 170000,
-    profit: 110000,
-    status: 'done_settled',
-    start_date: '2025-09-01',
-    end_date: '2025-09-20',
-    note: '',
-    created_at: '2025-09-01T00:00:00Z',
-    updated_at: '2025-09-01T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm15',
-    company_name: '여의도 프리미엄 스파',
-    received_amount: 1800000,
-    execution_cost: 1100000,
-    profit: 700000,
-    status: 'in_progress',
-    start_date: '2026-01-01',
-    end_date: null,
-    note: 'VIP 고객 타겟',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm09',
-        task_id: 'm15',
-        marketing_type_id: '',
-        count: 10,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm16',
-    company_name: '건대 스터디카페 포커스',
-    received_amount: 360000,
-    execution_cost: 220000,
-    profit: 140000,
-    status: 'done_settled',
-    start_date: '2025-10-10',
-    end_date: '2025-10-31',
-    note: '',
-    created_at: '2025-10-10T00:00:00Z',
-    updated_at: '2025-10-10T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm17',
-    company_name: '구로 방탈출 이스케이프',
-    received_amount: 500000,
-    execution_cost: 310000,
-    profit: 190000,
-    status: 'done_unsettled',
-    start_date: '2025-11-20',
-    end_date: '2025-12-20',
-    note: '정산 1월 예정',
-    created_at: '2025-11-20T00:00:00Z',
-    updated_at: '2025-11-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm18',
-    company_name: '관악 프리미엄 정육점',
-    received_amount: 430000,
-    execution_cost: 265000,
-    profit: 165000,
-    status: 'done_settled',
-    start_date: '2025-09-25',
-    end_date: '2025-10-20',
-    note: '',
-    created_at: '2025-09-25T00:00:00Z',
-    updated_at: '2025-09-25T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm19',
-    company_name: '중구 한우 전문점',
-    received_amount: 750000,
-    execution_cost: 460000,
-    profit: 290000,
-    status: 'done_settled',
-    start_date: '2025-10-05',
-    end_date: '2025-11-01',
-    note: '',
-    created_at: '2025-10-05T00:00:00Z',
-    updated_at: '2025-10-05T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm10',
-        task_id: 'm19',
-        marketing_type_id: '',
-        count: 4,
-        marketing_types: {
-          id: '',
-          name: '블로그 기자단',
-          sort_order: 2,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm20',
-    company_name: '동대문 편집샵',
-    received_amount: 580000,
-    execution_cost: 355000,
-    profit: 225000,
-    status: 'not_started',
-    start_date: '2026-02-01',
-    end_date: null,
-    note: '계약 완료 시작 대기',
-    created_at: '2026-02-01T00:00:00Z',
-    updated_at: '2026-02-01T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm21',
-    company_name: '성동 수제버거',
-    received_amount: 340000,
-    execution_cost: 210000,
-    profit: 130000,
-    status: 'done_settled',
-    start_date: '2025-09-15',
-    end_date: '2025-10-05',
-    note: '',
-    created_at: '2025-09-15T00:00:00Z',
-    updated_at: '2025-09-15T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm22',
-    company_name: '마포 네일앤속눈썹',
-    received_amount: 480000,
-    execution_cost: 295000,
-    profit: 185000,
-    status: 'done_unsettled',
-    start_date: '2025-12-01',
-    end_date: '2025-12-28',
-    note: '12월말 정산 예정',
-    created_at: '2025-12-01T00:00:00Z',
-    updated_at: '2025-12-01T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm11',
-        task_id: 'm22',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm23',
-    company_name: '서대문 일식당',
-    received_amount: 710000,
-    execution_cost: 435000,
-    profit: 275000,
-    status: 'done_settled',
-    start_date: '2025-10-20',
-    end_date: '2025-11-15',
-    note: '',
-    created_at: '2025-10-20T00:00:00Z',
-    updated_at: '2025-10-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm24',
-    company_name: '광진 수영장 아쿠아',
-    received_amount: 1100000,
-    execution_cost: 680000,
-    profit: 420000,
-    status: 'in_progress',
-    start_date: '2026-01-15',
-    end_date: null,
-    note: '여름 시즌 사전 마케팅',
-    created_at: '2026-01-15T00:00:00Z',
-    updated_at: '2026-01-15T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm12',
-        task_id: 'm24',
-        marketing_type_id: '',
-        count: 8,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm25',
-    company_name: '양천 산후조리원',
-    received_amount: 1350000,
-    execution_cost: 820000,
-    profit: 530000,
-    status: 'done_settled',
-    start_date: '2025-09-01',
-    end_date: '2025-10-15',
-    note: '',
-    created_at: '2025-09-01T00:00:00Z',
-    updated_at: '2025-09-01T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm13',
-        task_id: 'm25',
-        marketing_type_id: '',
-        count: 7,
-        marketing_types: {
-          id: '',
-          name: '블로그 기자단',
-          sort_order: 2,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm26',
-    company_name: '영등포 와인바',
-    received_amount: 560000,
-    execution_cost: 345000,
-    profit: 215000,
-    status: 'done_unsettled',
-    start_date: '2025-12-10',
-    end_date: '2025-12-31',
-    note: '연말 정산',
-    created_at: '2025-12-10T00:00:00Z',
-    updated_at: '2025-12-10T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm27',
-    company_name: '중랑 반려견 카페',
-    received_amount: 385000,
-    execution_cost: 235000,
-    profit: 150000,
-    status: 'done_settled',
-    start_date: '2025-10-12',
-    end_date: '2025-11-05',
-    note: '',
-    created_at: '2025-10-12T00:00:00Z',
-    updated_at: '2025-10-12T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm14',
-        task_id: 'm27',
-        marketing_type_id: '',
-        count: 4,
-        marketing_types: {
-          id: '',
-          name: '인스타그램 바이럴',
-          sort_order: 4,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm28',
-    company_name: '강북 탁구클럽',
-    received_amount: 240000,
-    execution_cost: 148000,
-    profit: 92000,
-    status: 'done_settled',
-    start_date: '2025-09-05',
-    end_date: '2025-09-25',
-    note: '',
-    created_at: '2025-09-05T00:00:00Z',
-    updated_at: '2025-09-05T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm29',
-    company_name: '송파 프리미엄 세차장',
-    received_amount: 470000,
-    execution_cost: 288000,
-    profit: 182000,
-    status: 'not_started',
-    start_date: '2026-02-15',
-    end_date: null,
-    note: 'SNS 위주',
-    created_at: '2026-02-15T00:00:00Z',
-    updated_at: '2026-02-15T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm30',
-    company_name: '서초 IT 교육원',
-    received_amount: 870000,
-    execution_cost: 530000,
-    profit: 340000,
-    status: 'in_progress',
-    start_date: '2026-01-20',
-    end_date: null,
-    note: '수강생 모집 캠페인',
-    created_at: '2026-01-20T00:00:00Z',
-    updated_at: '2026-01-20T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm15',
-        task_id: 'm30',
-        marketing_type_id: '',
-        count: 1,
-        marketing_types: {
-          id: '',
-          name: '메타 광고',
-          sort_order: 10,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm31',
-    company_name: '마포 소품샵 디어',
-    received_amount: 330000,
-    execution_cost: 202000,
-    profit: 128000,
-    status: 'done_settled',
-    start_date: '2025-09-20',
-    end_date: '2025-10-10',
-    note: '',
-    created_at: '2025-09-20T00:00:00Z',
-    updated_at: '2025-09-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm32',
-    company_name: '성북 한옥카페',
-    received_amount: 490000,
-    execution_cost: 300000,
-    profit: 190000,
-    status: 'done_settled',
-    start_date: '2025-10-18',
-    end_date: '2025-11-08',
-    note: '',
-    created_at: '2025-10-18T00:00:00Z',
-    updated_at: '2025-10-18T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm16',
-        task_id: 'm32',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '카페 바이럴',
-          sort_order: 1,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm33',
-    company_name: '종로 갤러리 카페',
-    received_amount: 420000,
-    execution_cost: 258000,
-    profit: 162000,
-    status: 'not_started',
-    start_date: '2026-03-01',
-    end_date: null,
-    note: '봄 전시 연계 마케팅',
-    created_at: '2026-03-01T00:00:00Z',
-    updated_at: '2026-03-01T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm34',
-    company_name: '하남 파크골프',
-    received_amount: 760000,
-    execution_cost: 465000,
-    profit: 295000,
-    status: 'done_unsettled',
-    start_date: '2025-11-25',
-    end_date: '2025-12-22',
-    note: '연말 행사 연계',
-    created_at: '2025-11-25T00:00:00Z',
-    updated_at: '2025-11-25T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm17',
-        task_id: 'm34',
-        marketing_type_id: '',
-        count: 5,
-        marketing_types: {
-          id: '',
-          name: '블로그 체험단',
-          sort_order: 3,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm35',
-    company_name: '은평 한방 병원',
-    received_amount: 980000,
-    execution_cost: 600000,
-    profit: 380000,
-    status: 'in_progress',
-    start_date: '2026-01-10',
-    end_date: null,
-    note: '블로그+플레이스 패키지',
-    created_at: '2026-01-10T00:00:00Z',
-    updated_at: '2026-01-10T00:00:00Z',
-    task_marketings: [
-      {
-        id: 'mm18',
-        task_id: 'm35',
-        marketing_type_id: '',
-        count: 6,
-        marketing_types: {
-          id: '',
-          name: '블로그 기자단',
-          sort_order: 2,
-          created_at: '',
-        },
-      },
-    ],
-  },
-  {
-    id: 'm36',
-    company_name: '강동 키즈카페 플레이',
-    received_amount: 620000,
-    execution_cost: 380000,
-    profit: 240000,
-    status: 'done_settled',
-    start_date: '2025-10-01',
-    end_date: '2025-10-28',
-    note: '',
-    created_at: '2025-10-01T00:00:00Z',
-    updated_at: '2025-10-01T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm37',
-    company_name: '용산 전자기기 수리',
-    received_amount: 250000,
-    execution_cost: 155000,
-    profit: 95000,
-    status: 'done_settled',
-    start_date: '2025-08-20',
-    end_date: '2025-09-10',
-    note: '',
-    created_at: '2025-08-20T00:00:00Z',
-    updated_at: '2025-08-20T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm38',
-    company_name: '도봉 프리미엄 김밥',
-    received_amount: 200000,
-    execution_cost: 125000,
-    profit: 75000,
-    status: 'done_settled',
-    start_date: '2025-08-10',
-    end_date: '2025-08-30',
-    note: '',
-    created_at: '2025-08-10T00:00:00Z',
-    updated_at: '2025-08-10T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm39',
-    company_name: '관악 대학가 분식',
-    received_amount: 185000,
-    execution_cost: 113000,
-    profit: 72000,
-    status: 'done_settled',
-    start_date: '2025-08-25',
-    end_date: '2025-09-10',
-    note: '',
-    created_at: '2025-08-25T00:00:00Z',
-    updated_at: '2025-08-25T00:00:00Z',
-    task_marketings: [],
-  },
-  {
-    id: 'm40',
-    company_name: '강남 프리미엄 세탁소',
-    received_amount: 290000,
-    execution_cost: 175000,
-    profit: 115000,
-    status: 'done_settled',
-    start_date: '2025-08-01',
-    end_date: '2025-08-25',
-    note: '',
-    created_at: '2025-08-01T00:00:00Z',
-    updated_at: '2025-08-01T00:00:00Z',
-    task_marketings: [],
-  },
-]
 
 type SortBy =
   | 'start_date'
@@ -874,10 +77,9 @@ const searchSchema = z.object({
       'execution_cost',
       'profit',
     ])
-    .optional()
-    .default('created_at'),
-  sortDir: z.enum(['asc', 'desc']).optional().default('desc'),
-  search: z.string().optional().default(''),
+    .optional(),
+  sortDir: z.enum(['asc', 'desc']).optional(),
+  search: z.string().optional(),
   filterStatus: z
     .enum([
       'all',
@@ -886,8 +88,7 @@ const searchSchema = z.object({
       'done_settled',
       'done_unsettled',
     ])
-    .optional()
-    .default('all'),
+    .optional(),
 })
 
 export const Route = createFileRoute('/_authed/tasks/')({
@@ -943,62 +144,19 @@ const SortIcon = ({
   )
 }
 
-const KanbanCard = ({ task }: { task: Task }) => {
-  const router = useRouter()
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="bg-white dark:bg-gray-800/80 rounded-xl border border-gray-100 dark:border-gray-700/60 p-3.5 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md dark:hover:shadow-black/20 transition-all"
-      onClick={() =>
-        router.navigate({ to: '/tasks/$taskId', params: { taskId: task.id } })
-      }
-    >
-      <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate leading-snug">
-        {task.company_name}
-      </p>
-      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5">
-        {formatCurrency(task.profit || 0)}
-      </p>
-      <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 truncate">
-        {formatMarketingSummary(task)}
-      </p>
-      <p className="text-xs text-gray-300 dark:text-slate-600 mt-1">
-        {formatDate(task.start_date)}
-      </p>
-    </div>
-  )
-}
-
 const KanbanColumn = ({
   status,
   tasks,
-}: { status: TaskStatus; tasks: Task[] }) => {
-  const { setNodeRef } = useSortable({ id: `col-${status}` })
+  onCardClick,
+}: {
+  status: TaskStatus
+  tasks: Task[]
+  onCardClick: (taskId: string) => void
+}) => {
   const style = COLUMN_STYLES[status]
 
   return (
-    <div
-      ref={setNodeRef}
-      className="flex flex-col bg-gray-50/80 dark:bg-gray-900/40 rounded-xl border border-gray-200 dark:border-gray-800 min-h-[400px]"
-    >
+    <div className="flex flex-col rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/40 min-h-[400px]">
       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className={cn('w-1.5 h-1.5 rounded-full', style.dot)} />
@@ -1010,37 +168,109 @@ const KanbanColumn = ({
           {tasks.length}
         </span>
       </div>
-      <SortableContext
-        items={tasks.map((t) => t.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="flex-1 p-2.5 space-y-2 overflow-y-auto">
-          {tasks.map((task) => (
-            <KanbanCard key={task.id} task={task} />
-          ))}
-          {tasks.length === 0 && (
-            <p className="text-xs text-gray-300 dark:text-slate-600 text-center py-10">
-              업무 없음
-            </p>
-          )}
-        </div>
-      </SortableContext>
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={cn(
+              'flex-1 p-2.5 space-y-2 overflow-y-auto transition-colors rounded-b-xl',
+              snapshot.isDraggingOver
+                ? 'bg-purple-50/60 dark:bg-purple-900/15'
+                : '',
+            )}
+          >
+            {tasks.map((task, index) => (
+              <Draggable key={task.id} draggableId={task.id} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    style={provided.draggableProps.style}
+                    className={cn(
+                      'bg-white dark:bg-gray-800/80 rounded-xl border border-gray-100 dark:border-gray-700/60 p-3.5 cursor-grab active:cursor-grabbing shadow-sm transition-shadow',
+                      snapshot.isDragging
+                        ? 'shadow-xl border-purple-200 dark:border-purple-700/60 rotate-1'
+                        : 'hover:shadow-md dark:hover:shadow-black/20',
+                    )}
+                    onClick={() => !snapshot.isDragging && onCardClick(task.id)}
+                  >
+                    <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate leading-snug">
+                      {task.company_name}
+                    </p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1.5">
+                      {formatCurrency(task.profit || 0)}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 truncate">
+                      {formatMarketingSummary(task)}
+                    </p>
+                    <p className="text-xs text-gray-300 dark:text-slate-600 mt-1">
+                      {formatDate(task.start_date)}
+                    </p>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+            {tasks.length === 0 && (
+              <p className="text-xs text-gray-300 dark:text-slate-600 text-center py-10">
+                업무 없음
+              </p>
+            )}
+          </div>
+        )}
+      </Droppable>
     </div>
   )
 }
 
 function TasksPage() {
-  const { mode, page, sortBy, sortDir, search, filterStatus } =
-    Route.useSearch()
+  const {
+    mode,
+    page,
+    sortBy: sortByParam,
+    sortDir: sortDirParam,
+    search: searchParam,
+    filterStatus: filterStatusParam,
+  } = Route.useSearch()
+  const sortBy = sortByParam ?? 'start_date'
+  const sortDir = sortDirParam ?? 'desc'
+  const search = searchParam ?? ''
+  const filterStatus = filterStatusParam ?? 'all'
+
   const router = useRouter()
   const navigate = useNavigate({ from: Route.fullPath })
+
+  const buildSearch = (params: {
+    mode: 'list' | 'board'
+    page: number
+    sortBy: string
+    sortDir: string
+    search: string
+    filterStatus: string
+  }) => ({
+    mode: params.mode,
+    page: params.page,
+    sortBy:
+      params.sortBy !== 'start_date' ? (params.sortBy as SortBy) : undefined,
+    sortDir:
+      params.sortDir !== 'desc'
+        ? (params.sortDir as 'asc' | 'desc')
+        : undefined,
+    search: params.search || undefined,
+    filterStatus:
+      params.filterStatus !== 'all'
+        ? (params.filterStatus as typeof filterStatusParam)
+        : undefined,
+  })
   const qc = useQueryClient()
 
   const { data: realTasks = [] } = useQuery({
     queryKey: ['tasks'],
     queryFn: fetchTasks,
   })
-  const tasks = [...MOCK_TASKS, ...realTasks]
+  const tasks = realTasks
 
   const deleteMutation = useMutation({
     mutationFn: deleteTask,
@@ -1055,78 +285,82 @@ function TasksPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       updateTaskStatus(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
-    onError: () => toast.error('상태 변경에 실패했습니다'),
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const prev = qc.getQueryData<Task[]>(['tasks'])
+      qc.setQueryData<Task[]>(['tasks'], (old) =>
+        old
+          ? old.map((t) =>
+              t.id === id ? { ...t, status: status as TaskStatus } : t,
+            )
+          : old,
+      )
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['tasks'], ctx.prev)
+      toast.error('상태 변경에 실패했습니다')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [searchInput, setSearchInput] = useState(search ?? '')
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  )
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const task = tasks.find((t) => t.id === event.active.id)
-    if (task) setActiveTask(task)
+  const handleSearch = () => {
+    navigate({
+      search: buildSearch({
+        mode,
+        page: 1,
+        sortBy,
+        sortDir,
+        search: searchInput,
+        filterStatus,
+      }),
+    })
   }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveTask(null)
-    const { active, over } = event
-    if (!over) return
-
-    const taskId = String(active.id)
-    let targetStatus: TaskStatus | null = null
-
-    const overId = String(over.id)
-    if (overId.startsWith('col-')) {
-      targetStatus = overId.replace('col-', '') as TaskStatus
-    } else {
-      const overTask = tasks.find((t) => t.id === overId)
-      if (overTask) targetStatus = overTask.status
-    }
-
-    if (!targetStatus) return
-    const task = tasks.find((t) => t.id === taskId)
-    if (task && task.status !== targetStatus) {
-      statusMutation.mutate({ id: taskId, status: targetStatus })
-    }
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return
+    const { draggableId, source, destination } = result
+    if (source.droppableId === destination.droppableId) return
+    const targetStatus = destination.droppableId as TaskStatus
+    statusMutation.mutate({ id: draggableId, status: targetStatus })
   }
 
   const handleSort = (col: SortBy) => {
     if (sortBy !== col) {
       navigate({
-        search: {
+        search: buildSearch({
           mode,
           page: 1,
           sortBy: col,
           sortDir: 'desc',
           search,
           filterStatus,
-        },
+        }),
       })
     } else if (sortDir === 'desc') {
       navigate({
-        search: {
+        search: buildSearch({
           mode,
           page: 1,
           sortBy: col,
           sortDir: 'asc',
           search,
           filterStatus,
-        },
+        }),
       })
     } else {
+      // reset to default (start_date desc → omitted from URL)
       navigate({
-        search: {
+        search: buildSearch({
           mode,
           page: 1,
-          sortBy: 'created_at',
+          sortBy: 'start_date',
           sortDir: 'desc',
           search,
           filterStatus,
-        },
+        }),
       })
     }
   }
@@ -1199,7 +433,14 @@ function TasksPage() {
                 type="button"
                 onClick={() =>
                   navigate({
-                    search: { mode: 'list', page: 1, search, filterStatus },
+                    search: buildSearch({
+                      mode: 'list',
+                      page: 1,
+                      sortBy,
+                      sortDir,
+                      search,
+                      filterStatus,
+                    }),
                   })
                 }
                 className={cn(
@@ -1216,7 +457,14 @@ function TasksPage() {
                 type="button"
                 onClick={() =>
                   navigate({
-                    search: { mode: 'board', page: 1, search, filterStatus },
+                    search: buildSearch({
+                      mode: 'board',
+                      page: 1,
+                      sortBy,
+                      sortDir,
+                      search,
+                      filterStatus,
+                    }),
                   })
                 }
                 className={cn(
@@ -1243,62 +491,84 @@ function TasksPage() {
 
         {/* Search + filter row */}
         <div className="flex items-center gap-2">
-          <div className="relative w-56">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-slate-500 pointer-events-none" />
-            <Input
-              value={search}
-              onChange={(e) =>
-                navigate({
-                  search: {
-                    mode,
-                    page: 1,
-                    sortBy,
-                    sortDir,
-                    search: e.target.value,
-                    filterStatus,
-                  },
-                })
-              }
-              placeholder="업체명 검색"
-              className="h-8 pl-8 text-xs rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 placeholder:text-gray-300 dark:placeholder:text-slate-600 focus-visible:ring-purple-500/30 focus-visible:border-purple-400"
-            />
+          <div className="flex items-center gap-1.5">
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-slate-500 pointer-events-none" />
+              <Input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="업체명 검색"
+                className="h-8 pl-8 pr-7 text-xs rounded-lg border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 placeholder:text-gray-300 dark:placeholder:text-slate-600 focus-visible:ring-purple-500/30 focus-visible:border-purple-400"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('')
+                    navigate({
+                      search: buildSearch({
+                        mode,
+                        page: 1,
+                        sortBy,
+                        sortDir,
+                        search: '',
+                        filterStatus,
+                      }),
+                    })
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 px-3 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={handleSearch}
+            >
+              검색
+            </Button>
           </div>
-          <div className="flex items-center gap-1">
-            {(
-              [
-                ['all', '전체'],
-                ['not_started', '시작 전'],
-                ['in_progress', '진행 중'],
-                ['done_settled', '정산완료'],
-                ['done_unsettled', '정산미완료'],
-              ] as const
-            ).map(([val, label]) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() =>
-                  navigate({
-                    search: {
-                      mode,
-                      page: 1,
-                      sortBy,
-                      sortDir,
-                      search,
-                      filterStatus: val,
-                    },
-                  })
-                }
-                className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium transition-colors',
-                  filterStatus === val
-                    ? 'bg-purple-600 text-white dark:bg-purple-700'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-700',
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <Select
+            value={filterStatus}
+            onValueChange={(val) =>
+              val &&
+              navigate({
+                search: buildSearch({
+                  mode,
+                  page: 1,
+                  sortBy,
+                  sortDir,
+                  search,
+                  filterStatus: val,
+                }),
+              })
+            }
+          >
+            <SelectTrigger className="h-8 w-32 text-xs border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200">
+              <SelectValue>
+                {(
+                  {
+                    all: '전체',
+                    not_started: '시작 전',
+                    in_progress: '진행 중',
+                    done_settled: '정산완료',
+                    done_unsettled: '정산미완료',
+                  } as Record<string, string>
+                )[filterStatus] ?? '전체'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent side="bottom" sideOffset={4}>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="not_started">시작 전</SelectItem>
+              <SelectItem value="in_progress">진행 중</SelectItem>
+              <SelectItem value="done_settled">정산완료</SelectItem>
+              <SelectItem value="done_unsettled">정산미완료</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -1524,17 +794,17 @@ function TasksPage() {
               variant="ghost"
               size="icon"
               disabled={page <= 1}
-              className="h-7 w-7 text-gray-500 dark:text-slate-400"
+              className="h-7 w-7 text-gray-500 dark:text-slate-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400"
               onClick={() =>
                 navigate({
-                  search: {
+                  search: buildSearch({
                     mode,
                     page: page - 1,
                     sortBy,
                     sortDir,
                     search,
                     filterStatus,
-                  },
+                  }),
                 })
               }
             >
@@ -1552,18 +822,18 @@ function TasksPage() {
                   'h-7 w-7 text-xs rounded-lg',
                   p === page
                     ? 'bg-purple-600 text-white hover:bg-purple-700'
-                    : 'text-gray-500 dark:text-slate-400',
+                    : 'text-gray-500 dark:text-slate-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400',
                 )}
                 onClick={() =>
                   navigate({
-                    search: {
+                    search: buildSearch({
                       mode,
                       page: p,
                       sortBy,
                       sortDir,
                       search,
                       filterStatus,
-                    },
+                    }),
                   })
                 }
               >
@@ -1574,17 +844,17 @@ function TasksPage() {
               variant="ghost"
               size="icon"
               disabled={page >= totalPages}
-              className="h-7 w-7 text-gray-500 dark:text-slate-400"
+              className="h-7 w-7 text-gray-500 dark:text-slate-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400"
               onClick={() =>
                 navigate({
-                  search: {
+                  search: buildSearch({
                     mode,
                     page: page + 1,
                     sortBy,
                     sortDir,
                     search,
                     filterStatus,
-                  },
+                  }),
                 })
               }
             >
@@ -1597,33 +867,23 @@ function TasksPage() {
       {/* Board Mode */}
       {mode === 'board' && (
         <div className="flex-1 min-h-0 overflow-auto">
-          <DndContext
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
+          <DragDropContext onDragEnd={handleDragEnd}>
             <div className="grid grid-cols-4 gap-3 h-full min-h-[500px]">
               {STATUS_ORDER.map((status) => (
                 <KanbanColumn
                   key={status}
                   status={status}
                   tasks={tasksByStatus[status]}
+                  onCardClick={(taskId) =>
+                    router.navigate({
+                      to: '/tasks/$taskId',
+                      params: { taskId },
+                    })
+                  }
                 />
               ))}
             </div>
-            <DragOverlay>
-              {activeTask && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl border border-purple-200 dark:border-purple-700 p-3.5 shadow-xl rotate-1 opacity-95">
-                  <p className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                    {activeTask.company_name}
-                  </p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                    {formatCurrency(activeTask.profit || 0)}
-                  </p>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
+          </DragDropContext>
         </div>
       )}
 

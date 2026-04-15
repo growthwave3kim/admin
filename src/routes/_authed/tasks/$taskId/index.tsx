@@ -45,6 +45,7 @@ function TaskDetailPage() {
   const router = useRouter()
   const qc = useQueryClient()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [endDateOpen, setEndDateOpen] = useState(false)
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', taskId],
@@ -116,14 +117,9 @@ function TaskDetailPage() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
-              <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                {task.company_name}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-                {formatDateTime(task.created_at)} 등록
-              </p>
-            </div>
+            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {task.company_name}
+            </p>
           </div>
           <div className="flex items-center gap-1.5">
             <Link to="/tasks/$taskId/edit" params={{ taskId }}>
@@ -209,7 +205,7 @@ function TaskDetailPage() {
               <SelectTrigger className="w-44 h-8 text-xs border-gray-200 dark:border-gray-700 bg-transparent">
                 <SelectValue>{TASK_STATUS_LABELS[task.status]}</SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="bottom" sideOffset={4}>
                 {Object.entries(TASK_STATUS_LABELS).map(([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
@@ -234,7 +230,7 @@ function TaskDetailPage() {
             <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
               종료일
             </span>
-            <Popover>
+            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
               <PopoverTrigger>
                 <button
                   type="button"
@@ -253,7 +249,10 @@ function TaskDetailPage() {
                 <Calendar
                   mode="single"
                   selected={task.end_date ? new Date(task.end_date) : undefined}
-                  onSelect={(d) => endDateMutation.mutate(d ?? null)}
+                  onSelect={(d) => {
+                    endDateMutation.mutate(d ?? null)
+                    setEndDateOpen(false)
+                  }}
                   locale={ko}
                   autoFocus
                 />
@@ -262,8 +261,8 @@ function TaskDetailPage() {
           </div>
 
           {/* Marketing */}
-          <div className="flex items-start gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0 pt-0.5">
+          <div className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
+            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
               마케팅 항목
             </span>
             <div className="flex flex-wrap gap-1.5">

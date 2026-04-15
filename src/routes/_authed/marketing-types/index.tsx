@@ -18,20 +18,11 @@ import {
 import type { MarketingType } from '@/features/tasks/types'
 import { cn } from '@/lib/utils'
 import {
-  DndContext,
-  type DragEndEvent,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  arrayMove,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+  DragDropContext,
+  Draggable,
+  type DropResult,
+  Droppable,
+} from '@hello-pangea/dnd'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -79,20 +70,6 @@ const SortableItem = ({
   onEditDone: () => void
 }) => {
   const qc = useQueryClient()
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: type.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.35 : 1,
-  }
 
   const editForm = useForm<NameForm>({
     resolver: zodResolver(nameSchema) as never,
@@ -111,105 +88,109 @@ const SortableItem = ({
   })
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        'group flex items-center gap-3 px-4 py-3 transition-colors',
-        editId !== type.id && 'hover:bg-gray-50 dark:hover:bg-gray-800/40',
-        isDragging && 'z-10 shadow-lg',
-      )}
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing touch-none outline-none"
-        tabIndex={-1}
-      >
-        <GripVertical className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 shrink-0" />
-      </button>
-
-      <span
-        className={cn(
-          'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0',
-          ACCENT_COLORS[index % ACCENT_COLORS.length],
-        )}
-      >
-        {index + 1}
-      </span>
-
-      {editId === type.id ? (
-        <Form {...editForm}>
-          <form
-            onSubmit={editForm.handleSubmit((d) =>
-              editMutation.mutate(d as NameForm),
-            )}
-            className="flex items-start gap-2 flex-1"
+    <Draggable draggableId={type.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          style={provided.draggableProps.style}
+          className={cn(
+            'group flex items-center gap-3 px-4 py-3 transition-colors',
+            editId !== type.id && 'hover:bg-gray-50 dark:hover:bg-gray-800/40',
+            snapshot.isDragging && 'z-10 shadow-lg bg-white dark:bg-gray-900',
+          )}
+        >
+          <button
+            type="button"
+            {...provided.dragHandleProps}
+            className="cursor-grab active:cursor-grabbing touch-none outline-none"
+            tabIndex={-1}
           >
-            <FormField
-              control={editForm.control as never}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <Input
-                    className={inputCls}
-                    placeholder="유형명"
-                    autoFocus
-                    {...field}
-                  />
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0"
-              disabled={editMutation.isPending}
-            >
-              <Check className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-slate-500 shrink-0"
-              onClick={onEditDone}
-            >
-              <X className="w-3.5 h-3.5" />
-            </Button>
-          </form>
-        </Form>
-      ) : (
-        <>
-          <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-            {type.name}
+            <GripVertical className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 shrink-0" />
+          </button>
+
+          <span
+            className={cn(
+              'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0',
+              ACCENT_COLORS[index % ACCENT_COLORS.length],
+            )}
+          >
+            {index + 1}
           </span>
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-gray-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400"
-              onClick={() => onEdit(type.id)}
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
-              onClick={() => onDelete(type)}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        </>
+
+          {editId === type.id ? (
+            <Form {...editForm}>
+              <form
+                onSubmit={editForm.handleSubmit((d) =>
+                  editMutation.mutate(d as NameForm),
+                )}
+                className="flex items-start gap-2 flex-1"
+              >
+                <FormField
+                  control={editForm.control as never}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Input
+                        className={inputCls}
+                        placeholder="유형명"
+                        autoFocus
+                        {...field}
+                      />
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0"
+                  disabled={editMutation.isPending}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-slate-500 shrink-0"
+                  onClick={onEditDone}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <>
+              <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+                {type.name}
+              </span>
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-gray-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400"
+                  onClick={() => onEdit(type.id)}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
+                  onClick={() => onDelete(type)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       )}
-    </div>
+    </Draggable>
   )
 }
 
@@ -223,10 +204,6 @@ function MarketingTypesPage() {
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
   })
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  )
 
   const addForm = useForm<NameForm>({
     resolver: zodResolver(nameSchema) as never,
@@ -255,13 +232,13 @@ function MarketingTypesPage() {
     onError: () => toast.error('삭제에 실패했습니다'),
   })
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination || result.source.index === result.destination.index)
+      return
 
-    const oldIndex = types.findIndex((t) => t.id === active.id)
-    const newIndex = types.findIndex((t) => t.id === over.id)
-    const reordered = arrayMove(types, oldIndex, newIndex)
+    const reordered = Array.from(types)
+    const [removed] = reordered.splice(result.source.index, 1)
+    reordered.splice(result.destination.index, 0, removed)
 
     qc.setQueryData(['marketing-types'], reordered)
 
@@ -358,33 +335,33 @@ function MarketingTypesPage() {
               <p className="text-sm">등록된 마케팅 유형이 없습니다</p>
             </div>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={types.map((t) => t.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {types.map((type, index) => (
-                    <SortableItem
-                      key={type.id}
-                      type={type}
-                      index={index}
-                      editId={editId}
-                      onEdit={(id) => {
-                        setEditId(id)
-                        setIsAdding(false)
-                      }}
-                      onDelete={setDeleteTarget}
-                      onEditDone={() => setEditId(null)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="marketing-types">
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="divide-y divide-gray-100 dark:divide-gray-800"
+                  >
+                    {types.map((type, index) => (
+                      <SortableItem
+                        key={type.id}
+                        type={type}
+                        index={index}
+                        editId={editId}
+                        onEdit={(id) => {
+                          setEditId(id)
+                          setIsAdding(false)
+                        }}
+                        onDelete={setDeleteTarget}
+                        onEditDone={() => setEditId(null)}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           )}
         </div>
 
