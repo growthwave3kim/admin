@@ -196,7 +196,7 @@ function DashboardPage() {
           <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
             대시보드
           </span>
-          <span className="text-xs text-gray-400 dark:text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             {format(new Date(), 'yyyy년 M월 d일', { locale: ko })}
           </span>
         </div>
@@ -212,7 +212,7 @@ function DashboardPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-2">
-                      <p className="text-xs text-gray-400 dark:text-gray-500 font-medium">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {label}
                       </p>
                       <p
@@ -237,7 +237,7 @@ function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <Card className="col-span-2 border-gray-200 dark:border-gray-800 shadow-none">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+              <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 월별 수익 추이 · 최근 6개월
               </CardTitle>
             </CardHeader>
@@ -315,7 +315,7 @@ function DashboardPage() {
 
           <Card className="border-gray-200 dark:border-gray-800 shadow-none">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+              <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 상태별 분포
               </CardTitle>
             </CardHeader>
@@ -360,7 +360,7 @@ function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <Card className="border-gray-200 dark:border-gray-800 shadow-none">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+              <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 마케팅 유형별 사용량
               </CardTitle>
             </CardHeader>
@@ -418,7 +418,7 @@ function DashboardPage() {
 
           <Card className="col-span-2 border-gray-200 dark:border-gray-800 shadow-none">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+              <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 최근 업무
               </CardTitle>
             </CardHeader>
@@ -438,7 +438,7 @@ function DashboardPage() {
                         <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                           {task.company_name}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                           {formatDate(task.start_date)}
                         </p>
                       </div>

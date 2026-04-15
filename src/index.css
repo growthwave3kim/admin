@@ -266,3 +266,25 @@ code {
 .recharts-surface {
   outline: none !important;
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2d3748;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4a5568;
+}

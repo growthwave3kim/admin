@@ -42,7 +42,15 @@ import {
   useNavigate,
   useRouter,
 } from '@tanstack/react-router'
-import { Columns, List, Pencil, Plus, Trash2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Columns,
+  List,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -1102,40 +1110,52 @@ function TasksPage() {
 
       {/* List Mode */}
       {mode === 'list' && (
-        <div className="flex-1 min-h-0 flex flex-col rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           {/* Scrollable table */}
           <div className="flex-1 overflow-auto">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
+              <colgroup>
+                <col className="w-44" />
+                <col className="w-40" />
+                <col className="w-32" />
+                <col className="w-28" />
+                <col className="w-24" />
+                <col className="w-24" />
+                <col className="w-36" />
+                <col className="w-24" />
+                <col className="w-24" />
+                <col className="w-16" />
+              </colgroup>
               <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
                 <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     업체명
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     마케팅
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     비고
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     받은금액
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     실행비
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     수익
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     상태
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     시작일
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                     종료일
                   </th>
-                  <th className="px-4 py-3 w-16" />
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -1143,7 +1163,7 @@ function TasksPage() {
                   <tr>
                     <td
                       colSpan={10}
-                      className="text-center py-20 text-xs text-gray-300 dark:text-slate-600"
+                      className="text-center py-20 text-xs text-gray-400 dark:text-slate-500"
                     >
                       등록된 업무가 없습니다
                     </td>
@@ -1167,24 +1187,24 @@ function TasksPage() {
                       })
                     }
                   >
-                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 text-sm whitespace-nowrap">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
                       {task.company_name}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500 max-w-[160px] truncate">
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 truncate">
                       {formatMarketingSummary(task)}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500 max-w-[140px] truncate">
-                      {task.note || '—'}
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 truncate">
+                      {task.note || '-'}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
                       {formatCurrency(task.received_amount)}
                     </td>
-                    <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
                       {formatCurrency(task.execution_cost)}
                     </td>
                     <td
                       className={cn(
-                        'px-4 py-3 text-right text-xs font-semibold tabular-nums whitespace-nowrap',
+                        'px-4 py-3 text-right text-xs font-semibold tabular-nums truncate',
                         (task.profit || 0) >= 0
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : 'text-red-500 dark:text-red-400',
@@ -1195,10 +1215,10 @@ function TasksPage() {
                     <td className="px-4 py-3 text-center">
                       <TaskStatusBadge status={task.status} />
                     </td>
-                    <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-slate-400 tabular-nums truncate">
                       {formatDate(task.start_date)}
                     </td>
-                    <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+                    <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-slate-400 tabular-nums truncate">
                       {formatDate(task.end_date)}
                     </td>
                     <td className="px-4 py-3">
@@ -1239,12 +1259,12 @@ function TasksPage() {
           <div className="shrink-0 flex items-center justify-center gap-1 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               disabled={page <= 1}
-              className="h-7 px-2.5 text-xs text-gray-500 dark:text-slate-400"
+              className="h-7 w-7 text-gray-500 dark:text-slate-400"
               onClick={() => navigate({ search: { mode, page: page - 1 } })}
             >
-              이전
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             {Array.from(
               { length: Math.max(totalPages, 1) },
@@ -1267,12 +1287,12 @@ function TasksPage() {
             ))}
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               disabled={page >= totalPages}
-              className="h-7 px-2.5 text-xs text-gray-500 dark:text-slate-400"
+              className="h-7 w-7 text-gray-500 dark:text-slate-400"
               onClick={() => navigate({ search: { mode, page: page + 1 } })}
             >
-              다음
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
