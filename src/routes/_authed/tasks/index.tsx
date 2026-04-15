@@ -1080,17 +1080,14 @@ function TasksPage() {
   }
 
   const handleSort = (col: SortBy) => {
-    if (sortBy === col) {
-      navigate({
-        search: {
-          mode,
-          page: 1,
-          sortBy: col,
-          sortDir: sortDir === 'asc' ? 'desc' : 'asc',
-        },
-      })
-    } else {
+    if (sortBy !== col) {
+      navigate({ search: { mode, page: 1, sortBy: col, sortDir: 'desc' } })
+    } else if (sortDir === 'desc') {
       navigate({ search: { mode, page: 1, sortBy: col, sortDir: 'asc' } })
+    } else {
+      navigate({
+        search: { mode, page: 1, sortBy: undefined, sortDir: 'desc' },
+      })
     }
   }
 
@@ -1298,7 +1295,6 @@ function TasksPage() {
                       />
                     </div>
                   </th>
-                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
