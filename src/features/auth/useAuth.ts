@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Session } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
 
-export function useAuth() {
+export const useAuth = () => {
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
-    })
+    const init = async () => {
+      const { data } = await supabase.auth.getSession()
+      setSession(data.session)
+      setIsLoading(false)
+    }
+    init()
 
     const {
       data: { subscription },
@@ -21,13 +23,10 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  return { session, loading }
+  return { session, isLoading }
 }
 
-export async function signIn(email: string, password: string) {
-  return supabase.auth.signInWithPassword({ email, password })
-}
+export const signIn = async (email: string, password: string) =>
+  supabase.auth.signInWithPassword({ email, password })
 
-export async function signOut() {
-  return supabase.auth.signOut()
-}
+export const signOut = async () => supabase.auth.signOut()

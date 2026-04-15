@@ -1,4 +1,8 @@
-export type TaskStatus = 'not_started' | 'in_progress' | 'done_settled' | 'done_unsettled'
+export type TaskStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'done_settled'
+  | 'done_unsettled'
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   not_started: '시작 전',
@@ -14,14 +18,14 @@ export const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
   done_unsettled: 'bg-amber-100 text-amber-700',
 }
 
-export interface MarketingType {
+export type MarketingType = {
   id: string
   name: string
   sort_order: number
   created_at: string
 }
 
-export interface TaskMarketing {
+export type TaskMarketing = {
   id: string
   task_id: string
   marketing_type_id: string
@@ -29,7 +33,7 @@ export interface TaskMarketing {
   marketing_types?: MarketingType
 }
 
-export interface Task {
+export type Task = {
   id: string
   company_name: string
   received_amount: number
@@ -44,7 +48,7 @@ export interface Task {
   task_marketings?: TaskMarketing[]
 }
 
-export interface TaskFormData {
+export type TaskFormData = {
   company_name: string
   received_amount: number
   execution_cost: number

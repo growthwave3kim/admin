@@ -1,20 +1,7 @@
-import { createFileRoute, useRouter, Link } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
-import { CalendarIcon, ArrowLeft, Pencil, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -23,13 +10,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { fetchTask, updateTaskStatus, updateTask, deleteTask } from '@/features/tasks/queries'
-import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
-import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  deleteTask,
+  fetchTask,
+  updateTask,
+  updateTaskStatus,
+} from '@/features/tasks/queries'
+import { TASK_STATUS_LABELS } from '@/features/tasks/types'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { ArrowLeft, CalendarIcon, Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/tasks/$taskId/')({
   component: TaskDetailPage,
@@ -97,10 +105,16 @@ function TaskDetailPage() {
     <div className="max-w-2xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.navigate({ to: '/tasks' })}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.navigate({ to: '/tasks' })}
+          >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">{task.company_name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {task.company_name}
+          </h1>
         </div>
         <div className="flex gap-2">
           <Link to="/tasks/$taskId/edit" params={{ taskId }}>
@@ -130,7 +144,7 @@ function TaskDetailPage() {
             <span className="text-sm text-gray-500 w-32">진행 상태</span>
             <Select
               value={task.status}
-              onValueChange={(v) => statusMutation.mutate(v)}
+              onValueChange={(v) => v && statusMutation.mutate(v)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue />
@@ -147,22 +161,26 @@ function TaskDetailPage() {
 
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-500 w-32">시작일</span>
-            <span className="text-sm font-medium">{formatDate(task.start_date)}</span>
+            <span className="text-sm font-medium">
+              {formatDate(task.start_date)}
+            </span>
           </div>
 
           {/* End date (inline edit) */}
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-500 w-32">종료일</span>
             <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn('gap-2', !task.end_date && 'text-muted-foreground')}
+              <PopoverTrigger>
+                <button
+                  type="button"
+                  className={cn(
+                    'inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-gray-200 hover:bg-gray-50 transition-colors',
+                    !task.end_date && 'text-gray-400',
+                  )}
                 >
                   <CalendarIcon className="w-3.5 h-3.5" />
                   {task.end_date ? formatDate(task.end_date) : '날짜 선택'}
-                </Button>
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
@@ -178,12 +196,16 @@ function TaskDetailPage() {
 
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-500 w-32">받은 금액</span>
-            <span className="text-sm font-medium">{formatCurrency(task.received_amount)}</span>
+            <span className="text-sm font-medium">
+              {formatCurrency(task.received_amount)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <span className="text-sm text-gray-500 w-32">실행비</span>
-            <span className="text-sm font-medium">{formatCurrency(task.execution_cost)}</span>
+            <span className="text-sm font-medium">
+              {formatCurrency(task.execution_cost)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
@@ -217,13 +239,25 @@ function TaskDetailPage() {
           {task.note && (
             <div className="py-2">
               <span className="text-sm text-gray-500">비고</span>
-              <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{task.note}</p>
+              <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">
+                {task.note}
+              </p>
             </div>
           )}
 
           <div className="flex items-center justify-between py-2 text-xs text-gray-400">
-            <span>등록: {format(new Date(task.created_at), 'yyyy-MM-dd HH:mm', { locale: ko })}</span>
-            <span>수정: {format(new Date(task.updated_at), 'yyyy-MM-dd HH:mm', { locale: ko })}</span>
+            <span>
+              등록:{' '}
+              {format(new Date(task.created_at), 'yyyy-MM-dd HH:mm', {
+                locale: ko,
+              })}
+            </span>
+            <span>
+              수정:{' '}
+              {format(new Date(task.updated_at), 'yyyy-MM-dd HH:mm', {
+                locale: ko,
+              })}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -233,7 +267,8 @@ function TaskDetailPage() {
           <DialogHeader>
             <DialogTitle>업무 삭제</DialogTitle>
             <DialogDescription>
-              "{task.company_name}" 업무를 삭제하면 복구할 수 없습니다. 삭제하시겠습니까?
+              "{task.company_name}" 업무를 삭제하면 복구할 수 없습니다.
+              삭제하시겠습니까?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

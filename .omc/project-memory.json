@@ -1,0 +1,384 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776229561401,
+  "projectRoot": "/Users/minishtech/workspace/dohyun/growthwave-admin",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.2.4",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "8.0.4",
+        "category": "build"
+      }
+    ],
+    "packageManager": "pnpm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "pnpm build",
+    "testCommand": null,
+    "lintCommand": "pnpm lint",
+    "devCommand": "pnpm dev",
+    "scripts": {
+      "dev": "vite",
+      "build": "tsc -b && vite build",
+      "lint": "biome lint ./src",
+      "format": "biome format ./src --write",
+      "check": "biome check ./src",
+      "preview": "vite preview"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "feature-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 3,
+      "lastAccessed": 1776229561378,
+      "keyFiles": [
+        "favicon.svg",
+        "icons.svg",
+        "index.html"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 2,
+      "lastAccessed": 1776229561378,
+      "keyFiles": [
+        "favicon.svg",
+        "icons.svg"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 5,
+      "lastAccessed": 1776229561379,
+      "keyFiles": [
+        "App.css",
+        "App.tsx",
+        "index.css",
+        "main.tsx",
+        "routeTree.gen.ts"
+      ]
+    },
+    "supabase": {
+      "path": "supabase",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1776229561383,
+      "keyFiles": []
+    },
+    "dist/assets": {
+      "path": "dist/assets",
+      "purpose": "Static assets",
+      "fileCount": 48,
+      "lastAccessed": 1776229561383,
+      "keyFiles": [
+        "Matches-BYHt138R.js",
+        "QueryClientProvider-BSn5zFWf.js",
+        "TaskForm-DS0FwwL_.js"
+      ]
+    },
+    "src/assets": {
+      "path": "src/assets",
+      "purpose": "Static assets",
+      "fileCount": 3,
+      "lastAccessed": 1776229561384,
+      "keyFiles": [
+        "hero.png",
+        "react.svg",
+        "vite.svg"
+      ]
+    },
+    "src/components": {
+      "path": "src/components",
+      "purpose": "UI components",
+      "fileCount": 0,
+      "lastAccessed": 1776229561384,
+      "keyFiles": []
+    },
+    "src/lib": {
+      "path": "src/lib",
+      "purpose": "Library code",
+      "fileCount": 3,
+      "lastAccessed": 1776229561385,
+      "keyFiles": [
+        "queryClient.ts",
+        "supabase.ts",
+        "utils.ts"
+      ]
+    },
+    "src/routes": {
+      "path": "src/routes",
+      "purpose": "Route handlers",
+      "fileCount": 4,
+      "lastAccessed": 1776229561386,
+      "keyFiles": [
+        "__root.tsx",
+        "_authed.tsx",
+        "index.tsx"
+      ]
+    },
+    "supabase/migrations": {
+      "path": "supabase/migrations",
+      "purpose": "Database migrations",
+      "fileCount": 1,
+      "lastAccessed": 1776229561386,
+      "keyFiles": [
+        "001_initial.sql"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src/features/tasks/TaskForm.tsx",
+      "accessCount": 24,
+      "lastAccessed": 1776233276798,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/login.tsx",
+      "accessCount": 20,
+      "lastAccessed": 1776233793001,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/index.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1776233288634,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/marketing-types/index.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1776234066418,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/dashboard.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1776233250108,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 11,
+      "lastAccessed": 1776231009214,
+      "type": "directory"
+    },
+    {
+      "path": "src/components/layout/LNB.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1776233224589,
+      "type": "file"
+    },
+    {
+      "path": "src/features/tasks/types.ts",
+      "accessCount": 5,
+      "lastAccessed": 1776233195385,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "accessCount": 5,
+      "lastAccessed": 1776233198010,
+      "type": "file"
+    },
+    {
+      "path": "src/components/layout/Header.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1776233216049,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/__root.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776233185958,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776234013127,
+      "type": "file"
+    },
+    {
+      "path": "src/index.css",
+      "accessCount": 3,
+      "lastAccessed": 1776230918432,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/useTheme.ts",
+      "accessCount": 3,
+      "lastAccessed": 1776233201384,
+      "type": "file"
+    },
+    {
+      "path": "src/features/tasks/TaskStatusBadge.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776233210562,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/supabase.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776229982596,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/new.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776231031459,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 2,
+      "lastAccessed": 1776231657025,
+      "type": "file"
+    },
+    {
+      "path": "biome.json",
+      "accessCount": 2,
+      "lastAccessed": 1776231730277,
+      "type": "file"
+    },
+    {
+      "path": "src/main.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776231754683,
+      "type": "file"
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776232238695,
+      "type": "file"
+    },
+    {
+      "path": ".env.local",
+      "accessCount": 2,
+      "lastAccessed": 1776232348497,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/001_initial.sql",
+      "accessCount": 2,
+      "lastAccessed": 1776232400714,
+      "type": "file"
+    },
+    {
+      "path": "netlify.toml",
+      "accessCount": 2,
+      "lastAccessed": 1776232865604,
+      "type": "file"
+    },
+    {
+      "path": "src/features/auth/useAuth.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776233208364,
+      "type": "file"
+    },
+    {
+      "path": "src/App.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776229628335,
+      "type": "file"
+    },
+    {
+      "path": "vite.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776229630444,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.app.json",
+      "accessCount": 1,
+      "lastAccessed": 1776229630668,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/index.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776229701010,
+      "type": "file"
+    },
+    {
+      "path": "src/components/ui/form.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776232201033,
+      "type": "file"
+    },
+    {
+      "path": "src/features/marketing-types/queries.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776232329264,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/$taskId/index.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776232492135,
+      "type": "file"
+    },
+    {
+      "path": "src/components/ui/popover.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776232756548,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/$taskId/edit.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776232814937,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

@@ -1,7 +1,7 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
-import { supabase } from '@/lib/supabase'
-import { LNB } from '@/components/layout/LNB'
 import { Header } from '@/components/layout/Header'
+import { LNB } from '@/components/layout/LNB'
+import { supabase } from '@/lib/supabase'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authed')({
   beforeLoad: async ({ location }) => {
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_authed')({
 
 function AuthedLayout() {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gray-50">
+    <div className="flex h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950">
       <LNB />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />

@@ -67,9 +67,12 @@ export async function updateTask(id: string, formData: Partial<TaskFormData>) {
   const { marketings, start_date, end_date, ...taskData } = formData
 
   const updatePayload: Record<string, unknown> = { ...taskData }
-  if (start_date) updatePayload.start_date = start_date.toISOString().split('T')[0]
+  if (start_date)
+    updatePayload.start_date = start_date.toISOString().split('T')[0]
   if (end_date !== undefined)
-    updatePayload.end_date = end_date ? end_date.toISOString().split('T')[0] : null
+    updatePayload.end_date = end_date
+      ? end_date.toISOString().split('T')[0]
+      : null
 
   const { data: task, error } = await supabase
     .from('tasks')

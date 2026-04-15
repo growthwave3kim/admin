@@ -8,12 +8,22 @@ create table if not exists marketing_types (
 
 -- Seed initial marketing types
 insert into marketing_types (name, sort_order) values
-  ('블로그 기자단', 1),
-  ('카페 바이럴', 2),
-  ('인스타그램', 3),
-  ('유튜브', 4),
-  ('체험단', 5),
-  ('배포', 6)
+  ('카페 바이럴', 1),
+  ('블로그 기자단', 2),
+  ('블로그 체험단', 3),
+  ('인스타그램 바이럴', 4),
+  ('유튜브 협찬', 5),
+  ('유튜브 채널 운영', 6),
+  ('틱톡 바이럴', 7),
+  ('네이버 플레이스 관리', 8),
+  ('네이버 키워드 광고', 9),
+  ('메타 광고', 10),
+  ('네이버 쇼핑 최적화', 11),
+  ('커뮤니티 바이럴', 12),
+  ('문자 마케팅 (SMS)', 13),
+  ('포털 뉴스 기사', 14),
+  ('온라인 PR', 15),
+  ('배포', 16)
 on conflict do nothing;
 
 -- Task status enum

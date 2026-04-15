@@ -1,13 +1,13 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TaskForm } from '@/features/tasks/TaskForm'
-import { fetchTask, updateTask } from '@/features/tasks/queries'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
+import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
+import { fetchTask, updateTask } from '@/features/tasks/queries'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/tasks/$taskId/edit')({
   component: EditTaskPage,
@@ -72,7 +72,9 @@ function EditTaskPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.navigate({ to: '/tasks/$taskId', params: { taskId } })}
+          onClick={() =>
+            router.navigate({ to: '/tasks/$taskId', params: { taskId } })
+          }
         >
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -87,7 +89,9 @@ function EditTaskPage() {
             defaultValues={defaultValues}
             marketingTypes={marketingTypes}
             onSubmit={handleSubmit}
-            onCancel={() => router.navigate({ to: '/tasks/$taskId', params: { taskId } })}
+            onCancel={() =>
+              router.navigate({ to: '/tasks/$taskId', params: { taskId } })
+            }
             showEndDate={true}
             isLoading={mutation.isPending}
             submitLabel="저장"

@@ -1,13 +1,12 @@
-import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TaskForm } from '@/features/tasks/TaskForm'
-import { createTask } from '@/features/tasks/queries'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
+import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
+import { createTask } from '@/features/tasks/queries'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/tasks/new')({
   component: NewTaskPage,
@@ -43,32 +42,34 @@ function NewTaskPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
+    <div className="max-w-2xl mx-auto space-y-5 px-1">
+      {/* Header */}
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
+          className="h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
           onClick={() => router.navigate({ to: '/tasks' })}
         >
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900">새 업무 등록</h1>
+        <div className="flex items-baseline gap-2">
+          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
+            새 업무 등록
+          </span>
+        </div>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>업무 정보</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <TaskForm
-            marketingTypes={marketingTypes}
-            onSubmit={handleSubmit}
-            onCancel={() => router.navigate({ to: '/tasks' })}
-            showEndDate={false}
-            isLoading={mutation.isPending}
-            submitLabel="등록"
-          />
-        </CardContent>
-      </Card>
+
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+        <TaskForm
+          marketingTypes={marketingTypes}
+          onSubmit={handleSubmit}
+          onCancel={() => router.navigate({ to: '/tasks' })}
+          showEndDate={false}
+          isLoading={mutation.isPending}
+          submitLabel="등록"
+        />
+      </div>
     </div>
   )
 }
