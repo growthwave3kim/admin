@@ -31,8 +31,8 @@ export const Route = createFileRoute('/login')({
 function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(
+  const [isShowPassword, setIsShowPassword] = useState(false)
+  const [isRememberMe, setIsRememberMe] = useState(
     () => !!localStorage.getItem(SAVED_ID_KEY),
   )
 
@@ -45,8 +45,8 @@ function LoginPage() {
   })
 
   useEffect(() => {
-    if (!rememberMe) localStorage.removeItem(SAVED_ID_KEY)
-  }, [rememberMe])
+    if (!isRememberMe) localStorage.removeItem(SAVED_ID_KEY)
+  }, [isRememberMe])
 
   const handleSubmit = async (data: LoginForm) => {
     setIsLoading(true)
@@ -61,7 +61,7 @@ function LoginPage() {
       return
     }
 
-    if (rememberMe) localStorage.setItem(SAVED_ID_KEY, data.id)
+    if (isRememberMe) localStorage.setItem(SAVED_ID_KEY, data.id)
     else localStorage.removeItem(SAVED_ID_KEY)
 
     router.navigate({ to: '/dashboard' })
@@ -72,7 +72,7 @@ function LoginPage() {
       {/* Left panel — branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0f] flex-col items-center justify-center p-12">
         {/* Ambient blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/20 blur-[120px] pointer-events-none" />
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-white/5 blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-violet-500/15 blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-indigo-600/10 blur-[80px] pointer-events-none" />
 
@@ -91,7 +91,7 @@ function LoginPage() {
           <img
             src="/logo.png"
             alt="GrowthWave"
-            className="h-16 w-auto object-contain brightness-0 invert drop-shadow-[0_0_24px_rgba(168,85,247,0.5)]"
+            className="h-16 w-auto object-contain brightness-0 invert drop-shadow-[0_0_24px_rgba(255,255,255,0.2)]"
           />
           <div className="space-y-3">
             <h1 className="text-4xl font-semibold tracking-tight text-white">
@@ -144,7 +144,7 @@ function LoginPage() {
                 id="id"
                 placeholder="아이디를 입력하세요"
                 autoComplete="username"
-                className="h-11 rounded-xl border-gray-200 bg-gray-50 px-4 text-sm placeholder:text-gray-300 focus-visible:ring-purple-500/40 focus-visible:border-purple-400 transition"
+                className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:ring-gray-400/40 focus-visible:border-gray-500 transition"
                 {...form.register('id')}
               />
               {form.formState.errors.id && (
@@ -164,19 +164,19 @@ function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={isShowPassword ? 'text' : 'password'}
                   placeholder="비밀번호를 입력하세요"
                   autoComplete="current-password"
-                  className="h-11 rounded-xl border-gray-200 bg-gray-50 px-4 pr-11 text-sm placeholder:text-gray-300 focus-visible:ring-purple-500/40 focus-visible:border-purple-400 transition"
+                  className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:ring-gray-400/40 focus-visible:border-gray-500 transition"
                   {...form.register('password')}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
+                  onClick={() => setIsShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                 >
-                  {showPassword ? (
+                  {isShowPassword ? (
                     <EyeOff className="w-4 h-4" />
                   ) : (
                     <Eye className="w-4 h-4" />
@@ -192,13 +192,13 @@ function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setRememberMe((v) => !v)}
+              onClick={() => setIsRememberMe((v) => !v)}
               className="flex items-center gap-2 group w-fit"
             >
               <span
-                className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${rememberMe ? 'bg-purple-600 border-purple-600' : 'bg-white border-gray-300'}`}
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isRememberMe ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'}`}
               >
-                {rememberMe && (
+                {isRememberMe && (
                   <svg
                     className="w-2.5 h-2.5 text-white"
                     viewBox="0 0 10 8"
@@ -223,7 +223,7 @@ function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] active:bg-[#5b21b6] text-white text-sm font-medium shadow-lg shadow-purple-500/25 transition-all duration-150 disabled:opacity-60"
+              className="w-full h-11 rounded-xl bg-gray-900 hover:bg-gray-800 active:bg-gray-700 text-white text-sm font-medium shadow-lg transition-all duration-150 disabled:opacity-60"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">

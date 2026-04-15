@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
@@ -6,6 +7,7 @@ import { fetchTask, updateTask } from '@/features/tasks/queries'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/tasks/$taskId/edit')({
@@ -16,6 +18,7 @@ function EditTaskPage() {
   const { taskId } = Route.useParams()
   const router = useRouter()
   const qc = useQueryClient()
+  const [pendingData, setPendingData] = useState<TaskFormValues | null>(null)
 
   const { data: task, isLoading: taskLoading } = useQuery({
     queryKey: ['task', taskId],
@@ -33,6 +36,7 @@ function EditTaskPage() {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
       toast.success('업무가 수정되었습니다')
+      setPendingData(null)
       router.navigate({ to: '/tasks/$taskId', params: { taskId } })
     },
     onError: () => toast.error('수정에 실패했습니다'),
@@ -41,7 +45,7 @@ function EditTaskPage() {
   if (taskLoading || !task) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
       </div>
     )
   }
@@ -61,8 +65,13 @@ function EditTaskPage() {
       })) ?? [],
   }
 
-  async function handleSubmit(data: TaskFormValues) {
-    await mutation.mutateAsync(data)
+  const handleSubmit = async (data: TaskFormValues) => {
+    setPendingData(data)
+  }
+
+  const handleConfirm = () => {
+    if (!pendingData) return
+    mutation.mutate(pendingData)
   }
 
   return (
@@ -84,7 +93,7 @@ function EditTaskPage() {
             <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
               업무 수정
             </span>
-            <span className="text-xs text-gray-400 dark:text-slate-500">
+            <span className="text-xs text-gray-400 dark:text-gray-400">
               {task.company_name}
             </span>
           </div>
@@ -104,6 +113,16 @@ function EditTaskPage() {
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingData}
+        onOpenChange={(open) => !open && setPendingData(null)}
+        title="업무 수정"
+        description="변경사항을 저장하시겠습니까?"
+        confirmLabel="저장"
+        isPending={mutation.isPending}
+        onConfirm={handleConfirm}
+      />
     </div>
   )
 }

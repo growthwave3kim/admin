@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase'
+import dayjs from 'dayjs'
 import type { Task, TaskFormData } from './types'
 
-export async function fetchTasks() {
+export const fetchTasks = async () => {
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -19,7 +20,7 @@ export async function fetchTasks() {
   return data as Task[]
 }
 
-export async function fetchTask(id: string) {
+export const fetchTask = async (id: string) => {
   const { data, error } = await supabase
     .from('tasks')
     .select(`
@@ -38,15 +39,15 @@ export async function fetchTask(id: string) {
   return data as Task
 }
 
-export async function createTask(formData: TaskFormData) {
+export const createTask = async (formData: TaskFormData) => {
   const { marketings, start_date, end_date, ...taskData } = formData
 
   const { data: task, error } = await supabase
     .from('tasks')
     .insert({
       ...taskData,
-      start_date: start_date.toISOString().split('T')[0],
-      end_date: end_date ? end_date.toISOString().split('T')[0] : null,
+      start_date: dayjs(start_date).format('YYYY-MM-DD'),
+      end_date: end_date ? dayjs(end_date).format('YYYY-MM-DD') : null,
     })
     .select()
     .single()
@@ -63,15 +64,18 @@ export async function createTask(formData: TaskFormData) {
   return task
 }
 
-export async function updateTask(id: string, formData: Partial<TaskFormData>) {
+export const updateTask = async (
+  id: string,
+  formData: Partial<TaskFormData>,
+) => {
   const { marketings, start_date, end_date, ...taskData } = formData
 
   const updatePayload: Record<string, unknown> = { ...taskData }
   if (start_date)
-    updatePayload.start_date = start_date.toISOString().split('T')[0]
+    updatePayload.start_date = dayjs(start_date).format('YYYY-MM-DD')
   if (end_date !== undefined)
     updatePayload.end_date = end_date
-      ? end_date.toISOString().split('T')[0]
+      ? dayjs(end_date).format('YYYY-MM-DD')
       : null
 
   const { data: task, error } = await supabase
@@ -96,12 +100,12 @@ export async function updateTask(id: string, formData: Partial<TaskFormData>) {
   return task
 }
 
-export async function updateTaskStatus(id: string, status: string) {
+export const updateTaskStatus = async (id: string, status: string) => {
   const { error } = await supabase.from('tasks').update({ status }).eq('id', id)
   if (error) throw error
 }
 
-export async function deleteTask(id: string) {
+export const deleteTask = async (id: string) => {
   const { error } = await supabase.from('tasks').delete().eq('id', id)
   if (error) throw error
 }

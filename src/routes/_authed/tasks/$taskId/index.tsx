@@ -1,13 +1,6 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   Popover,
   PopoverContent,
@@ -44,8 +37,8 @@ function TaskDetailPage() {
   const { taskId } = Route.useParams()
   const router = useRouter()
   const qc = useQueryClient()
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [endDateOpen, setEndDateOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isEndDateOpen, setIsEndDateOpen] = useState(false)
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', taskId],
@@ -86,7 +79,7 @@ function TaskDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
       </div>
     )
   }
@@ -94,7 +87,7 @@ function TaskDetailPage() {
   if (!task) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-gray-400 dark:text-slate-500">
+        <p className="text-sm text-gray-400 dark:text-gray-400">
           업무를 찾을 수 없습니다
         </p>
       </div>
@@ -126,7 +119,7 @@ function TaskDetailPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 h-8 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="gap-1.5 h-8 text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 수정
@@ -136,7 +129,7 @@ function TaskDetailPage() {
               variant="outline"
               size="sm"
               className="gap-1.5 h-8 text-xs border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-              onClick={() => setDeleteOpen(true)}
+              onClick={() => setIsDeleteOpen(true)}
             >
               <Trash2 className="w-3.5 h-3.5" />
               삭제
@@ -147,7 +140,7 @@ function TaskDetailPage() {
         {/* Revenue summary */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3.5">
-            <p className="text-xs text-gray-400 dark:text-slate-500">
+            <p className="text-xs text-gray-400 dark:text-gray-400">
               받은 금액
             </p>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-1.5 tabular-nums">
@@ -155,7 +148,7 @@ function TaskDetailPage() {
             </p>
           </div>
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3.5">
-            <p className="text-xs text-gray-400 dark:text-slate-500">실행비</p>
+            <p className="text-xs text-gray-400 dark:text-gray-400">실행비</p>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-1.5 tabular-nums">
               {formatCurrency(task.execution_cost)}
             </p>
@@ -195,14 +188,14 @@ function TaskDetailPage() {
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           {/* Status */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
+            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
               진행 상태
             </span>
             <Select
               value={task.status}
               onValueChange={(v) => v && statusMutation.mutate(v)}
             >
-              <SelectTrigger className="w-44 h-8 text-xs border-gray-200 dark:border-gray-700 bg-transparent">
+              <SelectTrigger className="w-44 h-8 text-xs border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-gray-100">
                 <SelectValue>{TASK_STATUS_LABELS[task.status]}</SelectValue>
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={4}>
@@ -217,7 +210,7 @@ function TaskDetailPage() {
 
           {/* Start date */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
+            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
               시작일
             </span>
             <span className="text-sm text-gray-700 dark:text-gray-200 tabular-nums">
@@ -227,18 +220,18 @@ function TaskDetailPage() {
 
           {/* End date */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
+            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
               종료일
             </span>
-            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+            <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
               <PopoverTrigger>
                 <button
                   type="button"
                   className={cn(
                     'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors',
                     task.end_date
-                      ? 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      : 'border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-gray-800',
+                      ? 'border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      : 'border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
                   )}
                 >
                   <CalendarIcon className="w-3 h-3" />
@@ -251,7 +244,7 @@ function TaskDetailPage() {
                   selected={task.end_date ? new Date(task.end_date) : undefined}
                   onSelect={(d) => {
                     endDateMutation.mutate(d ?? null)
-                    setEndDateOpen(false)
+                    setIsEndDateOpen(false)
                   }}
                   locale={ko}
                   autoFocus
@@ -262,24 +255,24 @@ function TaskDetailPage() {
 
           {/* Marketing */}
           <div className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0">
-              마케팅 항목
+            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
+              마케팅 유형
             </span>
             <div className="flex flex-wrap gap-1.5">
               {task.task_marketings?.length ? (
                 task.task_marketings.map((m) => (
                   <span
                     key={m.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/40"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                   >
                     {m.marketing_types?.name}
-                    <span className="text-purple-400 dark:text-purple-500">
+                    <span className="text-gray-500 dark:text-gray-400">
                       {m.count}건
                     </span>
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-gray-400 dark:text-slate-500">
+                <span className="text-xs text-gray-400 dark:text-gray-400">
                   -
                 </span>
               )}
@@ -288,7 +281,7 @@ function TaskDetailPage() {
 
           {/* Note */}
           <div className="flex items-start gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-slate-500 w-24 shrink-0 pt-0.5">
+            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0 pt-0.5">
               비고
             </span>
             <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">
@@ -297,37 +290,23 @@ function TaskDetailPage() {
           </div>
 
           {/* Timestamps */}
-          <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-400 dark:text-slate-500">
+          <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-400 dark:text-gray-400">
             <span>등록 {formatDateTime(task.created_at)}</span>
             <span>수정 {formatDateTime(task.updated_at)}</span>
           </div>
         </div>
       </div>
 
-      {/* Delete dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>업무 삭제</DialogTitle>
-            <DialogDescription>
-              "{task.company_name}" 업무를 삭제하면 복구할 수 없습니다.
-              삭제하시겠습니까?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              취소
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteMutation.mutate()}
-            >
-              {deleteMutation.isPending ? '삭제 중...' : '삭제'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title="업무 삭제"
+        description={`"${task.company_name}" 업무를 삭제하면 복구할 수 없습니다. 삭제하시겠습니까?`}
+        confirmLabel="삭제"
+        tone="destructive"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+      />
     </div>
   )
 }

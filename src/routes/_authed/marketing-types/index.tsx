@@ -1,12 +1,5 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -52,7 +45,7 @@ const ACCENT_COLORS = [
 ]
 
 const inputCls =
-  'h-8 text-sm rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-slate-500 focus-visible:ring-purple-500/30 focus-visible:border-purple-400 transition'
+  'h-8 text-sm rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
 
 const SortableItem = ({
   type,
@@ -154,7 +147,7 @@ const SortableItem = ({
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-slate-500 shrink-0"
+                  className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 shrink-0"
                   onClick={onEditDone}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -171,7 +164,7 @@ const SortableItem = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-gray-400 hover:text-purple-600 dark:text-slate-500 dark:hover:text-purple-400"
+                  className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   onClick={() => onEdit(type.id)}
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -180,7 +173,7 @@ const SortableItem = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
+                  className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                   onClick={() => onDelete(type)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -257,7 +250,7 @@ function MarketingTypesPage() {
             <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
               마케팅 유형
             </span>
-            <span className="text-xs text-gray-400 dark:text-slate-500">
+            <span className="text-xs text-gray-400 dark:text-gray-400">
               {types.length}개
             </span>
           </div>
@@ -269,7 +262,7 @@ function MarketingTypesPage() {
                 setIsAdding(true)
                 setEditId(null)
               }}
-              className="h-8 px-3 text-xs gap-1.5 text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 shadow-sm shadow-purple-200 dark:shadow-none"
+              className="h-8 px-3 text-xs gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />새 유형
             </Button>
@@ -303,7 +296,7 @@ function MarketingTypesPage() {
               <Button
                 type="submit"
                 disabled={addMutation.isPending}
-                className="h-9 px-4 text-xs text-white bg-purple-600 hover:bg-purple-700 shrink-0"
+                className="h-9 px-4 text-xs shrink-0"
               >
                 {addMutation.isPending ? '추가 중...' : '추가'}
               </Button>
@@ -311,7 +304,7 @@ function MarketingTypesPage() {
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-gray-600 dark:text-slate-500 shrink-0"
+                className="h-9 w-9 text-gray-400 hover:text-gray-600 dark:text-gray-400 shrink-0"
                 onClick={() => {
                   setIsAdding(false)
                   addForm.reset()
@@ -327,7 +320,7 @@ function MarketingTypesPage() {
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           {isLoading ? (
             <div className="py-12 flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
             </div>
           ) : types.length === 0 ? (
             <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-slate-600">
@@ -365,43 +358,18 @@ function MarketingTypesPage() {
           )}
         </div>
 
-        {/* Delete dialog */}
-        <Dialog
+        <ConfirmDialog
           open={!!deleteTarget}
-          onOpenChange={() => setDeleteTarget(null)}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>마케팅 유형 삭제</DialogTitle>
-              <DialogDescription>
-                <span className="font-medium text-gray-900 dark:text-gray-100">
-                  "{deleteTarget?.name}"
-                </span>
-                을(를) 삭제하면 복구할 수 없습니다. 이미 사용 중인 업무에서
-                연결이 끊길 수 있습니다.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDeleteTarget(null)}
-              >
-                취소
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={deleteMutation.isPending}
-                onClick={() =>
-                  deleteTarget && deleteMutation.mutate(deleteTarget.id)
-                }
-              >
-                {deleteMutation.isPending ? '삭제 중...' : '삭제'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          title="마케팅 유형 삭제"
+          description={`"${deleteTarget?.name ?? ''}"을(를) 삭제하면 복구할 수 없습니다. 이미 사용 중인 업무에서 연결이 끊길 수 있습니다.`}
+          confirmLabel="삭제"
+          tone="destructive"
+          isPending={deleteMutation.isPending}
+          onConfirm={() =>
+            deleteTarget && deleteMutation.mutate(deleteTarget.id)
+          }
+        />
       </div>
     </div>
   )

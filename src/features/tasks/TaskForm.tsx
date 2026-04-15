@@ -67,7 +67,7 @@ type TaskFormProps = {
 }
 
 const inputClass =
-  'h-9 rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-slate-500 focus-visible:ring-purple-500/30 focus-visible:border-purple-400 transition'
+  'h-9 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
 
 const FieldLabel = ({
   children,
@@ -76,7 +76,7 @@ const FieldLabel = ({
   return (
     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
       {children}
-      {required && <span className="text-purple-500 ml-0.5">*</span>}
+      {required && <span className="text-gray-400 ml-0.5">*</span>}
     </p>
   )
 }
@@ -88,14 +88,14 @@ const DatePicker = ({
   value: Date | null | undefined
   onChange: (date: Date | undefined) => void
 }) => {
-  const [open, setOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger
         className={cn(
           inputClass,
           'w-full flex items-center text-left px-3',
-          !value && 'text-gray-300 dark:text-slate-500',
+          !value && 'text-gray-300 dark:text-gray-400',
         )}
       >
         <CalendarIcon className="mr-2 h-3.5 w-3.5 shrink-0 text-gray-400" />
@@ -107,7 +107,7 @@ const DatePicker = ({
           selected={value ?? undefined}
           onSelect={(date) => {
             onChange(date)
-            setOpen(false)
+            setIsOpen(false)
           }}
           locale={ko}
           autoFocus
@@ -120,7 +120,7 @@ const DatePicker = ({
 const SectionHeader = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="w-0.5 h-3.5 bg-purple-500 rounded-full" />
+      <span className="w-0.5 h-3.5 bg-gray-800 dark:bg-gray-200 rounded-full" />
       <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
         {children}
       </span>
@@ -344,7 +344,7 @@ export const TaskForm = ({
               variant="ghost"
               size="sm"
               onClick={() => append({ marketing_type_id: '', count: 1 })}
-              className="h-7 px-2 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-900/20 gap-1 -mt-4"
+              className="h-7 px-2 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 gap-1 -mt-4"
             >
               <Plus className="w-3 h-3" />
               추가
@@ -410,7 +410,7 @@ export const TaskForm = ({
                   size="icon"
                   disabled={fields.length === 1}
                   onClick={() => remove(index)}
-                  className="h-9 w-9 text-gray-300 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 disabled:opacity-30"
+                  className="h-9 w-9 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-30"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -431,7 +431,7 @@ export const TaskForm = ({
               <FormItem>
                 <Textarea
                   placeholder="메모를 입력하세요"
-                  className="resize-none text-sm rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-slate-500 focus-visible:ring-purple-500/30 focus-visible:border-purple-400 transition"
+                  className="resize-none text-sm rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-slate-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition"
                   rows={3}
                   {...field}
                 />
@@ -454,7 +454,7 @@ export const TaskForm = ({
           <Button
             type="submit"
             disabled={isLoading}
-            className="h-8 px-5 text-xs text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 shadow-sm shadow-purple-200 dark:shadow-none"
+            className="h-8 px-5 text-xs"
           >
             {isLoading ? (
               <span className="flex items-center gap-1.5">

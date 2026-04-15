@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
@@ -6,6 +7,7 @@ import { createTask } from '@/features/tasks/queries'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/tasks/new')({
@@ -15,6 +17,7 @@ export const Route = createFileRoute('/_authed/tasks/new')({
 function NewTaskPage() {
   const router = useRouter()
   const qc = useQueryClient()
+  const [pendingData, setPendingData] = useState<TaskFormValues | null>(null)
 
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
@@ -26,6 +29,7 @@ function NewTaskPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       toast.success('업무가 등록되었습니다')
+      setPendingData(null)
       router.navigate({ to: '/tasks' })
     },
     onError: () => {
@@ -33,11 +37,16 @@ function NewTaskPage() {
     },
   })
 
-  async function handleSubmit(data: TaskFormValues) {
-    await mutation.mutateAsync({
-      ...data,
-      note: data.note ?? undefined,
-      end_date: data.end_date ?? null,
+  const handleSubmit = async (data: TaskFormValues) => {
+    setPendingData(data)
+  }
+
+  const handleConfirm = () => {
+    if (!pendingData) return
+    mutation.mutate({
+      ...pendingData,
+      note: pendingData.note ?? undefined,
+      end_date: pendingData.end_date ?? null,
     })
   }
 
@@ -72,6 +81,16 @@ function NewTaskPage() {
           />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingData}
+        onOpenChange={(open) => !open && setPendingData(null)}
+        title="업무 등록"
+        description={`"${pendingData?.company_name ?? ''}" 업무를 등록하시겠습니까?`}
+        confirmLabel="등록"
+        isPending={mutation.isPending}
+        onConfirm={handleConfirm}
+      />
     </div>
   )
 }
