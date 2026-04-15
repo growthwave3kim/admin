@@ -365,7 +365,11 @@ export const TaskForm = ({
                         <SelectTrigger
                           className={cn(inputClass, 'w-full h-9!')}
                         >
-                          <SelectValue placeholder="마케팅 유형 선택" />
+                          <SelectValue placeholder="마케팅 유형 선택">
+                            {marketingTypes.find(
+                              (t) => t.id === (f.value as string),
+                            )?.name ?? ''}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent alignItemWithTrigger={false}>
                           {marketingTypes.map((type) => (
