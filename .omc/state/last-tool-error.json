@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git add -A && git commit -m \\\"$(cat <<'EOF'\\nfeat: replace dnd-kit with @hello-pangea/dnd, clean URLs, UX improvements\\n\\n- Replace dnd-kit with @hello-pangea/dnd for natural kanban drag U...",
-  "error": "Exit code 1\n▶ biome check...\n./src/routes/_authed/dashboard.tsx format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n  × Formatter would have printed the following content:\n  \n    402 402 │                       contentStyle={tooltipStyle}\n    403 403 │                       formatter={((v: number) => [`${v}건`]) as never}\n    404     │ - ····················cursor={{·fill:·isDark·?·'rgba(255,255,255,0.04)'·:·'rgba(0,0,0,0.03)'·}}\n        404 │ + ····················cursor={{\n      ...",
-  "timestamp": "2026-04-15T07:22:51.814Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"git add src/ .github/ .claude/ public/_redirects wrangler.toml eslint.config.js package.json pnpm-lock.yaml netlify.toml && git commit -m \\\"$(cat <<'EOF'\\nfeat: kanban edit/delete buttons,...",
+  "error": "Exit code 1\n▶ biome check...\n./src/features/tasks/queries.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n  × Formatter would have printed the following content:\n  \n     65  65 │   }\n     66  66 │   \n     67     │ - export·const·updateTask·=·async·(id:·string,·formData:·Partial<TaskFormData>)·=>·{\n         67 │ + export·const·updateTask·=·async·(\n         68 │ + ··id:·string,\n         69 │ + ··formData:·Partial<TaskFormData>,\n         70 │ + )·=>·{\n     68  71 │     cons...",
+  "timestamp": "2026-04-15T09:27:30.231Z",
+  "retry_count": 1
 }

@@ -16,7 +16,7 @@ pinned_version = "6"
 publish = "/Users/minishtech/workspace/dohyun/growthwave-admin/dist"
 publishOrigin = "config"
 commandOrigin = "config"
-command = "pnpm build"
+command = "echo 'Using pre-built dist'"
 
 [build.environment]
 NODE_VERSION = "20"
