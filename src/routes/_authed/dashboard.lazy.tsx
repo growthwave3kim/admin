@@ -324,15 +324,15 @@ function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <KpiCard
             label="총 수입"
-            display={formatCurrency(totalRevenue)}
-            color="text-gray-900 dark:text-gray-100"
+            display={`+${formatCurrency(totalRevenue)}`}
+            color="text-emerald-600 dark:text-emerald-400"
             delta={calcDeltaStr(totalRevenue, prevRevenue)}
             isLoading={anyLoading}
           />
           <KpiCard
             label="총 지출"
-            display={formatCurrency(totalCost)}
-            color="text-gray-900 dark:text-gray-100"
+            display={`-${formatCurrency(totalCost)}`}
+            color="text-red-500 dark:text-red-400"
             delta={calcDeltaStr(totalCost, prevCost)}
             isLoading={anyLoading}
           />
