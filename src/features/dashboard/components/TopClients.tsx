@@ -57,20 +57,20 @@ export const TopClients = ({
             {data.map((row) => (
               <tr
                 key={row.rank}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                className="h-[42px] hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
               >
-                <td className="py-2.5 text-center font-semibold text-gray-400 dark:text-gray-500 tabular-nums">
+                <td className="text-center font-semibold text-gray-400 dark:text-gray-500 tabular-nums">
                   {row.rank}
                 </td>
-                <td className="py-2.5 pl-2 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[80px]">
+                <td className="pl-2 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[80px]">
                   {row.name}
                 </td>
-                <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
+                <td className="text-right tabular-nums text-gray-600 dark:text-gray-300">
                   {formatCurrency(row.revenue)}
                 </td>
                 <td
                   className={cn(
-                    'py-2.5 text-right tabular-nums font-semibold',
+                    'text-right tabular-nums font-semibold',
                     row.profit >= 0
                       ? 'text-emerald-600 dark:text-emerald-400'
                       : 'text-red-500 dark:text-red-400',
@@ -84,9 +84,9 @@ export const TopClients = ({
             {Array.from({ length: Math.max(0, 5 - data.length) }, (_, i) => (
               <tr
                 key={`empty-${data.length + i}`}
-                className="border-t border-gray-100 dark:border-gray-800/60"
+                className="h-[42px] border-t border-gray-100 dark:border-gray-800/60"
               >
-                <td className="py-2.5" colSpan={4} />
+                <td colSpan={4} />
               </tr>
             ))}
           </tbody>
