@@ -7,6 +7,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -17,9 +18,18 @@ type MonthlyDataPoint = {
   label: string
   revenue: number
   cost: number
+  profit: number
 }
 
-export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
+export const MonthlyChart = ({
+  data,
+  highlightStart,
+  highlightEnd,
+}: {
+  data: MonthlyDataPoint[]
+  highlightStart?: string
+  highlightEnd?: string
+}) => {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
@@ -32,7 +42,7 @@ export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
       <CardHeader className="pb-2 pt-4 px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            매출 · 비용 추이 · 최근 12개월
+            수입 · 지출 · 순수익 추이 · 최근 12개월
           </CardTitle>
           <span className="text-[10px] text-gray-400 dark:text-gray-500">
             단위: 만원
@@ -45,6 +55,14 @@ export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
             data={data}
             margin={{ top: 8, right: 12, left: 8, bottom: 0 }}
           >
+            {highlightStart && highlightEnd && (
+              <ReferenceArea
+                x1={highlightStart}
+                x2={highlightEnd}
+                fill={isDark ? 'rgba(37,99,235,0.08)' : 'rgba(37,99,235,0.05)'}
+                strokeOpacity={0}
+              />
+            )}
             <CartesianGrid
               strokeDasharray="0"
               stroke={gridColor}
@@ -62,7 +80,6 @@ export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
               tickLine={false}
               tickCount={5}
               width={56}
-              domain={[0, 'auto']}
               tickFormatter={(v: number) =>
                 v === 0
                   ? '0'
@@ -88,7 +105,7 @@ export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
             <Line
               type="monotone"
               dataKey="revenue"
-              name="받은금액"
+              name="수입"
               stroke="#2563eb"
               strokeWidth={2}
               dot={{ r: 2.5, fill: '#2563eb', strokeWidth: 0 }}
@@ -97,10 +114,19 @@ export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
             <Line
               type="monotone"
               dataKey="cost"
-              name="실행비용"
+              name="지출"
               stroke="#d97706"
               strokeWidth={2}
               dot={{ r: 2.5, fill: '#d97706', strokeWidth: 0 }}
+              activeDot={{ r: 4 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="profit"
+              name="순수익"
+              stroke="#16a34a"
+              strokeWidth={2}
+              dot={{ r: 2.5, fill: '#16a34a', strokeWidth: 0 }}
               activeDot={{ r: 4 }}
             />
           </LineChart>

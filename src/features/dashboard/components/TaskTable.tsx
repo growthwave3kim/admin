@@ -8,20 +8,18 @@ import { isBefore } from 'date-fns'
 
 export const TaskTable = ({
   tasks,
-  isAttention,
   isLoading,
 }: {
   tasks: Task[]
-  isAttention: boolean
   isLoading: boolean
 }) => {
   const today = new Date()
 
   return (
-    <Card className="col-span-2 border-border shadow-none">
+    <Card className="border-border shadow-none">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-          {isAttention ? '주의 필요 업무' : '최근 업무'}
+          진행중 업무
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-3">
@@ -36,7 +34,7 @@ export const TaskTable = ({
           </div>
         ) : tasks.length === 0 ? (
           <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-10">
-            업무가 없습니다
+            진행중인 업무가 없습니다
           </p>
         ) : (
           <table className="w-full text-xs">
@@ -57,11 +55,9 @@ export const TaskTable = ({
                 <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium">
                   종료일
                 </th>
-                {isAttention && (
-                  <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium">
-                    사유
-                  </th>
-                )}
+                <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                  주의
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -70,12 +66,18 @@ export const TaskTable = ({
                   task.status === 'in_progress' &&
                   task.end_date &&
                   isBefore(new Date(task.end_date), today)
+                const isUnsettled = task.status === 'done_unsettled'
+                const isAttention = isOverdue || isUnsettled
                 return (
                   <tr
                     key={task.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                    className={cn(
+                      'hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors',
+                      isAttention &&
+                        'bg-red-50/50 dark:bg-red-900/5 hover:bg-red-50 dark:hover:bg-red-900/10',
+                    )}
                   >
-                    <td className="py-2.5 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[120px]">
+                    <td className="py-2.5 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[160px]">
                       <Link
                         to="/tasks/$taskId"
                         params={{ taskId: task.id }}
@@ -96,8 +98,8 @@ export const TaskTable = ({
                     <td className="py-2.5 text-center tabular-nums text-gray-500 dark:text-gray-400">
                       {formatDate(task.end_date)}
                     </td>
-                    {isAttention && (
-                      <td className="py-2.5 text-center">
+                    <td className="py-2.5 text-center">
+                      {isAttention && (
                         <span
                           className={cn(
                             'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium',
@@ -108,8 +110,8 @@ export const TaskTable = ({
                         >
                           {isOverdue ? '기간초과' : '정산미완료'}
                         </span>
-                      </td>
-                    )}
+                      )}
+                    </td>
                   </tr>
                 )
               })}

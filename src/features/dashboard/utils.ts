@@ -1,3 +1,4 @@
+import type { Expense } from '@/features/expenses/types'
 import type { Task } from '@/features/tasks/types'
 import {
   endOfMonth,
@@ -99,6 +100,18 @@ export const filterByRange = (
   if (!start || !end) return tasks
   return tasks.filter((t) => {
     const d = new Date(t.start_date)
+    return !isBefore(d, start) && !isAfter(d, end)
+  })
+}
+
+export const filterExpensesByRange = (
+  expenses: Expense[],
+  start: Date | null,
+  end: Date | null,
+): Expense[] => {
+  if (!start || !end) return expenses
+  return expenses.filter((e) => {
+    const d = new Date(e.expense_date)
     return !isBefore(d, start) && !isAfter(d, end)
   })
 }

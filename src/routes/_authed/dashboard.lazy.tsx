@@ -1,15 +1,19 @@
 import { KpiCard } from '@/features/dashboard/components/KpiCard'
-import { MarketingUsageChart } from '@/features/dashboard/components/MarketingUsageChart'
+import { MarketingTable } from '@/features/dashboard/components/MarketingTable'
 import { MonthlyChart } from '@/features/dashboard/components/MonthlyChart'
+import { SpenderChart } from '@/features/dashboard/components/SpenderChart'
 import { StatusBreakdown } from '@/features/dashboard/components/StatusBreakdown'
 import { TaskTable } from '@/features/dashboard/components/TaskTable'
+import { TopClients } from '@/features/dashboard/components/TopClients'
 import {
   PERIOD_OPTIONS,
   type Period,
   filterByRange,
+  filterExpensesByRange,
   getPeriodRange,
   getPrevPeriodRange,
 } from '@/features/dashboard/utils'
+import { fetchExpenses } from '@/features/expenses/queries'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { fetchTasks } from '@/features/tasks/queries'
 import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
@@ -37,6 +41,8 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   done_unsettled: '#d97706',
 }
 
+const SPENDERS = ['김도현', '김국민', '김태훈']
+
 function DashboardPage() {
   const [period, setPeriod] = useState<Period>('this_month')
 
@@ -44,10 +50,16 @@ function DashboardPage() {
     queryKey: ['tasks'],
     queryFn: fetchTasks,
   })
+  const { data: expenses = [], isLoading: isLoadingExpenses } = useQuery({
+    queryKey: ['expenses'],
+    queryFn: fetchExpenses,
+  })
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
   })
+
+  const anyLoading = isLoading || isLoadingExpenses
 
   const { start, end } = getPeriodRange(period)
   const { start: prevStart, end: prevEnd } = getPrevPeriodRange(period)
@@ -60,44 +72,103 @@ function DashboardPage() {
     () => filterByRange(tasks, prevStart, prevEnd),
     [tasks, prevStart, prevEnd],
   )
+  const periodExpenses = useMemo(
+    () => filterExpensesByRange(expenses, start, end),
+    [expenses, start, end],
+  )
+  const prevExpenses = useMemo(
+    () => filterExpensesByRange(expenses, prevStart, prevEnd),
+    [expenses, prevStart, prevEnd],
+  )
 
-  const totalRevenue = periodTasks.reduce(
+  // KPI calculations
+  const taskRevenue = periodTasks.reduce(
     (s, t) => s + (t.received_amount || 0),
     0,
   )
-  const totalCost = periodTasks.reduce((s, t) => s + (t.execution_cost || 0), 0)
+  const expenseIncome = periodExpenses
+    .filter((e) => e.entry_type === 'income')
+    .reduce((s, e) => s + e.amount, 0)
+  const totalRevenue = taskRevenue + expenseIncome
+
+  const taskCost = periodTasks.reduce((s, t) => s + (t.execution_cost || 0), 0)
+  const expenseCost = periodExpenses
+    .filter((e) => e.entry_type === 'expense')
+    .reduce((s, e) => s + e.amount, 0)
+  const totalCost = taskCost + expenseCost
+
   const totalProfit = totalRevenue - totalCost
-  const inProgressCount = periodTasks.filter(
-    (t) => t.status === 'in_progress',
-  ).length
+  const profitRate = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
 
-  const prevRevenue = prevTasks.reduce(
-    (s, t) => s + (t.received_amount || 0),
-    0,
-  )
-  const prevCost = prevTasks.reduce((s, t) => s + (t.execution_cost || 0), 0)
+  // Prev period for delta
+  const prevRevenue =
+    prevTasks.reduce((s, t) => s + (t.received_amount || 0), 0) +
+    prevExpenses
+      .filter((e) => e.entry_type === 'income')
+      .reduce((s, e) => s + e.amount, 0)
+  const prevCost =
+    prevTasks.reduce((s, t) => s + (t.execution_cost || 0), 0) +
+    prevExpenses
+      .filter((e) => e.entry_type === 'expense')
+      .reduce((s, e) => s + e.amount, 0)
   const prevProfit = prevRevenue - prevCost
 
+  // 미정산: always ALL tasks, no period filter
+  const unsettledAmount = tasks
+    .filter((t) => t.status === 'done_unsettled')
+    .reduce((s, t) => s + (t.received_amount || 0), 0)
+
+  const hasPrev = period !== 'all'
+  const calcDeltaStr = (curr: number, prev: number): string | null => {
+    if (!hasPrev || prev === 0) return null
+    const pct = ((curr - prev) / Math.abs(prev)) * 100
+    return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`
+  }
+
+  // Monthly chart: 12 months, tasks + expenses combined
   const monthlyData = useMemo(
     () =>
       Array.from({ length: 12 }, (_, i) => {
         const d = subMonths(new Date(), 11 - i)
         const monthStart = startOfMonth(d)
         const monthEnd = endOfMonth(d)
+
         const monthTasks = tasks.filter((t) => {
           const td = new Date(t.start_date)
           return !isBefore(td, monthStart) && !isAfter(td, monthEnd)
         })
-        const revenue = monthTasks.reduce(
-          (s, t) => s + (t.received_amount || 0),
-          0,
-        )
-        const cost = monthTasks.reduce((s, t) => s + (t.execution_cost || 0), 0)
-        return { label: format(d, "M'월'"), revenue, cost }
+        const monthExpenses = expenses.filter((e) => {
+          const ed = new Date(e.expense_date)
+          return !isBefore(ed, monthStart) && !isAfter(ed, monthEnd)
+        })
+
+        const revenue =
+          monthTasks.reduce((s, t) => s + (t.received_amount || 0), 0) +
+          monthExpenses
+            .filter((e) => e.entry_type === 'income')
+            .reduce((s, e) => s + e.amount, 0)
+        const cost =
+          monthTasks.reduce((s, t) => s + (t.execution_cost || 0), 0) +
+          monthExpenses
+            .filter((e) => e.entry_type === 'expense')
+            .reduce((s, e) => s + e.amount, 0)
+        const profit = revenue - cost
+
+        const highlighted =
+          start && end
+            ? !isAfter(monthStart, end) && !isBefore(monthEnd, start)
+            : false
+
+        return { label: format(d, "M'월'"), revenue, cost, profit, highlighted }
       }),
-    [tasks],
+    [tasks, expenses, start, end],
   )
 
+  const highlightedMonths = monthlyData.filter((d) => d.highlighted)
+  const highlightStart = highlightedMonths[0]?.label
+  const highlightEnd = highlightedMonths[highlightedMonths.length - 1]?.label
+
+  // Status breakdown
   const statusBreakdown = (
     [
       'not_started',
@@ -113,85 +184,101 @@ function DashboardPage() {
   }))
   const totalTasks = periodTasks.length
 
-  const marketingUsage = marketingTypes
-    .map((mt) => ({
-      name: mt.name,
-      count: periodTasks.reduce((sum, t) => {
-        const m = t.task_marketings?.find(
-          (tm) => tm.marketing_type_id === mt.id,
-        )
-        return sum + (m?.count || 0)
-      }, 0),
-    }))
-    .filter((d) => d.count > 0)
+  // Spender chart (expenses only, entry_type='expense', period filtered)
+  const spenderData = useMemo(
+    () =>
+      SPENDERS.map((name) => ({
+        name,
+        amount: periodExpenses
+          .filter((e) => e.entry_type === 'expense' && e.spender === name)
+          .reduce((s, e) => s + e.amount, 0),
+      })),
+    [periodExpenses],
+  )
 
-  const today = new Date()
-  const attentionTasks = periodTasks
-    .filter((t) => {
-      if (t.status === 'done_unsettled') return true
-      if (
-        t.status === 'in_progress' &&
-        t.end_date &&
-        isBefore(new Date(t.end_date), today)
+  // Top clients (period filtered tasks)
+  const topClients = useMemo(() => {
+    const map = new Map<string, { revenue: number; profit: number }>()
+    for (const t of periodTasks) {
+      const prev = map.get(t.company_name) ?? { revenue: 0, profit: 0 }
+      map.set(t.company_name, {
+        revenue: prev.revenue + (t.received_amount || 0),
+        profit: prev.profit + (t.profit || 0),
+      })
+    }
+    return [...map.entries()]
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 5)
+      .map(([name, v], idx) => ({ rank: idx + 1, name, ...v }))
+  }, [periodTasks])
+
+  // Marketing table (period filtered tasks)
+  const marketingTableData = useMemo(
+    () =>
+      marketingTypes
+        .map((mt) => {
+          const tasksWithThis = periodTasks.filter((t) =>
+            t.task_marketings?.some((tm) => tm.marketing_type_id === mt.id),
+          )
+          const totalCount = tasksWithThis.reduce((sum, t) => {
+            const m = t.task_marketings?.find(
+              (tm) => tm.marketing_type_id === mt.id,
+            )
+            return sum + (m?.count || 0)
+          }, 0)
+          if (totalCount === 0) return null
+          const revenue = tasksWithThis.reduce(
+            (s, t) => s + (t.received_amount || 0),
+            0,
+          )
+          const cost = tasksWithThis.reduce(
+            (s, t) => s + (t.execution_cost || 0),
+            0,
+          )
+          const profitRate =
+            revenue > 0 ? ((revenue - cost) / revenue) * 100 : 0
+          return {
+            name: mt.name,
+            taskCount: totalCount,
+            revenue,
+            cost,
+            profitRate,
+          }
+        })
+        .filter((d): d is NonNullable<typeof d> => d !== null)
+        .sort((a, b) => b.profitRate - a.profitRate),
+    [marketingTypes, periodTasks],
+  )
+
+  // Current tasks: always ALL tasks, no period filter — in_progress + not_started + done_unsettled
+  const currentTasks = useMemo(() => {
+    const now = new Date()
+    return tasks
+      .filter(
+        (t) =>
+          t.status === 'in_progress' ||
+          t.status === 'not_started' ||
+          t.status === 'done_unsettled',
       )
-        return true
-      return false
-    })
-    .sort((a, b) => {
-      const aOverdue =
-        a.status === 'in_progress' &&
-        a.end_date &&
-        isBefore(new Date(a.end_date), today)
-      const bOverdue =
-        b.status === 'in_progress' &&
-        b.end_date &&
-        isBefore(new Date(b.end_date), today)
-      if (aOverdue && !bOverdue) return -1
-      if (!aOverdue && bOverdue) return 1
-      return a.end_date && b.end_date ? a.end_date.localeCompare(b.end_date) : 0
-    })
-
-  const recentTasks = [...periodTasks]
-    .sort((a, b) => b.start_date.localeCompare(a.start_date))
-    .slice(0, 6)
-
-  const hasPrev = period !== 'all'
-  const kpis = [
-    {
-      label: '총 수익',
-      value: totalProfit,
-      display: formatCurrency(totalProfit),
-      prevValue: hasPrev ? prevProfit : null,
-      color:
-        totalProfit >= 0
-          ? 'text-emerald-600 dark:text-emerald-400'
-          : 'text-red-500 dark:text-red-400',
-    },
-    {
-      label: '받은 금액',
-      value: totalRevenue,
-      display: formatCurrency(totalRevenue),
-      prevValue: hasPrev ? prevRevenue : null,
-      color: 'text-gray-900 dark:text-gray-100',
-    },
-    {
-      label: '실행 비용',
-      value: totalCost,
-      display: formatCurrency(totalCost),
-      prevValue: hasPrev ? prevCost : null,
-      color: 'text-gray-900 dark:text-gray-100',
-    },
-    {
-      label: '진행 중 업무',
-      value: inProgressCount,
-      display: String(inProgressCount),
-      prevValue: null,
-      color: 'text-blue-600 dark:text-blue-400',
-    },
-  ]
-
-  const displayTasks =
-    attentionTasks.length > 0 ? attentionTasks.slice(0, 6) : recentTasks
+      .sort((a, b) => {
+        const aOverdue =
+          a.status === 'in_progress' &&
+          !!a.end_date &&
+          isBefore(new Date(a.end_date), now)
+        const bOverdue =
+          b.status === 'in_progress' &&
+          !!b.end_date &&
+          isBefore(new Date(b.end_date), now)
+        const aAttention = aOverdue || a.status === 'done_unsettled'
+        const bAttention = bOverdue || b.status === 'done_unsettled'
+        if (aAttention && !bAttention) return -1
+        if (!aAttention && bAttention) return 1
+        return a.end_date && b.end_date
+          ? a.end_date.localeCompare(b.end_date)
+          : 0
+      })
+      .slice(0, 8)
+  }, [tasks])
 
   return (
     <div className="h-full overflow-auto p-6">
@@ -227,16 +314,70 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* KPI tiles */}
-        <div className="grid grid-cols-4 gap-3">
-          {kpis.map((kpi) => (
-            <KpiCard key={kpi.label} {...kpi} isLoading={isLoading} />
-          ))}
+        {/* Row 1: 3 large KPI cards */}
+        <div className="grid grid-cols-3 gap-3">
+          <KpiCard
+            label="총 수입"
+            display={formatCurrency(totalRevenue)}
+            color="text-gray-900 dark:text-gray-100"
+            delta={calcDeltaStr(totalRevenue, prevRevenue)}
+            isLoading={anyLoading}
+          />
+          <KpiCard
+            label="총 지출"
+            display={formatCurrency(totalCost)}
+            color="text-gray-900 dark:text-gray-100"
+            delta={calcDeltaStr(totalCost, prevCost)}
+            isLoading={anyLoading}
+          />
+          <KpiCard
+            label="순수익"
+            display={formatCurrency(totalProfit)}
+            color={
+              totalProfit >= 0
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-red-500 dark:text-red-400'
+            }
+            delta={calcDeltaStr(totalProfit, prevProfit)}
+            isLoading={anyLoading}
+          />
         </div>
 
-        {/* Row 1: Monthly chart + Status breakdown */}
+        {/* Row 2: 2 smaller KPI cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <KpiCard
+            label="수익률"
+            display={`${profitRate.toFixed(1)}%`}
+            color={
+              profitRate >= 30
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : profitRate >= 0
+                  ? 'text-gray-900 dark:text-gray-100'
+                  : 'text-red-500 dark:text-red-400'
+            }
+            isLoading={anyLoading}
+            small
+          />
+          <KpiCard
+            label="미정산 금액 (전체)"
+            display={formatCurrency(unsettledAmount)}
+            color={
+              unsettledAmount > 0
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-gray-900 dark:text-gray-100'
+            }
+            isLoading={isLoading}
+            small
+          />
+        </div>
+
+        {/* Row 3: Monthly chart (2/3) + Status breakdown (1/3) */}
         <div className="grid grid-cols-3 gap-3">
-          <MonthlyChart data={monthlyData} />
+          <MonthlyChart
+            data={monthlyData}
+            highlightStart={highlightStart}
+            highlightEnd={highlightEnd}
+          />
           <StatusBreakdown
             statusBreakdown={statusBreakdown}
             totalTasks={totalTasks}
@@ -244,15 +385,17 @@ function DashboardPage() {
           />
         </div>
 
-        {/* Row 2: Marketing chart + Task table */}
+        {/* Row 4: Spender chart (2/3) + Top clients (1/3) */}
         <div className="grid grid-cols-3 gap-3">
-          <MarketingUsageChart data={marketingUsage} />
-          <TaskTable
-            tasks={displayTasks}
-            isAttention={attentionTasks.length > 0}
-            isLoading={isLoading}
-          />
+          <SpenderChart data={spenderData} isLoading={anyLoading} />
+          <TopClients data={topClients} isLoading={isLoading} />
         </div>
+
+        {/* Row 5: Marketing table (full width) */}
+        <MarketingTable data={marketingTableData} isLoading={isLoading} />
+
+        {/* Row 6: Current tasks (full width) */}
+        <TaskTable tasks={currentTasks} isLoading={isLoading} />
       </div>
     </div>
   )
