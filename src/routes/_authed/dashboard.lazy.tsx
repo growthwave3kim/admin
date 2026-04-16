@@ -1,7 +1,7 @@
 import { KpiCard } from '@/features/dashboard/components/KpiCard'
 import { MarketingTable } from '@/features/dashboard/components/MarketingTable'
 import { MonthlyChart } from '@/features/dashboard/components/MonthlyChart'
-import { SpenderChart } from '@/features/dashboard/components/SpenderChart'
+import { MonthlyTaskCount } from '@/features/dashboard/components/MonthlyTaskCount'
 import { StatusBreakdown } from '@/features/dashboard/components/StatusBreakdown'
 import { TaskTable } from '@/features/dashboard/components/TaskTable'
 import { TopClients } from '@/features/dashboard/components/TopClients'
@@ -40,8 +40,6 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   done_settled: '#16a34a',
   done_unsettled: '#d97706',
 }
-
-const SPENDERS = ['김도현', '김국민', '김태훈']
 
 function DashboardPage() {
   const [period, setPeriod] = useState<Period>('this_month')
@@ -184,16 +182,24 @@ function DashboardPage() {
   }))
   const totalTasks = periodTasks.length
 
-  // Spender chart (expenses only, entry_type='expense', period filtered)
-  const spenderData = useMemo(
+  // Monthly task count (always 12 months, all tasks)
+  const monthlyTaskData = useMemo(
     () =>
-      SPENDERS.map((name) => ({
-        name,
-        amount: periodExpenses
-          .filter((e) => e.entry_type === 'expense' && e.spender === name)
-          .reduce((s, e) => s + e.amount, 0),
-      })),
-    [periodExpenses],
+      Array.from({ length: 12 }, (_, i) => {
+        const d = subMonths(new Date(), 11 - i)
+        const monthStart = startOfMonth(d)
+        const monthEnd = endOfMonth(d)
+        const count = tasks.filter((t) => {
+          const td = new Date(t.start_date)
+          return !isBefore(td, monthStart) && !isAfter(td, monthEnd)
+        }).length
+        const highlighted =
+          start && end
+            ? !isAfter(monthStart, end) && !isBefore(monthEnd, start)
+            : false
+        return { label: format(d, "M'월'"), count, highlighted }
+      }),
+    [tasks, start, end],
   )
 
   // Top clients (period filtered tasks)
@@ -387,7 +393,11 @@ function DashboardPage() {
 
         {/* Row 4: Spender chart (2/3) + Top clients (1/3) */}
         <div className="grid grid-cols-3 gap-3">
-          <SpenderChart data={spenderData} isLoading={anyLoading} />
+          <MonthlyTaskCount
+            data={monthlyTaskData}
+            highlightStart={highlightStart}
+            highlightEnd={highlightEnd}
+          />
           <TopClients data={topClients} isLoading={isLoading} />
         </div>
 
