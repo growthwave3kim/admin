@@ -33,29 +33,29 @@ export const TaskTable = ({
             ))}
           </div>
         ) : tasks.length === 0 ? (
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-10">
+          <p className="text-xs text-gray-400 dark:text-gray-400 text-center py-10">
             진행중인 업무가 없습니다
           </p>
         ) : (
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800/60">
-                <th className="text-left pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   업체명
                 </th>
-                <th className="text-left pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   상태
                 </th>
-                <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   받은금액
                 </th>
-                <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   수익
                 </th>
-                <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   종료일
                 </th>
-                <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium">
+                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   주의
                 </th>
               </tr>

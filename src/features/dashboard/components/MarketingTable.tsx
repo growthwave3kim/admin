@@ -33,26 +33,26 @@ export const MarketingTable = ({
           ))}
         </div>
       ) : data.length === 0 ? (
-        <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-8">
+        <p className="text-xs text-gray-400 dark:text-gray-400 text-center py-8">
           마케팅 데이터가 없습니다
         </p>
       ) : (
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800/60">
-              <th className="text-left pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 유형명
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 건수
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 받은금액
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 실행비
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 수익률
               </th>
             </tr>

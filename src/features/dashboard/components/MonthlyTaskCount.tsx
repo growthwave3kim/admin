@@ -42,7 +42,7 @@ export const MonthlyTaskCount = ({
           <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             월별 업무 건수 · 최근 12개월
           </CardTitle>
-          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+          <span className="text-[10px] text-gray-400 dark:text-gray-400">
             단위: 건
           </span>
         </div>

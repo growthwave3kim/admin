@@ -295,7 +295,7 @@ function DashboardPage() {
             <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
               대시보드
             </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">
+            <span className="text-xs text-gray-400 dark:text-gray-400">
               {start && end
                 ? `${format(start, 'yy.MM.dd')} ~ ${format(end, 'yy.MM.dd')}`
                 : '전체 기간'}

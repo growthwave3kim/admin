@@ -51,7 +51,7 @@ export const SpenderChart = ({
             ))}
           </div>
         ) : total === 0 ? (
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-10">
+          <p className="text-xs text-gray-400 dark:text-gray-400 text-center py-10">
             직접 등록된 지출이 없습니다
           </p>
         ) : (

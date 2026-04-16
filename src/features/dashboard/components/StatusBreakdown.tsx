@@ -51,7 +51,7 @@ export const StatusBreakdown = ({
                   <span className="text-xs font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
                     {count}건
                   </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-7 text-right">
+                  <span className="text-xs text-gray-400 dark:text-gray-400 tabular-nums w-7 text-right">
                     {pct}%
                   </span>
                 </div>

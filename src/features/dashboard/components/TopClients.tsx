@@ -32,23 +32,23 @@ export const TopClients = ({
           ))}
         </div>
       ) : data.length === 0 ? (
-        <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-8">
+        <p className="text-xs text-gray-400 dark:text-gray-400 text-center py-8">
           데이터가 없습니다
         </p>
       ) : (
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800/60">
-              <th className="text-center pb-2 text-gray-400 dark:text-gray-500 font-medium w-6">
+              <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium w-6">
                 순위
               </th>
-              <th className="text-left pb-2 pl-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-left pb-2 pl-2 text-gray-400 dark:text-gray-400 font-medium">
                 업체명
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 받은금액
               </th>
-              <th className="text-right pb-2 text-gray-400 dark:text-gray-500 font-medium">
+              <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                 수익
               </th>
             </tr>
@@ -59,7 +59,7 @@ export const TopClients = ({
                 key={row.rank}
                 className="h-[42px] hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
               >
-                <td className="text-center font-semibold text-gray-400 dark:text-gray-500 tabular-nums">
+                <td className="text-center font-semibold text-gray-400 dark:text-gray-400 tabular-nums">
                   {row.rank}
                 </td>
                 <td className="pl-2 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[80px]">
