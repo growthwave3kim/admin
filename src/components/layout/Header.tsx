@@ -21,7 +21,7 @@ export const Header = () => {
         variant="ghost"
         size="icon"
         onClick={toggleTheme}
-        className="w-8 h-8 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        className="w-8 h-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
       >
         {theme === 'dark' ? (
           <Sun className="w-4 h-4" />
@@ -33,7 +33,7 @@ export const Header = () => {
         variant="ghost"
         size="sm"
         onClick={handleLogout}
-        className="gap-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 text-xs"
+        className="gap-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 text-xs"
       >
         <LogOut className="w-3.5 h-3.5" />
         로그아웃

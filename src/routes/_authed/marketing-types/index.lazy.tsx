@@ -172,7 +172,7 @@ function MarketingTypesPage() {
               <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
             </div>
           ) : types.length === 0 ? (
-            <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-slate-600">
+            <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-gray-500">
               <Tag className="w-8 h-8" />
               <p className="text-sm">등록된 마케팅 유형이 없습니다</p>
             </div>

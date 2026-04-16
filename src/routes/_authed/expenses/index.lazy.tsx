@@ -109,7 +109,7 @@ const DatePickerField = ({
         className={cn(
           inputClass,
           'w-full flex items-center text-left px-3',
-          !value && 'text-gray-400 dark:text-gray-500',
+          !value && 'text-gray-400 dark:text-gray-400',
         )}
       >
         <CalendarIcon className="mr-2 h-3.5 w-3.5 shrink-0 text-gray-400" />
@@ -147,7 +147,7 @@ const FilterDatePicker = ({
       <PopoverTrigger
         className={cn(
           'h-8 w-28 px-3 flex items-center gap-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition',
-          !value && 'text-gray-400 dark:text-gray-500',
+          !value && 'text-gray-400 dark:text-gray-400',
         )}
       >
         <CalendarIcon className="h-3 w-3 text-gray-400" />
@@ -814,7 +814,7 @@ function ExpensesPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="text-center py-20 text-xs text-gray-400 dark:text-gray-500"
+                    className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
                   >
                     등록된 내역이 없습니다
                   </td>

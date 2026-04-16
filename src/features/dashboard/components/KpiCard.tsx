@@ -17,16 +17,14 @@ export const KpiCard = ({
   small?: boolean
 }) => (
   <Card className="border-border shadow-none">
-    <CardContent
-      className={cn('px-5 flex flex-col gap-2', small ? 'py-4' : 'py-6')}
-    >
+    <CardContent className="px-5 flex flex-col py-4">
       <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
         {label}
       </p>
       {isLoading ? (
         <div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-4" />
       ) : (
-        <div className={cn('flex flex-col gap-1', small ? 'mt-2' : 'mt-4')}>
+        <div className="flex flex-col gap-1 mt-2">
           <p
             className={cn(
               'font-semibold leading-none tabular-nums truncate',

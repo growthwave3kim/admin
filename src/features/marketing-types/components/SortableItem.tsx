@@ -76,7 +76,7 @@ export const SortableItem = ({
             className="cursor-grab active:cursor-grabbing touch-none outline-none"
             tabIndex={-1}
           >
-            <GripVertical className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600 shrink-0" />
+            <GripVertical className="w-3.5 h-3.5 text-gray-300 dark:text-gray-500 shrink-0" />
           </button>
 
           <span
