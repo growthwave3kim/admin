@@ -91,7 +91,10 @@ export const MonthlyChart = ({
             <Tooltip
               contentStyle={tooltipStyle}
               formatter={((v: number) => formatCurrency(v)) as never}
-              labelStyle={{ fontWeight: 600 }}
+              labelStyle={{
+                color: isDark ? '#e5e7eb' : '#374151',
+                fontWeight: 600,
+              }}
             />
             <Legend
               iconType="plainline"
