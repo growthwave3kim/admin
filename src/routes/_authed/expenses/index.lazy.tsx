@@ -772,7 +772,7 @@ function ExpensesPage() {
               <col />
               <col className="w-32" />
               <col className="w-24" />
-              <col className="w-20" />
+              <col className="w-24" />
               <col className="w-24" />
               <col className="w-20" />
             </colgroup>
@@ -802,9 +802,9 @@ function ExpensesPage() {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
               {isLoading ? (
                 ['a', 'b', 'c', 'd', 'e', 'f'].map((k) => (
-                  <tr key={k}>
+                  <tr key={k} className="h-[45px]">
                     {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                      <td key={i} className="px-4 py-3">
+                      <td key={i} className="px-4 py-2">
                         <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
                       </td>
                     ))}
@@ -827,7 +827,7 @@ function ExpensesPage() {
                     return (
                       <tr
                         key={row.id}
-                        className="bg-blue-50/40 dark:bg-blue-900/10"
+                        className="h-[45px] bg-blue-50/40 dark:bg-blue-900/10"
                       >
                         {/* 구분 */}
                         <td className="px-2 py-2">
@@ -938,9 +938,9 @@ function ExpensesPage() {
                   return (
                     <tr
                       key={row.id}
-                      className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
+                      className="h-[45px] hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
                     >
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2 text-center">
                         <span
                           className={cn(
                             'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap',
@@ -952,12 +952,12 @@ function ExpensesPage() {
                           {row.type === 'income' ? '수입' : '지출'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 truncate">
+                      <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 truncate">
                         {row.description}
                       </td>
                       <td
                         className={cn(
-                          'px-4 py-3 text-right text-xs font-semibold tabular-nums truncate',
+                          'px-4 py-2 text-right text-xs font-semibold tabular-nums truncate',
                           row.type === 'income'
                             ? 'text-emerald-600 dark:text-emerald-400'
                             : 'text-red-500 dark:text-red-400',
@@ -966,13 +966,13 @@ function ExpensesPage() {
                         {row.type === 'income' ? '+' : '-'}
                         {formatCurrency(row.amount)}
                       </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums">
+                      <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums">
                         {formatDate(row.date)}
                       </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-300">
+                      <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300">
                         {row.spender ?? '-'}
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2 text-center">
                         <span
                           className={cn(
                             'inline-flex items-center px-2 py-0.5 rounded-full text-xs whitespace-nowrap',
@@ -984,32 +984,34 @@ function ExpensesPage() {
                           {row.source === 'task' ? '업무연동' : '직접등록'}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        {row.editable && (
-                          <div className="flex items-center justify-center gap-0.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                              onClick={() => {
-                                const expense = expenses.find(
-                                  (e) => e.id === row.id,
-                                )
-                                if (expense) handleStartEdit(expense)
-                              }}
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                              onClick={() => setDeleteId(row.id)}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        )}
+                      <td className="px-4 py-2">
+                        <div className="flex items-center justify-center gap-0.5 h-7">
+                          {row.editable && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                onClick={() => {
+                                  const expense = expenses.find(
+                                    (e) => e.id === row.id,
+                                  )
+                                  if (expense) handleStartEdit(expense)
+                                }}
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                onClick={() => setDeleteId(row.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
