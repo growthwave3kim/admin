@@ -43,11 +43,14 @@ export const TaskTable = ({
                 <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   업체명
                 </th>
-                <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
+                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   상태
                 </th>
                 <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   받은금액
+                </th>
+                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
+                  실행비
                 </th>
                 <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
                   수익
@@ -86,11 +89,14 @@ export const TaskTable = ({
                         {task.company_name}
                       </Link>
                     </td>
-                    <td className="py-2.5">
+                    <td className="py-2.5 text-center">
                       <TaskStatusBadge status={task.status} />
                     </td>
-                    <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                      {formatCurrency(task.received_amount)}
+                    <td className="py-2.5 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                      +{formatCurrency(task.received_amount)}
+                    </td>
+                    <td className="py-2.5 text-right tabular-nums font-semibold text-red-500 dark:text-red-400">
+                      -{formatCurrency(task.execution_cost)}
                     </td>
                     <td className="py-2.5 text-right">
                       <ProfitAmount value={task.profit || 0} />

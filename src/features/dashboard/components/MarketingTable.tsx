@@ -69,11 +69,11 @@ export const MarketingTable = ({
                 <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
                   {row.taskCount}건
                 </td>
-                <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                  {formatCurrency(row.revenue)}
+                <td className="py-2.5 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                  +{formatCurrency(row.revenue)}
                 </td>
-                <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                  {formatCurrency(row.cost)}
+                <td className="py-2.5 text-right tabular-nums font-semibold text-red-500 dark:text-red-400">
+                  -{formatCurrency(row.cost)}
                 </td>
                 <td
                   className={cn(
