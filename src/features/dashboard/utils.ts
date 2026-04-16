@@ -6,6 +6,7 @@ import {
   getMonth,
   isAfter,
   isBefore,
+  parseISO,
   setMonth,
   startOfMonth,
   startOfYear,
@@ -99,7 +100,7 @@ export const filterByRange = (
 ): Task[] => {
   if (!start || !end) return tasks
   return tasks.filter((t) => {
-    const d = new Date(t.start_date)
+    const d = parseISO(t.start_date)
     return !isBefore(d, start) && !isAfter(d, end)
   })
 }
@@ -111,7 +112,7 @@ export const filterExpensesByRange = (
 ): Expense[] => {
   if (!start || !end) return expenses
   return expenses.filter((e) => {
-    const d = new Date(e.expense_date)
+    const d = parseISO(e.expense_date)
     return !isBefore(d, start) && !isAfter(d, end)
   })
 }

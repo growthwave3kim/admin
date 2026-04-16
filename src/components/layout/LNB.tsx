@@ -1,13 +1,24 @@
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils'
 import { Link, useMatchRoute } from '@tanstack/react-router'
-import { ClipboardList, LayoutDashboard, Receipt, Tag } from 'lucide-react'
+import {
+  Building2,
+  ClipboardList,
+  FolderOpen,
+  LayoutDashboard,
+  Receipt,
+  Tag,
+  Trash2,
+} from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', label: '대시보드', icon: LayoutDashboard },
   { to: '/tasks', label: '업무 목록', icon: ClipboardList },
+  { to: '/clients', label: '거래처', icon: Building2 },
   { to: '/expenses', label: '지출내역서', icon: Receipt },
+  { to: '/expense-categories', label: '지출 카테고리', icon: FolderOpen },
   { to: '/marketing-types', label: '마케팅 유형', icon: Tag },
+  { to: '/trash', label: '휴지통', icon: Trash2 },
 ] as const
 
 export const LNB = () => {

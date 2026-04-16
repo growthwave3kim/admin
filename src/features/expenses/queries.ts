@@ -6,10 +6,29 @@ export const fetchExpenses = async () => {
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
+    .is('deleted_at', null)
     .order('expense_date', { ascending: false })
 
   if (error) throw error
   return data as Expense[]
+}
+
+export const fetchTrashedExpenses = async () => {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('id, description, amount, expense_date, entry_type, deleted_at')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false })
+  if (error) throw error
+  return data as Pick<
+    Expense,
+    | 'id'
+    | 'description'
+    | 'amount'
+    | 'expense_date'
+    | 'entry_type'
+    | 'deleted_at'
+  >[]
 }
 
 export const createExpense = async (formData: ExpenseFormData) => {
@@ -46,7 +65,23 @@ export const updateExpense = async (
   return data
 }
 
-export const deleteExpense = async (id: string) => {
+export const softDeleteExpense = async (id: string) => {
+  const { error } = await supabase
+    .from('expenses')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export const restoreExpense = async (id: string) => {
+  const { error } = await supabase
+    .from('expenses')
+    .update({ deleted_at: null })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export const permanentDeleteExpense = async (id: string) => {
   const { error } = await supabase.from('expenses').delete().eq('id', id)
   if (error) throw error
 }

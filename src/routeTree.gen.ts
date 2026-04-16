@@ -13,11 +13,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedTrashIndexRouteImport } from './routes/_authed/trash/index'
 import { Route as AuthedTasksIndexRouteImport } from './routes/_authed/tasks/index'
 import { Route as AuthedMarketingTypesIndexRouteImport } from './routes/_authed/marketing-types/index'
 import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses/index'
+import { Route as AuthedExpenseCategoriesIndexRouteImport } from './routes/_authed/expense-categories/index'
+import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
+import { Route as AuthedClientsClientIdIndexRouteImport } from './routes/_authed/clients/$clientId/index'
 import { Route as AuthedTasksTaskIdEditRouteImport } from './routes/_authed/tasks/$taskId/edit'
 
 const LoginRoute = LoginRouteImport.update({
@@ -41,6 +45,13 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/dashboard.lazy').then((d) => d.Route),
 )
+const AuthedTrashIndexRoute = AuthedTrashIndexRouteImport.update({
+  id: '/trash/',
+  path: '/trash/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/trash/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksIndexRoute = AuthedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
@@ -63,6 +74,23 @@ const AuthedExpensesIndexRoute = AuthedExpensesIndexRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/expenses/index.lazy').then((d) => d.Route),
 )
+const AuthedExpenseCategoriesIndexRoute =
+  AuthedExpenseCategoriesIndexRouteImport.update({
+    id: '/expense-categories/',
+    path: '/expense-categories/',
+    getParentRoute: () => AuthedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authed/expense-categories/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
+  id: '/clients/',
+  path: '/clients/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/clients/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
@@ -77,6 +105,16 @@ const AuthedTasksTaskIdIndexRoute = AuthedTasksTaskIdIndexRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/tasks/$taskId/index.lazy').then((d) => d.Route),
 )
+const AuthedClientsClientIdIndexRoute =
+  AuthedClientsClientIdIndexRouteImport.update({
+    id: '/clients/$clientId/',
+    path: '/clients/$clientId/',
+    getParentRoute: () => AuthedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authed/clients/$clientId/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthedTasksTaskIdEditRoute = AuthedTasksTaskIdEditRouteImport.update({
   id: '/tasks/$taskId/edit',
   path: '/tasks/$taskId/edit',
@@ -90,10 +128,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/clients/': typeof AuthedClientsIndexRoute
+  '/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses/': typeof AuthedExpensesIndexRoute
   '/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/tasks/': typeof AuthedTasksIndexRoute
+  '/trash/': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
+  '/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
   '/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -101,10 +143,14 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/clients': typeof AuthedClientsIndexRoute
+  '/expense-categories': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses': typeof AuthedExpensesIndexRoute
   '/marketing-types': typeof AuthedMarketingTypesIndexRoute
   '/tasks': typeof AuthedTasksIndexRoute
+  '/trash': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
+  '/clients/$clientId': typeof AuthedClientsClientIdIndexRoute
   '/tasks/$taskId': typeof AuthedTasksTaskIdIndexRoute
 }
 export interface FileRoutesById {
@@ -114,10 +160,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/tasks/new': typeof AuthedTasksNewRoute
+  '/_authed/clients/': typeof AuthedClientsIndexRoute
+  '/_authed/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/_authed/expenses/': typeof AuthedExpensesIndexRoute
   '/_authed/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/_authed/tasks/': typeof AuthedTasksIndexRoute
+  '/_authed/trash/': typeof AuthedTrashIndexRoute
   '/_authed/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
+  '/_authed/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
   '/_authed/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -127,10 +177,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/clients/'
+    | '/expense-categories/'
     | '/expenses/'
     | '/marketing-types/'
     | '/tasks/'
+    | '/trash/'
     | '/tasks/$taskId/edit'
+    | '/clients/$clientId/'
     | '/tasks/$taskId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,10 +192,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/clients'
+    | '/expense-categories'
     | '/expenses'
     | '/marketing-types'
     | '/tasks'
+    | '/trash'
     | '/tasks/$taskId/edit'
+    | '/clients/$clientId'
     | '/tasks/$taskId'
   id:
     | '__root__'
@@ -150,10 +208,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/dashboard'
     | '/_authed/tasks/new'
+    | '/_authed/clients/'
+    | '/_authed/expense-categories/'
     | '/_authed/expenses/'
     | '/_authed/marketing-types/'
     | '/_authed/tasks/'
+    | '/_authed/trash/'
     | '/_authed/tasks/$taskId/edit'
+    | '/_authed/clients/$clientId/'
     | '/_authed/tasks/$taskId/'
   fileRoutesById: FileRoutesById
 }
@@ -193,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/trash/': {
+      id: '/_authed/trash/'
+      path: '/trash'
+      fullPath: '/trash/'
+      preLoaderRoute: typeof AuthedTrashIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/': {
       id: '/_authed/tasks/'
       path: '/tasks'
@@ -214,6 +283,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedExpensesIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/expense-categories/': {
+      id: '/_authed/expense-categories/'
+      path: '/expense-categories'
+      fullPath: '/expense-categories/'
+      preLoaderRoute: typeof AuthedExpenseCategoriesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/clients/': {
+      id: '/_authed/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthedClientsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/new': {
       id: '/_authed/tasks/new'
       path: '/tasks/new'
@@ -226,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks/$taskId'
       fullPath: '/tasks/$taskId/'
       preLoaderRoute: typeof AuthedTasksTaskIdIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/clients/$clientId/': {
+      id: '/_authed/clients/$clientId/'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId/'
+      preLoaderRoute: typeof AuthedClientsClientIdIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/tasks/$taskId/edit': {
@@ -241,20 +331,28 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedTasksNewRoute: typeof AuthedTasksNewRoute
+  AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
+  AuthedExpenseCategoriesIndexRoute: typeof AuthedExpenseCategoriesIndexRoute
   AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
   AuthedMarketingTypesIndexRoute: typeof AuthedMarketingTypesIndexRoute
   AuthedTasksIndexRoute: typeof AuthedTasksIndexRoute
+  AuthedTrashIndexRoute: typeof AuthedTrashIndexRoute
   AuthedTasksTaskIdEditRoute: typeof AuthedTasksTaskIdEditRoute
+  AuthedClientsClientIdIndexRoute: typeof AuthedClientsClientIdIndexRoute
   AuthedTasksTaskIdIndexRoute: typeof AuthedTasksTaskIdIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedTasksNewRoute: AuthedTasksNewRoute,
+  AuthedClientsIndexRoute: AuthedClientsIndexRoute,
+  AuthedExpenseCategoriesIndexRoute: AuthedExpenseCategoriesIndexRoute,
   AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
   AuthedMarketingTypesIndexRoute: AuthedMarketingTypesIndexRoute,
   AuthedTasksIndexRoute: AuthedTasksIndexRoute,
+  AuthedTrashIndexRoute: AuthedTrashIndexRoute,
   AuthedTasksTaskIdEditRoute: AuthedTasksTaskIdEditRoute,
+  AuthedClientsClientIdIndexRoute: AuthedClientsClientIdIndexRoute,
   AuthedTasksTaskIdIndexRoute: AuthedTasksTaskIdIndexRoute,
 }
 

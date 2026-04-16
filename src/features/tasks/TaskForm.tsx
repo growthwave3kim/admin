@@ -1,3 +1,4 @@
+import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
@@ -15,12 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
+import { ClientCombobox } from '@/features/clients/components/ClientCombobox'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import {
   CalendarIcon,
+  Check,
   Plus,
   Trash2,
   TrendingDown,
@@ -34,15 +38,19 @@ import type { MarketingType } from '../tasks/types'
 import { TASK_STATUS_LABELS } from './types'
 
 const taskFormSchema = z.object({
-  company_name: z.string().min(1, '업체명을 입력해주세요'),
+  company_name: z.string(),
+  client_id: z.string().min(1, '업체를 선택해주세요'),
   received_amount: z.coerce.number().min(0),
   execution_cost: z.coerce.number().min(0),
   status: z.enum([
+    'proposal',
     'not_started',
     'in_progress',
     'done_settled',
     'done_unsettled',
+    'lost',
   ] as const),
+  vat_included: z.boolean(),
   start_date: z.date(),
   end_date: z.date().optional().nullable(),
   note: z.string().optional(),
@@ -64,21 +72,6 @@ type TaskFormProps = {
   showEndDate?: boolean
   isLoading?: boolean
   submitLabel?: string
-}
-
-const inputClass =
-  'h-9 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
-
-const FieldLabel = ({
-  children,
-  required,
-}: { children: React.ReactNode; required?: boolean }) => {
-  return (
-    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-      {children}
-      {required && <span className="text-gray-400 ml-0.5">*</span>}
-    </p>
-  )
 }
 
 const DatePicker = ({
@@ -137,13 +130,17 @@ export const TaskForm = ({
   isLoading = false,
   submitLabel = '저장',
 }: TaskFormProps) => {
+  const [addClientOpen, setAddClientOpen] = useState(false)
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema) as never,
     defaultValues: {
       company_name: '',
+      client_id: '',
       received_amount: 0,
       execution_cost: 0,
       status: 'not_started',
+      vat_included: false,
       note: '',
       marketings: [{ marketing_type_id: '', count: 1 }],
       ...defaultValues,
@@ -157,7 +154,9 @@ export const TaskForm = ({
 
   const receivedAmount = Number(form.watch('received_amount')) || 0
   const executionCost = Number(form.watch('execution_cost')) || 0
+  const vatIncluded = form.watch('vat_included')
   const profit = receivedAmount - executionCost
+  const vatAmount = vatIncluded ? Math.round(receivedAmount / 11) : 0
 
   return (
     <Form {...form}>
@@ -168,22 +167,34 @@ export const TaskForm = ({
         {/* 기본 정보 */}
         <section>
           <SectionHeader>기본 정보</SectionHeader>
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control as never}
-              name="company_name"
-              render={({ field }) => (
-                <FormItem>
+          <FormField
+            control={form.control as never}
+            name="client_id"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between mb-1.5">
                   <FieldLabel required>업체명</FieldLabel>
-                  <Input
-                    className={inputClass}
-                    placeholder="업체명 입력"
-                    {...field}
-                  />
-                  <FormMessage className="text-xs mt-1" />
-                </FormItem>
-              )}
-            />
+                  <button
+                    type="button"
+                    onClick={() => setAddClientOpen(true)}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />새 거래처
+                  </button>
+                </div>
+                <ClientCombobox
+                  value={field.value as string | null}
+                  onChange={field.onChange}
+                  onSelectClient={(client) =>
+                    form.setValue('company_name', client?.name ?? '')
+                  }
+                />
+                <FormMessage className="text-xs mt-1" />
+              </FormItem>
+            )}
+          />
+
+          <div className="mt-4">
             <FormField
               control={form.control as never}
               name="status"
@@ -268,14 +279,48 @@ export const TaskForm = ({
 
         {/* 금액 */}
         <section>
-          <SectionHeader>금액</SectionHeader>
+          <div className="flex items-center justify-between mb-4">
+            <SectionHeader>금액</SectionHeader>
+            <FormField
+              control={form.control as never}
+              name="vat_included"
+              render={({ field }) => (
+                <button
+                  type="button"
+                  onClick={() => field.onChange(!(field.value as boolean))}
+                  className={cn(
+                    'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all -mt-4',
+                    field.value
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'w-3.5 h-3.5 rounded-sm border flex items-center justify-center',
+                      field.value
+                        ? 'bg-blue-500 border-blue-500'
+                        : 'border-gray-300 dark:border-gray-600',
+                    )}
+                  >
+                    {field.value && (
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    )}
+                  </span>
+                  VAT 포함
+                </button>
+              )}
+            />
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <FormField
               control={form.control as never}
               name="received_amount"
               render={({ field }) => (
                 <FormItem>
-                  <FieldLabel>받은 금액</FieldLabel>
+                  <FieldLabel>
+                    받은 금액{vatIncluded ? ' (VAT 포함)' : ''}
+                  </FieldLabel>
                   <NumericFormat
                     customInput={Input}
                     thousandSeparator=","
@@ -286,6 +331,11 @@ export const TaskForm = ({
                       field.onChange(floatValue ?? 0)
                     }
                   />
+                  {vatIncluded && vatAmount > 0 && (
+                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-1 tabular-nums">
+                      VAT {new Intl.NumberFormat('ko-KR').format(vatAmount)}원
+                    </p>
+                  )}
                   <FormMessage className="text-xs mt-1" />
                 </FormItem>
               )}
@@ -440,6 +490,15 @@ export const TaskForm = ({
             )}
           />
         </section>
+
+        <ClientFormDialog
+          open={addClientOpen}
+          onOpenChange={setAddClientOpen}
+          onSuccess={(client) => {
+            form.setValue('client_id', client.id)
+            form.setValue('company_name', client.name)
+          }}
+        />
 
         {/* Actions */}
         <div className="flex gap-2 justify-end pt-1 border-t border-gray-100 dark:border-gray-800">

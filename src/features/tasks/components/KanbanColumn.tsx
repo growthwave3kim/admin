@@ -5,6 +5,10 @@ import { cn } from '@/lib/utils'
 import { Droppable } from '@hello-pangea/dnd'
 
 const COLUMN_STYLES: Record<TaskStatus, { dot: string; header: string }> = {
+  proposal: {
+    dot: 'bg-purple-400',
+    header: 'text-purple-600 dark:text-purple-400',
+  },
   not_started: {
     dot: 'bg-slate-400',
     header: 'text-slate-600 dark:text-gray-300',
@@ -20,6 +24,10 @@ const COLUMN_STYLES: Record<TaskStatus, { dot: string; header: string }> = {
   done_unsettled: {
     dot: 'bg-amber-500',
     header: 'text-amber-700 dark:text-amber-400',
+  },
+  lost: {
+    dot: 'bg-gray-400',
+    header: 'text-gray-500 dark:text-gray-500',
   },
 }
 

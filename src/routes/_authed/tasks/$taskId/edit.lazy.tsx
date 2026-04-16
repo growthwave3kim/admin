@@ -58,9 +58,11 @@ function EditTaskPage() {
 
   const defaultValues: Partial<TaskFormValues> = {
     company_name: task.company_name,
+    client_id: task.client_id ?? '',
     received_amount: task.received_amount,
     execution_cost: task.execution_cost,
     status: task.status,
+    vat_included: task.vat_included ?? false,
     start_date: new Date(task.start_date),
     end_date: task.end_date ? new Date(task.end_date) : null,
     note: task.note ?? '',

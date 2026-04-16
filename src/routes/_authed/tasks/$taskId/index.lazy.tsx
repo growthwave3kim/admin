@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/select'
 import { ProfitAmount } from '@/features/tasks/components/ProfitAmount'
 import {
-  deleteTask,
   fetchTask,
+  softDeleteTask,
   updateTask,
   updateTaskStatus,
 } from '@/features/tasks/queries'
@@ -75,7 +75,7 @@ function TaskDetailPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteTask(taskId),
+    mutationFn: () => softDeleteTask(taskId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       toast.success('업무가 삭제되었습니다')

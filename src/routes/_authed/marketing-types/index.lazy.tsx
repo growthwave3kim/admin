@@ -1,4 +1,5 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { inputClassSm } from '@/components/common/FieldLabel'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -24,9 +25,6 @@ import { toast } from 'sonner'
 export const Route = createLazyFileRoute('/_authed/marketing-types/')({
   component: MarketingTypesPage,
 })
-
-const inputCls =
-  'h-8 text-sm rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
 
 function MarketingTypesPage() {
   const qc = useQueryClient()
@@ -133,7 +131,7 @@ function MarketingTypesPage() {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <Input
-                      className={cn(inputCls, 'h-9')}
+                      className={cn(inputClassSm, 'h-9')}
                       placeholder="새 마케팅 유형명 입력"
                       autoFocus
                       {...field}

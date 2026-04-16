@@ -1,4 +1,5 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,8 +15,8 @@ import { SkeletonRow } from '@/features/tasks/components/SkeletonRow'
 import { SortIcon } from '@/features/tasks/components/SortIcon'
 import { useTaskSearchState } from '@/features/tasks/hooks/useTaskSearchState'
 import {
-  deleteTask,
   fetchTasks,
+  softDeleteTask,
   updateTaskStatus,
 } from '@/features/tasks/queries'
 import {
@@ -31,17 +32,7 @@ import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Columns,
-  List,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { Columns, List, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -78,7 +69,7 @@ function TasksPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: deleteTask,
+    mutationFn: softDeleteTask,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       toast.success('업무가 삭제되었습니다')
@@ -90,26 +81,21 @@ function TasksPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
       updateTaskStatus(id, status),
-    onMutate: ({ id, status }) => {
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
       const prev = qc.getQueryData<Task[]>(['tasks'])
       qc.setQueryData<Task[]>(['tasks'], (old) =>
         old ? old.map((t) => (t.id === id ? { ...t, status } : t)) : old,
       )
-      qc.cancelQueries({ queryKey: ['tasks'] })
       return { prev }
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(['tasks'], ctx.prev)
-      setBoardColumnOrder({
-        not_started: [],
-        in_progress: [],
-        done_settled: [],
-        done_unsettled: [],
-      })
       toast.error('상태 변경에 실패했습니다')
     },
-    onSettled: () => {
+    onSettled: (_, __, vars) => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['task', vars.id] })
     },
   })
 
@@ -118,10 +104,12 @@ function TasksPage() {
   const [boardColumnOrder, setBoardColumnOrder] = useState<
     Record<TaskStatus, string[]>
   >({
+    proposal: [],
     not_started: [],
     in_progress: [],
     done_settled: [],
     done_unsettled: [],
+    lost: [],
   })
 
   const handleSearch = () => {
@@ -358,20 +346,24 @@ function TasksPage() {
                 {(
                   {
                     all: '전체',
+                    proposal: '제안',
                     not_started: '시작 전',
                     in_progress: '진행 중',
                     done_settled: '정산완료',
                     done_unsettled: '정산미완료',
+                    lost: '실패',
                   } as Record<string, string>
                 )[filterStatus] ?? '전체'}
               </SelectValue>
             </SelectTrigger>
             <SelectContent side="bottom" sideOffset={4}>
               <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="proposal">제안</SelectItem>
               <SelectItem value="not_started">시작 전</SelectItem>
               <SelectItem value="in_progress">진행 중</SelectItem>
               <SelectItem value="done_settled">정산완료</SelectItem>
               <SelectItem value="done_unsettled">정산미완료</SelectItem>
+              <SelectItem value="lost">실패</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -599,68 +591,12 @@ function TasksPage() {
           </div>
 
           {/* Pagination */}
-          <div className="shrink-0 flex items-center justify-center gap-1 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={page <= 1}
-              className="h-7 w-7 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
-              onClick={() => update({ page: page - 1 })}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            {(() => {
-              const total = Math.max(totalPages, 1)
-              const pages: (number | 'ellipsis')[] = []
-              if (total <= 7) {
-                for (let i = 1; i <= total; i++) pages.push(i)
-              } else {
-                pages.push(1)
-                if (page > 3) pages.push('ellipsis')
-                for (
-                  let p = Math.max(2, page - 1);
-                  p <= Math.min(total - 1, page + 1);
-                  p++
-                )
-                  pages.push(p)
-                if (page < total - 2) pages.push('ellipsis')
-                pages.push(total)
-              }
-              return pages.map((p, idx) =>
-                p === 'ellipsis' ? (
-                  <span
-                    key={`ellipsis-${idx < pages.length / 2 ? 'left' : 'right'}`}
-                    className="w-7 text-center text-xs text-gray-400 dark:text-gray-400 select-none"
-                  >
-                    ···
-                  </span>
-                ) : (
-                  <Button
-                    key={p}
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      'h-7 w-7 text-xs rounded-lg',
-                      p === page
-                        ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
-                        : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
-                    )}
-                    onClick={() => update({ page: p })}
-                  >
-                    {p}
-                  </Button>
-                ),
-              )
-            })()}
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={page >= totalPages}
-              className="h-7 w-7 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
-              onClick={() => update({ page: page + 1 })}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+          <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(p) => update({ page: p })}
+            />
           </div>
         </div>
       )}

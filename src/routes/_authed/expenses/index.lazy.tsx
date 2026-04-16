@@ -1,4 +1,6 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
+import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -21,10 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { fetchExpenseCategories } from '@/features/expense-categories/queries'
 import {
   createExpense,
-  deleteExpense,
   fetchExpenses,
+  softDeleteExpense,
   updateExpense,
 } from '@/features/expenses/queries'
 import {
@@ -47,8 +50,6 @@ import { ko } from 'date-fns/locale'
 import {
   CalendarIcon,
   Check,
-  ChevronLeft,
-  ChevronRight,
   Pencil,
   Plus,
   Search,
@@ -71,29 +72,17 @@ const routeApi = getRouteApi('/_authed/expenses/')
 
 const expenseFormSchema = z.object({
   entry_type: z.enum(['income', 'expense'] as const),
-  description: z.string().min(1, '지출 내용을 입력해주세요'),
+  description: z.string().min(1, '내용을 입력해주세요'),
   amount: z.coerce.number().min(1, '금액을 입력해주세요'),
   expense_date: z.date(),
   spender: z.enum(['김도현', '김국민', '김태훈'] as const),
+  category_id: z.string().nullable().optional(),
 })
 
 type ExpenseFormValues = z.infer<typeof expenseFormSchema>
 
-const inputClass =
-  'h-9 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
-
 const smallInputClass =
   'h-7 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
-
-const FieldLabel = ({
-  children,
-  required,
-}: { children: React.ReactNode; required?: boolean }) => (
-  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-    {children}
-    {required && <span className="text-gray-400 ml-0.5">*</span>}
-  </p>
-)
 
 const DatePickerField = ({
   value,
@@ -222,8 +211,19 @@ function ExpenseFormDialog({
       amount: 0,
       expense_date: new Date(),
       spender: undefined,
+      category_id: null,
     },
   })
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['expense-categories'],
+    queryFn: fetchExpenseCategories,
+  })
+
+  const entryType = form.watch('entry_type')
+  const selectedCategoryId = form.watch('category_id')
+  const isOtherCategory =
+    categories.find((c) => c.id === selectedCategoryId)?.name === '기타'
 
   const qc = useQueryClient()
 
@@ -265,7 +265,10 @@ function ExpenseFormDialog({
                   <FieldLabel required>구분</FieldLabel>
                   <Select
                     value={field.value as string}
-                    onValueChange={field.onChange}
+                    onValueChange={(v) => {
+                      field.onChange(v)
+                      if (v === 'income') form.setValue('category_id', null)
+                    }}
                   >
                     <SelectTrigger className={cn(inputClass, 'w-full')}>
                       <SelectValue placeholder="수입/지출 선택">
@@ -285,6 +288,47 @@ function ExpenseFormDialog({
                 </FormItem>
               )}
             />
+            {entryType === 'expense' && (
+              <FormField
+                control={form.control as never}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FieldLabel>카테고리</FieldLabel>
+                    <Select
+                      value={(field.value as string) ?? ''}
+                      onValueChange={(v) => {
+                        field.onChange(v || null)
+                        if (
+                          v &&
+                          categories.find((c) => c.id === v)?.name !== '기타'
+                        ) {
+                          form.setValue('description', '')
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={cn(inputClass, 'w-full')}>
+                        <SelectValue placeholder="카테고리 선택">
+                          {selectedCategoryId
+                            ? (categories.find(
+                                (c) => c.id === selectedCategoryId,
+                              )?.name ?? '')
+                            : undefined}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent alignItemWithTrigger={false}>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-xs mt-1" />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control as never}
               name="description"
@@ -293,7 +337,11 @@ function ExpenseFormDialog({
                   <FieldLabel required>내용</FieldLabel>
                   <Input
                     className={inputClass}
-                    placeholder="내용 입력"
+                    placeholder={
+                      isOtherCategory
+                        ? '어떤 항목인지 입력해주세요'
+                        : '내용 입력'
+                    }
                     {...field}
                   />
                   <FormMessage className="text-xs mt-1" />
@@ -398,6 +446,7 @@ type InlineValues = {
   date: string
   spender: string
   entry_type: EntryType
+  category_id: string | null
 }
 
 function ExpensesPage() {
@@ -434,10 +483,15 @@ function ExpensesPage() {
     queryFn: fetchExpenses,
   })
 
+  const { data: expenseCategories = [] } = useQuery({
+    queryKey: ['expense-categories'],
+    queryFn: fetchExpenseCategories,
+  })
+
   const isLoading = tasksLoading || expensesLoading
 
   const deleteMutation = useMutation({
-    mutationFn: deleteExpense,
+    mutationFn: softDeleteExpense,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expenses'] })
       toast.success('삭제되었습니다')
@@ -455,6 +509,7 @@ function ExpensesPage() {
         expense_date: parseISO(inlineValues.date),
         spender: inlineValues.spender as Spender,
         entry_type: inlineValues.entry_type,
+        category_id: inlineValues.category_id,
       })
     },
     onSuccess: () => {
@@ -474,6 +529,7 @@ function ExpensesPage() {
       date: expense.expense_date,
       spender: expense.spender,
       entry_type: expense.entry_type,
+      category_id: expense.category_id,
     })
   }
 
@@ -500,6 +556,7 @@ function ExpensesPage() {
           amount: task.received_amount,
           date: task.start_date,
           spender: null,
+          category_id: null,
           editable: false,
         })
       }
@@ -512,6 +569,7 @@ function ExpensesPage() {
           amount: task.execution_cost,
           date: task.start_date,
           spender: null,
+          category_id: null,
           editable: false,
         })
       }
@@ -526,6 +584,7 @@ function ExpensesPage() {
         amount: expense.amount,
         date: expense.expense_date,
         spender: expense.spender,
+        category_id: expense.category_id,
         editable: true,
       })
     }
@@ -831,24 +890,58 @@ function ExpensesPage() {
                       >
                         {/* 구분 */}
                         <td className="px-2 py-2">
-                          <Select
-                            value={inlineValues.entry_type}
-                            onValueChange={(v) =>
-                              patchInline({ entry_type: v as EntryType })
-                            }
-                          >
-                            <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                              <SelectValue>
-                                {inlineValues.entry_type === 'income'
-                                  ? '수입'
-                                  : '지출'}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent alignItemWithTrigger={false}>
-                              <SelectItem value="income">수입</SelectItem>
-                              <SelectItem value="expense">지출</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex flex-col gap-1">
+                            <Select
+                              value={inlineValues.entry_type}
+                              onValueChange={(v) =>
+                                patchInline({
+                                  entry_type: v as EntryType,
+                                  category_id:
+                                    v === 'income'
+                                      ? null
+                                      : inlineValues.category_id,
+                                })
+                              }
+                            >
+                              <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                                <SelectValue>
+                                  {inlineValues.entry_type === 'income'
+                                    ? '수입'
+                                    : '지출'}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent alignItemWithTrigger={false}>
+                                <SelectItem value="income">수입</SelectItem>
+                                <SelectItem value="expense">지출</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {inlineValues.entry_type === 'expense' && (
+                              <Select
+                                value={inlineValues.category_id ?? ''}
+                                onValueChange={(v) =>
+                                  patchInline({ category_id: v || null })
+                                }
+                              >
+                                <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                                  <SelectValue placeholder="카테고리">
+                                    {inlineValues.category_id
+                                      ? (expenseCategories.find(
+                                          (c) =>
+                                            c.id === inlineValues.category_id,
+                                        )?.name ?? '')
+                                      : undefined}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent alignItemWithTrigger={false}>
+                                  {expenseCategories.map((c) => (
+                                    <SelectItem key={c.id} value={c.id}>
+                                      {c.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
                         </td>
                         {/* 내용 */}
                         <td className="px-2 py-2">
@@ -949,7 +1042,11 @@ function ExpensesPage() {
                               : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
                           )}
                         >
-                          {row.type === 'income' ? '수입' : '지출'}
+                          {row.type === 'income'
+                            ? '수입'
+                            : (expenseCategories.find(
+                                (c) => c.id === row.category_id,
+                              )?.name ?? '지출')}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 truncate">
@@ -1022,68 +1119,12 @@ function ExpensesPage() {
         </div>
 
         {/* Pagination */}
-        <div className="shrink-0 flex items-center justify-center gap-1 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={page <= 1}
-            className="h-7 w-7 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => update({ page: page - 1 })}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          {(() => {
-            const total = Math.max(totalPages, 1)
-            const pages: (number | 'ellipsis')[] = []
-            if (total <= 7) {
-              for (let i = 1; i <= total; i++) pages.push(i)
-            } else {
-              pages.push(1)
-              if (page > 3) pages.push('ellipsis')
-              for (
-                let p = Math.max(2, page - 1);
-                p <= Math.min(total - 1, page + 1);
-                p++
-              )
-                pages.push(p)
-              if (page < total - 2) pages.push('ellipsis')
-              pages.push(total)
-            }
-            return pages.map((p, idx) =>
-              p === 'ellipsis' ? (
-                <span
-                  key={`ellipsis-${idx < pages.length / 2 ? 'left' : 'right'}`}
-                  className="w-7 text-center text-xs text-gray-400 select-none"
-                >
-                  ···
-                </span>
-              ) : (
-                <Button
-                  key={p}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'h-7 w-7 text-xs rounded-lg',
-                    p === page
-                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
-                      : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
-                  )}
-                  onClick={() => update({ page: p })}
-                >
-                  {p}
-                </Button>
-              ),
-            )
-          })()}
-          <Button
-            variant="ghost"
-            size="icon"
-            disabled={page >= totalPages}
-            className="h-7 w-7 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => update({ page: page + 1 })}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+        <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={(p) => update({ page: p })}
+          />
         </div>
       </div>
 

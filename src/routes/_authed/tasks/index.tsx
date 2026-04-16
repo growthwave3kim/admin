@@ -20,10 +20,12 @@ const searchSchema = z.object({
   filterStatus: z
     .enum([
       'all',
+      'proposal',
       'not_started',
       'in_progress',
       'done_settled',
       'done_unsettled',
+      'lost',
     ])
     .optional(),
 })

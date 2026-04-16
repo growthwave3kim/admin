@@ -1,3 +1,5 @@
+import { fetchClients } from '@/features/clients/queries'
+import { ExpenseCategoryChart } from '@/features/dashboard/components/ExpenseCategoryChart'
 import { KpiCard } from '@/features/dashboard/components/KpiCard'
 import { MarketingTable } from '@/features/dashboard/components/MarketingTable'
 import { MonthlyChart } from '@/features/dashboard/components/MonthlyChart'
@@ -13,6 +15,7 @@ import {
   getPeriodRange,
   getPrevPeriodRange,
 } from '@/features/dashboard/utils'
+import { fetchExpenseCategories } from '@/features/expense-categories/queries'
 import { fetchExpenses } from '@/features/expenses/queries'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { fetchTasks } from '@/features/tasks/queries'
@@ -25,6 +28,7 @@ import {
   format,
   isAfter,
   isBefore,
+  parseISO,
   startOfMonth,
   subMonths,
 } from 'date-fns'
@@ -35,10 +39,12 @@ export const Route = createLazyFileRoute('/_authed/dashboard')({
 })
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
+  proposal: '#7c3aed',
   not_started: '#6b7280',
   in_progress: '#2563eb',
   done_settled: '#16a34a',
   done_unsettled: '#d97706',
+  lost: '#9ca3af',
 }
 
 function DashboardPage() {
@@ -55,6 +61,14 @@ function DashboardPage() {
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
+  })
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: fetchClients,
+  })
+  const { data: expenseCategories = [] } = useQuery({
+    queryKey: ['expense-categories'],
+    queryFn: fetchExpenseCategories,
   })
 
   const anyLoading = isLoading || isLoadingExpenses
@@ -132,11 +146,11 @@ function DashboardPage() {
         const monthEnd = endOfMonth(d)
 
         const monthTasks = tasks.filter((t) => {
-          const td = new Date(t.start_date)
+          const td = parseISO(t.start_date)
           return !isBefore(td, monthStart) && !isAfter(td, monthEnd)
         })
         const monthExpenses = expenses.filter((e) => {
-          const ed = new Date(e.expense_date)
+          const ed = parseISO(e.expense_date)
           return !isBefore(ed, monthStart) && !isAfter(ed, monthEnd)
         })
 
@@ -190,7 +204,7 @@ function DashboardPage() {
         const monthStart = startOfMonth(d)
         const monthEnd = endOfMonth(d)
         const count = tasks.filter((t) => {
-          const td = new Date(t.start_date)
+          const td = parseISO(t.start_date)
           return !isBefore(td, monthStart) && !isAfter(td, monthEnd)
         }).length
         const highlighted =
@@ -202,12 +216,20 @@ function DashboardPage() {
     [tasks, start, end],
   )
 
-  // Top clients (period filtered tasks)
+  // Top clients (period filtered tasks) — grouped by client_id for accuracy
   const topClients = useMemo(() => {
-    const map = new Map<string, { revenue: number; profit: number }>()
+    const map = new Map<
+      string,
+      { name: string; revenue: number; profit: number }
+    >()
     for (const t of periodTasks) {
-      const prev = map.get(t.company_name) ?? { revenue: 0, profit: 0 }
-      map.set(t.company_name, {
+      const key = t.client_id ?? `__name__${t.company_name}`
+      const name = t.client_id
+        ? (clients.find((c) => c.id === t.client_id)?.name ?? t.company_name)
+        : t.company_name
+      const prev = map.get(key) ?? { name, revenue: 0, profit: 0 }
+      map.set(key, {
+        name,
         revenue: prev.revenue + (t.received_amount || 0),
         profit: prev.profit + (t.profit || 0),
       })
@@ -215,8 +237,26 @@ function DashboardPage() {
     return [...map.entries()]
       .sort((a, b) => b[1].revenue - a[1].revenue)
       .slice(0, 5)
-      .map(([name, v], idx) => ({ rank: idx + 1, name, ...v }))
-  }, [periodTasks])
+      .map(([, v], idx) => ({ rank: idx + 1, ...v }))
+  }, [periodTasks, clients])
+
+  // Expense category breakdown (period filtered expenses, entry_type=expense only)
+  const categoryData = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const e of periodExpenses.filter((e) => e.entry_type === 'expense')) {
+      const key = e.category_id ?? '__none__'
+      map.set(key, (map.get(key) ?? 0) + e.amount)
+    }
+    return [...map.entries()]
+      .map(([key, amount]) => ({
+        name:
+          key === '__none__'
+            ? '미분류'
+            : (expenseCategories.find((c) => c.id === key)?.name ?? '미분류'),
+        amount,
+      }))
+      .sort((a, b) => b.amount - a.amount)
+  }, [periodExpenses, expenseCategories])
 
   // Marketing table (period filtered tasks)
   const marketingTableData = useMemo(
@@ -270,11 +310,11 @@ function DashboardPage() {
         const aOverdue =
           a.status === 'in_progress' &&
           !!a.end_date &&
-          isBefore(new Date(a.end_date), now)
+          isBefore(parseISO(a.end_date), now)
         const bOverdue =
           b.status === 'in_progress' &&
           !!b.end_date &&
-          isBefore(new Date(b.end_date), now)
+          isBefore(parseISO(b.end_date), now)
         const aAttention = aOverdue || a.status === 'done_unsettled'
         const bAttention = bOverdue || b.status === 'done_unsettled'
         if (aAttention && !bAttention) return -1
@@ -391,14 +431,15 @@ function DashboardPage() {
           />
         </div>
 
-        {/* Row 4: Spender chart (2/3) + Top clients (1/3) */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Row 4: Task count (2/4) + Top clients (1/4) + Expense category pie (1/4) */}
+        <div className="grid grid-cols-4 gap-3">
           <MonthlyTaskCount
             data={monthlyTaskData}
             highlightStart={highlightStart}
             highlightEnd={highlightEnd}
           />
           <TopClients data={topClients} isLoading={isLoading} />
+          <ExpenseCategoryChart data={categoryData} isLoading={anyLoading} />
         </div>
 
         {/* Row 5: Marketing table (full width) */}

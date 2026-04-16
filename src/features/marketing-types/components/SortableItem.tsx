@@ -1,3 +1,4 @@
+import { inputClassSm } from '@/components/common/FieldLabel'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -20,9 +21,6 @@ const ACCENT_COLORS = [
   'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
   'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
 ]
-
-const inputCls =
-  'h-8 text-sm rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
 
 export const SortableItem = ({
   type,
@@ -102,7 +100,7 @@ export const SortableItem = ({
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <Input
-                        className={inputCls}
+                        className={inputClassSm}
                         placeholder="유형명"
                         autoFocus
                         {...field}
