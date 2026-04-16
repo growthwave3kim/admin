@@ -90,12 +90,12 @@ function TasksPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
       updateTaskStatus(id, status),
-    onMutate: async ({ id, status }) => {
-      await qc.cancelQueries({ queryKey: ['tasks'] })
+    onMutate: ({ id, status }) => {
       const prev = qc.getQueryData<Task[]>(['tasks'])
       qc.setQueryData<Task[]>(['tasks'], (old) =>
         old ? old.map((t) => (t.id === id ? { ...t, status } : t)) : old,
       )
+      qc.cancelQueries({ queryKey: ['tasks'] })
       return { prev }
     },
     onError: (_err, _vars, ctx) => {

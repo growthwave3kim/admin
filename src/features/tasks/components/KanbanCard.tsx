@@ -26,9 +26,12 @@ export const KanbanCard = ({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          style={provided.draggableProps.style}
+          style={{
+            ...provided.draggableProps.style,
+            ...(snapshot.isDropAnimating && { transitionDuration: '0.001s' }),
+          }}
           className={cn(
-            'group bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing transition-all',
+            'group bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing transition-[box-shadow,border-color]',
             snapshot.isDragging
               ? 'shadow-lg border-gray-400 dark:border-gray-400 ring-2 ring-gray-200 dark:ring-gray-600'
               : 'hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm',
