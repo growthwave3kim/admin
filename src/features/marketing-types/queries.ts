@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { MarketingType } from '../tasks/types'
+import type { MarketingType } from './types'
 
 export const fetchMarketingTypes = async () => {
   const { data, error } = await supabase
@@ -36,5 +36,12 @@ export const updateMarketingType = async (
 
 export const deleteMarketingType = async (id: string) => {
   const { error } = await supabase.from('marketing_types').delete().eq('id', id)
+  if (error) throw error
+}
+
+export const reorderMarketingTypes = async (
+  items: { id: string; sort_order: number }[],
+) => {
+  const { error } = await supabase.from('marketing_types').upsert(items)
   if (error) throw error
 }

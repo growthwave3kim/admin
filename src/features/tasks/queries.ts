@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import dayjs from 'dayjs'
+import { format } from 'date-fns'
 import type { Task, TaskFormData } from './types'
 
 export const fetchTasks = async () => {
@@ -46,8 +46,8 @@ export const createTask = async (formData: TaskFormData) => {
     .from('tasks')
     .insert({
       ...taskData,
-      start_date: dayjs(start_date).format('YYYY-MM-DD'),
-      end_date: end_date ? dayjs(end_date).format('YYYY-MM-DD') : null,
+      start_date: format(start_date, 'yyyy-MM-dd'),
+      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : null,
     })
     .select()
     .single()
@@ -71,12 +71,9 @@ export const updateTask = async (
   const { marketings, start_date, end_date, ...taskData } = formData
 
   const updatePayload: Record<string, unknown> = { ...taskData }
-  if (start_date)
-    updatePayload.start_date = dayjs(start_date).format('YYYY-MM-DD')
+  if (start_date) updatePayload.start_date = format(start_date, 'yyyy-MM-dd')
   if (end_date !== undefined)
-    updatePayload.end_date = end_date
-      ? dayjs(end_date).format('YYYY-MM-DD')
-      : null
+    updatePayload.end_date = end_date ? format(end_date, 'yyyy-MM-dd') : null
 
   const { data: task, error } = await supabase
     .from('tasks')

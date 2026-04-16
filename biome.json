@@ -3,8 +3,7 @@
   "files": {
     "ignore": [
       "src/routeTree.gen.ts",
-      "src/components/ui/**",
-      "src/App.tsx"
+      "src/components/ui/**"
     ]
   },
   "organizeImports": { "enabled": true },

@@ -23,11 +23,11 @@ const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/login.lazy').then((d) => d.Route))
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/_authed.lazy').then((d) => d.Route))
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,33 +37,45 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/_authed/dashboard.lazy').then((d) => d.Route),
+)
 const AuthedTasksIndexRoute = AuthedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
   getParentRoute: () => AuthedRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/_authed/tasks/index.lazy').then((d) => d.Route),
+)
 const AuthedMarketingTypesIndexRoute =
   AuthedMarketingTypesIndexRouteImport.update({
     id: '/marketing-types/',
     path: '/marketing-types/',
     getParentRoute: () => AuthedRoute,
-  } as any)
+  } as any).lazy(() =>
+    import('./routes/_authed/marketing-types/index.lazy').then((d) => d.Route),
+  )
 const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
   getParentRoute: () => AuthedRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/_authed/tasks/new.lazy').then((d) => d.Route),
+)
 const AuthedTasksTaskIdIndexRoute = AuthedTasksTaskIdIndexRouteImport.update({
   id: '/tasks/$taskId/',
   path: '/tasks/$taskId/',
   getParentRoute: () => AuthedRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/_authed/tasks/$taskId/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksTaskIdEditRoute = AuthedTasksTaskIdEditRouteImport.update({
   id: '/tasks/$taskId/edit',
   path: '/tasks/$taskId/edit',
   getParentRoute: () => AuthedRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/_authed/tasks/$taskId/edit.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute

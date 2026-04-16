@@ -25,8 +25,3 @@ export const useAuth = () => {
 
   return { session, isLoading }
 }
-
-export const signIn = async (email: string, password: string) =>
-  supabase.auth.signInWithPassword({ email, password })
-
-export const signOut = async () => supabase.auth.signOut()

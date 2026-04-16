@@ -1,0 +1,111 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getAxisStyle, getTooltipStyle } from '@/features/dashboard/chartStyles'
+import { useTheme } from '@/hooks/useTheme'
+import { formatCurrency } from '@/lib/utils'
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+
+type MonthlyDataPoint = {
+  label: string
+  revenue: number
+  cost: number
+}
+
+export const MonthlyChart = ({ data }: { data: MonthlyDataPoint[] }) => {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  const tooltipStyle = getTooltipStyle(isDark)
+  const axisStyle = getAxisStyle(isDark)
+  const gridColor = isDark ? '#1f2937' : '#f3f4f6'
+
+  return (
+    <Card className="col-span-2 border-border shadow-none">
+      <CardHeader className="pb-2 pt-4 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            매출 · 비용 추이 · 최근 12개월
+          </CardTitle>
+          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+            단위: 만원
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart
+            data={data}
+            margin={{ top: 8, right: 12, left: 8, bottom: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="0"
+              stroke={gridColor}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="label"
+              tick={axisStyle}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={axisStyle}
+              axisLine={false}
+              tickLine={false}
+              tickCount={5}
+              width={56}
+              domain={[0, 'auto']}
+              tickFormatter={(v: number) =>
+                v === 0
+                  ? '0'
+                  : new Intl.NumberFormat('ko-KR').format(
+                      Math.round(v / 10_000),
+                    )
+              }
+            />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              formatter={((v: number) => formatCurrency(v)) as never}
+              labelStyle={{ fontWeight: 600 }}
+            />
+            <Legend
+              iconType="plainline"
+              iconSize={16}
+              wrapperStyle={{
+                fontSize: 11,
+                color: isDark ? '#9ca3af' : '#6b7280',
+                paddingTop: 4,
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              name="받은금액"
+              stroke="#2563eb"
+              strokeWidth={2}
+              dot={{ r: 2.5, fill: '#2563eb', strokeWidth: 0 }}
+              activeDot={{ r: 4 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="cost"
+              name="실행비용"
+              stroke="#d97706"
+              strokeWidth={2}
+              dot={{ r: 2.5, fill: '#d97706', strokeWidth: 0 }}
+              activeDot={{ r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  )
+}

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { signOut } from '@/features/auth/queries'
 import { useTheme } from '@/hooks/useTheme'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from '@tanstack/react-router'
 import { LogOut, Moon, Sun } from 'lucide-react'
 import { toast } from 'sonner'
@@ -10,7 +10,7 @@ export const Header = () => {
   const { theme, toggleTheme } = useTheme()
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     toast.success('로그아웃되었습니다')
     router.navigate({ to: '/login' })
   }
