@@ -86,6 +86,7 @@ export const MonthlyTaskCount = ({
                 color: isDark ? '#e5e7eb' : '#374151',
                 fontWeight: 600,
               }}
+              itemStyle={{ color: isDark ? '#d1d5db' : '#374151' }}
               cursor={{
                 fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
               }}
