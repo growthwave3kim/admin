@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedTasksIndexRouteImport } from './routes/_authed/tasks/index'
 import { Route as AuthedMarketingTypesIndexRouteImport } from './routes/_authed/marketing-types/index'
+import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
 import { Route as AuthedTasksTaskIdEditRouteImport } from './routes/_authed/tasks/$taskId/edit'
@@ -55,6 +56,13 @@ const AuthedMarketingTypesIndexRoute =
   } as any).lazy(() =>
     import('./routes/_authed/marketing-types/index.lazy').then((d) => d.Route),
   )
+const AuthedExpensesIndexRoute = AuthedExpensesIndexRouteImport.update({
+  id: '/expenses/',
+  path: '/expenses/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/expenses/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
@@ -82,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/expenses/': typeof AuthedExpensesIndexRoute
   '/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/tasks/': typeof AuthedTasksIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
@@ -92,6 +101,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/expenses': typeof AuthedExpensesIndexRoute
   '/marketing-types': typeof AuthedMarketingTypesIndexRoute
   '/tasks': typeof AuthedTasksIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
@@ -104,6 +114,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/tasks/new': typeof AuthedTasksNewRoute
+  '/_authed/expenses/': typeof AuthedExpensesIndexRoute
   '/_authed/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/_authed/tasks/': typeof AuthedTasksIndexRoute
   '/_authed/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/expenses/'
     | '/marketing-types/'
     | '/tasks/'
     | '/tasks/$taskId/edit'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/expenses'
     | '/marketing-types'
     | '/tasks'
     | '/tasks/$taskId/edit'
@@ -137,6 +150,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/dashboard'
     | '/_authed/tasks/new'
+    | '/_authed/expenses/'
     | '/_authed/marketing-types/'
     | '/_authed/tasks/'
     | '/_authed/tasks/$taskId/edit'
@@ -193,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedMarketingTypesIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/expenses/': {
+      id: '/_authed/expenses/'
+      path: '/expenses'
+      fullPath: '/expenses/'
+      preLoaderRoute: typeof AuthedExpensesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/new': {
       id: '/_authed/tasks/new'
       path: '/tasks/new'
@@ -220,6 +241,7 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedTasksNewRoute: typeof AuthedTasksNewRoute
+  AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
   AuthedMarketingTypesIndexRoute: typeof AuthedMarketingTypesIndexRoute
   AuthedTasksIndexRoute: typeof AuthedTasksIndexRoute
   AuthedTasksTaskIdEditRoute: typeof AuthedTasksTaskIdEditRoute
@@ -229,6 +251,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedTasksNewRoute: AuthedTasksNewRoute,
+  AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
   AuthedMarketingTypesIndexRoute: AuthedMarketingTypesIndexRoute,
   AuthedTasksIndexRoute: AuthedTasksIndexRoute,
   AuthedTasksTaskIdEditRoute: AuthedTasksTaskIdEditRoute,
