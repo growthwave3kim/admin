@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 
 type ClientRow = {
   rank: number
@@ -7,9 +7,6 @@ type ClientRow = {
   revenue: number
   profit: number
 }
-
-const fmt = (n: number) =>
-  `${new Intl.NumberFormat('ko-KR').format(Math.round(n / 10_000))}만`
 
 export const TopClients = ({
   data,
@@ -30,7 +27,7 @@ export const TopClients = ({
           {[1, 2, 3, 4, 5].map((k) => (
             <div
               key={k}
-              className="h-8 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"
+              className="h-[38px] bg-gray-100 dark:bg-gray-800 rounded animate-pulse"
             />
           ))}
         </div>
@@ -59,17 +56,17 @@ export const TopClients = ({
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
             {data.map((row) => (
               <tr
-                key={row.name}
+                key={row.rank}
                 className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
               >
                 <td className="py-2.5 text-center font-semibold text-gray-400 dark:text-gray-500 tabular-nums">
                   {row.rank}
                 </td>
-                <td className="py-2.5 pl-2 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[100px]">
+                <td className="py-2.5 pl-2 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[80px]">
                   {row.name}
                 </td>
                 <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                  {fmt(row.revenue)}
+                  {formatCurrency(row.revenue)}
                 </td>
                 <td
                   className={cn(
@@ -79,8 +76,17 @@ export const TopClients = ({
                       : 'text-red-500 dark:text-red-400',
                   )}
                 >
-                  {fmt(row.profit)}
+                  {formatCurrency(row.profit)}
                 </td>
+              </tr>
+            ))}
+            {/* 5행 고정 높이 확보 */}
+            {Array.from({ length: Math.max(0, 5 - data.length) }, (_, i) => (
+              <tr
+                key={`empty-${data.length + i}`}
+                className="border-t border-gray-100 dark:border-gray-800/60"
+              >
+                <td className="py-2.5" colSpan={4} />
               </tr>
             ))}
           </tbody>

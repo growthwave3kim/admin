@@ -85,6 +85,10 @@ export const SpenderChart = ({
               <Tooltip
                 contentStyle={tooltipStyle}
                 formatter={((v: number) => formatCurrency(v)) as never}
+                labelStyle={{
+                  color: isDark ? '#e5e7eb' : '#374151',
+                  fontWeight: 600,
+                }}
                 cursor={{
                   fill: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
                 }}

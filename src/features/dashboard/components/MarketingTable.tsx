@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 
 type MarketingRow = {
   name: string
@@ -8,9 +8,6 @@ type MarketingRow = {
   cost: number
   profitRate: number
 }
-
-const fmt = (n: number) =>
-  `${new Intl.NumberFormat('ko-KR').format(Math.round(n / 10_000))}만`
 
 export const MarketingTable = ({
   data,
@@ -73,10 +70,10 @@ export const MarketingTable = ({
                   {row.taskCount}건
                 </td>
                 <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                  {fmt(row.revenue)}
+                  {formatCurrency(row.revenue)}
                 </td>
                 <td className="py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300">
-                  {fmt(row.cost)}
+                  {formatCurrency(row.cost)}
                 </td>
                 <td
                   className={cn(
