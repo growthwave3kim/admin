@@ -34,13 +34,13 @@ export const SpenderChart = ({
   const total = data.reduce((s, d) => s + d.amount, 0)
 
   return (
-    <Card className="col-span-2 border-border shadow-none">
+    <Card className="col-span-2 border-border shadow-none flex flex-col">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
           팀원별 지출
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-4 pb-4 flex-1 flex flex-col">
         {isLoading ? (
           <div className="space-y-3 mt-2">
             {[1, 2, 3].map((k) => (
@@ -55,7 +55,7 @@ export const SpenderChart = ({
             직접 등록된 지출이 없습니다
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
               layout="vertical"
