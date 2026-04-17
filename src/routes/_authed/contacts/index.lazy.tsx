@@ -71,6 +71,13 @@ type DuplicateItem = {
 type ImportPreview = {
   newRows: ImportRow[]
   duplicates: DuplicateItem[]
+  irregular: ImportRow[]
+}
+
+const isValidPhone = (phone: string | null): boolean => {
+  if (!phone) return true
+  const d = phone.replace(/\D/g, '')
+  return d.length === 11 && /^01[016789]/.test(d)
 }
 
 const ImportPreviewModal = ({
@@ -152,11 +159,37 @@ const ImportPreviewModal = ({
           </div>
         )}
 
-        {preview.newRows.length === 0 && preview.duplicates.length === 0 && (
-          <p className="text-center text-xs text-gray-400 py-8">
-            가져올 데이터가 없습니다
-          </p>
+        {preview.irregular.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2">
+              확인 필요 {preview.irregular.length}개 (비표준 번호 — 그대로
+              추가됩니다)
+            </p>
+            <div className="space-y-1">
+              {preview.irregular.map((row) => (
+                <div
+                  key={`${row.name}-${row.contact_phone}`}
+                  className="flex items-center gap-3 text-xs px-3 py-2 bg-orange-50 dark:bg-orange-900/10 rounded"
+                >
+                  <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">
+                    {row.name}
+                  </span>
+                  <span className="text-orange-600 dark:text-orange-400 tabular-nums shrink-0">
+                    {row.contact_phone ?? '-'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
+
+        {preview.newRows.length === 0 &&
+          preview.duplicates.length === 0 &&
+          preview.irregular.length === 0 && (
+            <p className="text-center text-xs text-gray-400 py-8">
+              가져올 데이터가 없습니다
+            </p>
+          )}
       </div>
 
       <DialogFooter className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 shrink-0">
@@ -182,10 +215,13 @@ const ImportPreviewModal = ({
         <Button
           size="sm"
           onClick={() => onConfirm(false)}
-          disabled={isSubmitting || preview.newRows.length === 0}
+          disabled={
+            isSubmitting ||
+            (preview.newRows.length === 0 && preview.irregular.length === 0)
+          }
         >
-          {preview.newRows.length > 0
-            ? `신규만 추가 (${preview.newRows.length}개)`
+          {preview.newRows.length + preview.irregular.length > 0
+            ? `신규만 추가 (${preview.newRows.length + preview.irregular.length}개)`
             : '신규 없음'}
         </Button>
       </DialogFooter>
@@ -420,6 +456,7 @@ function ContactsPage() {
 
       const newRows: ImportRow[] = []
       const duplicates: DuplicateItem[] = []
+      const irregular: ImportRow[] = []
 
       // 비교용 정규화: 숫자만 추출 + 10으로 시작하는 10자리는 앞에 0 추가
       const normalizeForCompare = (v: string | null): string | null => {
@@ -439,14 +476,16 @@ function ContactsPage() {
             (dbPhone === rowPhone || (!dbPhone && !rowPhone))
           )
         })
-        if (match) {
+        if (!isValidPhone(row.contact_phone)) {
+          irregular.push(row)
+        } else if (match) {
           duplicates.push({ existing: match, incoming: row })
         } else {
           newRows.push(row)
         }
       }
 
-      setImportPreview({ newRows, duplicates })
+      setImportPreview({ newRows, duplicates, irregular })
     } catch {
       toast.error('파일을 읽는 중 오류가 발생했습니다')
     } finally {
@@ -458,11 +497,12 @@ function ContactsPage() {
     if (!importPreview) return
     setIsSubmitting(true)
     try {
-      const { newRows, duplicates } = importPreview
+      const { newRows, duplicates, irregular } = importPreview
       const promises: Promise<unknown>[] = []
 
-      if (newRows.length > 0) {
-        promises.push(importClients(newRows))
+      const allNew = [...newRows, ...irregular]
+      if (allNew.length > 0) {
+        promises.push(importClients(allNew))
       }
 
       if (overwrite) {
@@ -483,11 +523,13 @@ function ContactsPage() {
       qc.invalidateQueries({ queryKey: ['clients-total'] })
 
       const parts: string[] = []
-      if (newRows.length > 0) parts.push(`${newRows.length}개 추가`)
+      if (allNew.length > 0) parts.push(`${allNew.length}개 추가`)
       if (overwrite && duplicates.length > 0)
         parts.push(`${duplicates.length}개 업데이트`)
       if (!overwrite && duplicates.length > 0)
         parts.push(`${duplicates.length}개 중복 건너뜀`)
+      if (irregular.length > 0)
+        parts.push(`비표준 번호 ${irregular.length}개 포함`)
       toast.success(parts.join(', '))
 
       setImportPreview(null)
