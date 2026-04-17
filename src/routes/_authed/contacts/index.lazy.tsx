@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import {
   fetchClients,
@@ -32,8 +33,10 @@ import {
   ClipboardCopy,
   Download,
   Pencil,
+  Search,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -98,6 +101,30 @@ const ImportPreviewModal = ({
       </DialogHeader>
 
       <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
+        {preview.irregular.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2">
+              확인 필요 {preview.irregular.length}개 (비표준 번호 — 그대로
+              추가됩니다)
+            </p>
+            <div className="space-y-1">
+              {preview.irregular.map((row) => (
+                <div
+                  key={`${row.name}-${row.contact_phone}`}
+                  className="flex items-center gap-3 text-xs px-3 py-2 bg-orange-50 dark:bg-orange-900/10 rounded"
+                >
+                  <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">
+                    {row.name}
+                  </span>
+                  <span className="text-orange-600 dark:text-orange-400 tabular-nums shrink-0">
+                    {row.contact_phone ?? '-'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {preview.newRows.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
@@ -159,30 +186,6 @@ const ImportPreviewModal = ({
           </div>
         )}
 
-        {preview.irregular.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2">
-              확인 필요 {preview.irregular.length}개 (비표준 번호 — 그대로
-              추가됩니다)
-            </p>
-            <div className="space-y-1">
-              {preview.irregular.map((row) => (
-                <div
-                  key={`${row.name}-${row.contact_phone}`}
-                  className="flex items-center gap-3 text-xs px-3 py-2 bg-orange-50 dark:bg-orange-900/10 rounded"
-                >
-                  <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">
-                    {row.name}
-                  </span>
-                  <span className="text-orange-600 dark:text-orange-400 tabular-nums shrink-0">
-                    {row.contact_phone ?? '-'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {preview.newRows.length === 0 &&
           preview.duplicates.length === 0 &&
           preview.irregular.length === 0 && (
@@ -234,6 +237,7 @@ function ContactsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [editTarget, setEditTarget] = useState<Client | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
+  const [searchText, setSearchText] = useState('')
   const { sortDir: sortDirParam } = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
   const sortDir = sortDirParam
@@ -287,15 +291,20 @@ function ContactsPage() {
 
   const clients = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.data) ?? []
+    const filtered = searchText
+      ? list.filter((c) =>
+          c.name.toLowerCase().includes(searchText.toLowerCase()),
+        )
+      : list
     const sorted = sortDir
-      ? [...list].sort((a, b) => {
+      ? [...filtered].sort((a, b) => {
           const cmp = a.name.localeCompare(b.name, 'ko')
           return sortDir === 'asc' ? cmp : -cmp
         })
-      : list
+      : filtered
     clientsRef.current = sorted
     return sorted
-  }, [data, sortDir])
+  }, [data, sortDir, searchText])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
@@ -603,6 +612,26 @@ function ContactsPage() {
             onChange={handleImport}
           />
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="shrink-0 relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+        <Input
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          placeholder="업체명 검색"
+          className="h-8 pl-8 pr-7 text-xs w-full sm:w-64 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+        />
+        {searchText && (
+          <button
+            type="button"
+            onClick={() => setSearchText('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Table */}
