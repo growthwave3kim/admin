@@ -118,13 +118,19 @@ export const fetchClientsPage = async ({
 
 export const fetchClientsByNames = async (names: string[]) => {
   if (names.length === 0) return []
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .is('deleted_at', null)
-    .in('name', names)
-  if (error) throw error
-  return data as Client[]
+  const CHUNK = 50
+  const results: Client[] = []
+  for (let i = 0; i < names.length; i += CHUNK) {
+    const chunk = names.slice(i, i + CHUNK)
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .is('deleted_at', null)
+      .in('name', chunk)
+    if (error) throw error
+    results.push(...(data as Client[]))
+  }
+  return results
 }
 
 export const fetchClientsTotal = async () => {
