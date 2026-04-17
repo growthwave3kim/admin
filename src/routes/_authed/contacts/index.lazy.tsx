@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import {
   fetchClients,
+  fetchClientsByNames,
   fetchClientsPage,
   fetchClientsTotal,
   importClients,
@@ -509,7 +510,8 @@ function ContactsPage() {
         return
       }
 
-      const existing = await fetchClients()
+      const names = parsed.map((r) => r.name)
+      const existing = await fetchClientsByNames(names)
 
       const newRows: ImportRow[] = []
       const duplicates: DuplicateItem[] = []

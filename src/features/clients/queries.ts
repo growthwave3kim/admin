@@ -116,6 +116,17 @@ export const fetchClientsPage = async ({
   }
 }
 
+export const fetchClientsByNames = async (names: string[]) => {
+  if (names.length === 0) return []
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .is('deleted_at', null)
+    .in('name', names)
+  if (error) throw error
+  return data as Client[]
+}
+
 export const fetchClientsTotal = async () => {
   const { count, error } = await supabase
     .from('clients')
