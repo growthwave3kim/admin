@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -6,17 +7,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import {
   fetchClients,
   fetchClientsPage,
+  fetchClientsTotal,
   importClients,
+  softDeleteClient,
   updateClient,
 } from '@/features/clients/queries'
 import type { Client } from '@/features/clients/types'
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import { createLazyFileRoute } from '@tanstack/react-router'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { format } from 'date-fns'
-import { ClipboardCopy, Download, Upload } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ClipboardCopy,
+  Download,
+  Pencil,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
@@ -24,6 +42,20 @@ import * as XLSX from 'xlsx'
 export const Route = createLazyFileRoute('/_authed/contacts/')({
   component: ContactsPage,
 })
+
+const routeApi = getRouteApi('/_authed/contacts/')
+
+const formatPhone = (phone: string): string => {
+  const d = phone.replace(/\D/g, '')
+  if (d.length === 11 && d.startsWith('0'))
+    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  if (d.length === 10) {
+    if (d.startsWith('02'))
+      return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6)}`
+    return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
+  }
+  return phone
+}
 
 type ImportRow = {
   name: string
@@ -164,15 +196,37 @@ const ImportPreviewModal = ({
 function ContactsPage() {
   const qc = useQueryClient()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [editTarget, setEditTarget] = useState<Client | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
+  const { sortDir: sortDirParam } = routeApi.useSearch()
+  const navigate = routeApi.useNavigate()
+  const sortDir = sortDirParam
+
+  const handleSort = () => {
+    if (!sortDir) {
+      navigate({ search: (prev) => ({ ...prev, sortDir: 'desc' }) })
+    } else if (sortDir === 'desc') {
+      navigate({ search: (prev) => ({ ...prev, sortDir: 'asc' }) })
+    } else {
+      navigate({ search: (prev) => ({ ...prev, sortDir: undefined }) })
+    }
+  }
   const isDragging = useRef(false)
   const hasMoved = useRef(false)
   const mouseDownId = useRef<string | null>(null)
   const dragStartIdx = useRef(-1)
+  const clientsRef = useRef<Client[]>([])
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { data: totalData } = useQuery({
+    queryKey: ['clients-total'],
+    queryFn: fetchClientsTotal,
+  })
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useInfiniteQuery({
@@ -183,21 +237,41 @@ function ContactsPage() {
       initialPageParam: 0,
     })
 
-  const clients = useMemo(
-    () => data?.pages.flatMap((p) => p.data) ?? [],
-    [data],
-  )
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => softDeleteClient(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] })
+      qc.invalidateQueries({ queryKey: ['clients-infinite'] })
+      qc.invalidateQueries({ queryKey: ['clients-total'] })
+      toast.success('삭제되었습니다')
+      setDeleteTarget(null)
+    },
+    onError: () => toast.error('삭제에 실패했습니다'),
+  })
+
+  const clients = useMemo(() => {
+    const list = data?.pages.flatMap((p) => p.data) ?? []
+    const sorted = sortDir
+      ? [...list].sort((a, b) => {
+          const cmp = a.name.localeCompare(b.name, 'ko')
+          return sortDir === 'asc' ? cmp : -cmp
+        })
+      : list
+    clientsRef.current = sorted
+    return sorted
+  }, [data, sortDir])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
-    if (!sentinel) return
+    const container = scrollContainerRef.current
+    if (!sentinel || !container) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage()
         }
       },
-      { threshold: 0.1 },
+      { root: container, rootMargin: '200px', threshold: 0 },
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
@@ -297,12 +371,42 @@ function ContactsPage() {
       const buffer = await file.arrayBuffer()
       const wb = XLSX.read(buffer)
       const ws = wb.Sheets[wb.SheetNames[0]]
-      const rows = XLSX.utils.sheet_to_json(ws) as Record<string, string>[]
+
+      // 헤더 행 위치 자동 탐지 (업체명 컬럼이 있는 행)
+      const rawRows = XLSX.utils.sheet_to_json(ws, {
+        header: 1,
+        defval: '',
+      }) as string[][]
+      const headerRowIdx = rawRows.findIndex((row) =>
+        row.some((cell) => String(cell).trim() === '업체명'),
+      )
+      if (headerRowIdx === -1) {
+        toast.error('가져올 데이터가 없습니다. 업체명 컬럼을 확인해주세요')
+        return
+      }
+      const rows = XLSX.utils.sheet_to_json(ws, {
+        range: headerRowIdx,
+        defval: '',
+      }) as Record<string, string>[]
+
+      const normalizePhone = (raw: string): string | null => {
+        const v = raw.trim()
+        if (!v) return null
+        // +82 10... → 010...
+        if (v.startsWith('+82')) {
+          const digits = v.slice(3).replace(/\D/g, '')
+          return `0${digits}`
+        }
+        // 숫자만 추출 후 10으로 시작하면 0 추가
+        const digits = v.replace(/\D/g, '')
+        if (digits.startsWith('10')) return `0${digits}`
+        return v
+      }
 
       const parsed: ImportRow[] = rows
         .map((r) => ({
           name: String(r.업체명 ?? '').trim(),
-          contact_phone: String(r.연락처 ?? '').trim() || null,
+          contact_phone: normalizePhone(String(r.연락처 ?? '')),
           email: String(r.이메일 ?? '').trim() || null,
         }))
         .filter((r) => r.name)
@@ -317,13 +421,24 @@ function ContactsPage() {
       const newRows: ImportRow[] = []
       const duplicates: DuplicateItem[] = []
 
+      // 비교용 정규화: 숫자만 추출 + 10으로 시작하는 10자리는 앞에 0 추가
+      const normalizeForCompare = (v: string | null): string | null => {
+        if (!v) return null
+        const d = v.replace(/\D/g, '')
+        if (!d) return null
+        if (d.length === 10 && d.startsWith('10')) return `0${d}`
+        return d
+      }
+
       for (const row of parsed) {
-        const match = existing.find(
-          (c) =>
+        const rowPhone = normalizeForCompare(row.contact_phone)
+        const match = existing.find((c) => {
+          const dbPhone = normalizeForCompare(c.contact_phone)
+          return (
             c.name === row.name &&
-            (c.contact_phone === row.contact_phone ||
-              (!c.contact_phone && !row.contact_phone)),
-        )
+            (dbPhone === rowPhone || (!dbPhone && !rowPhone))
+          )
+        })
         if (match) {
           duplicates.push({ existing: match, incoming: row })
         } else {
@@ -365,6 +480,7 @@ function ContactsPage() {
       await Promise.all(promises)
       qc.invalidateQueries({ queryKey: ['clients'] })
       qc.invalidateQueries({ queryKey: ['clients-infinite'] })
+      qc.invalidateQueries({ queryKey: ['clients-total'] })
 
       const parts: string[] = []
       if (newRows.length > 0) parts.push(`${newRows.length}개 추가`)
@@ -392,10 +508,8 @@ function ContactsPage() {
           <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
             고객 DB
           </span>
-          {data?.pages[0] && (
-            <span className="text-xs text-gray-400">
-              총 {data.pages[0].data.length > 0 ? '로딩 중' : '0'}개
-            </span>
+          {totalData !== undefined && (
+            <span className="text-xs text-gray-400">총 {totalData}개</span>
           )}
         </div>
 
@@ -451,21 +565,39 @@ function ContactsPage() {
 
       {/* Table */}
       <div className="flex-1 min-h-0 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-auto">
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto">
           {/* Header */}
           <div
-            className="sticky top-0 z-10 grid min-w-[400px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 select-none"
-            style={{ gridTemplateColumns: '1fr 140px 1fr' }}
+            className="sticky top-0 z-10 grid min-w-[580px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 select-none"
+            style={{ gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 60px' }}
           >
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              업체명
+            <div className="px-2 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 text-center">
+              #
             </div>
+            <button
+              type="button"
+              className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
+              onClick={handleSort}
+            >
+              업체명
+              {sortDir === 'desc' ? (
+                <ArrowDown className="w-3 h-3" />
+              ) : sortDir === 'asc' ? (
+                <ArrowUp className="w-3 h-3" />
+              ) : (
+                <ArrowUpDown className="w-3 h-3 opacity-40" />
+              )}
+            </button>
             <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               연락처
             </div>
             <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               이메일
             </div>
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              비고
+            </div>
+            <div className="px-2 py-2" />
           </div>
 
           {/* Rows */}
@@ -484,23 +616,59 @@ function ContactsPage() {
                 return (
                   <div
                     key={client.id}
-                    className={`grid min-w-[400px] border-b border-gray-100 dark:border-gray-800/60 select-none cursor-default transition-colors ${
+                    className={`grid min-w-[580px] border-b border-gray-100 dark:border-gray-800/60 select-none cursor-pointer transition-colors ${
                       isSelected
                         ? 'bg-blue-100 dark:bg-blue-900/30'
                         : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
                     }`}
-                    style={{ height: 35, gridTemplateColumns: '1fr 140px 1fr' }}
+                    style={{
+                      height: 35,
+                      gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 60px',
+                    }}
                     onMouseDown={handleRowMouseDown(idx, client.id)}
                     onMouseEnter={handleRowMouseEnter(idx)}
                   >
+                    <div className="flex items-center justify-center text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                      {idx + 1}
+                    </div>
                     <div className="px-4 flex items-center text-xs text-gray-800 dark:text-gray-200 truncate">
                       {client.name}
                     </div>
                     <div className="px-4 flex items-center text-xs text-gray-600 dark:text-gray-300 tabular-nums">
-                      {client.contact_phone ?? '-'}
+                      {client.contact_phone
+                        ? formatPhone(client.contact_phone)
+                        : '-'}
                     </div>
                     <div className="px-4 flex items-center text-xs text-gray-600 dark:text-gray-300 truncate">
                       {client.email ?? '-'}
+                    </div>
+                    <div className="px-4 flex items-center text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {client.note ?? '-'}
+                    </div>
+                    <div
+                      className="flex items-center justify-center gap-0.5"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditTarget(client)
+                        }}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeleteTarget(client)
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 )
@@ -530,6 +698,24 @@ function ContactsPage() {
           </button>
         </div>
       )}
+
+      <ClientFormDialog
+        open={!!editTarget}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        editTarget={editTarget}
+        hideContactName
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="거래처 삭제"
+        description={`"${deleteTarget?.name ?? ''}" 거래처를 삭제하면 휴지통으로 이동됩니다.`}
+        confirmLabel="삭제"
+        tone="destructive"
+        isPending={deleteMutation.isPending}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+      />
 
       {importPreview && (
         <ImportPreviewModal

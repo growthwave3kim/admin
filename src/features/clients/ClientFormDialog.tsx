@@ -40,6 +40,7 @@ type ClientFormDialogProps = {
   onOpenChange: (open: boolean) => void
   editTarget?: Client | null
   onSuccess?: (client: Client) => void
+  hideContactName?: boolean
 }
 
 export const ClientFormDialog = ({
@@ -47,6 +48,7 @@ export const ClientFormDialog = ({
   onOpenChange,
   editTarget = null,
   onSuccess,
+  hideContactName = false,
 }: ClientFormDialogProps) => {
   const qc = useQueryClient()
 
@@ -132,22 +134,24 @@ export const ClientFormDialog = ({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control as never}
-                name="contact_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FieldLabel>담당자명</FieldLabel>
-                    <Input
-                      className={inputClass}
-                      placeholder="담당자명"
-                      {...field}
-                    />
-                    <FormMessage className="text-xs mt-1" />
-                  </FormItem>
-                )}
-              />
+            <div className={hideContactName ? '' : 'grid grid-cols-2 gap-3'}>
+              {!hideContactName && (
+                <FormField
+                  control={form.control as never}
+                  name="contact_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldLabel>담당자명</FieldLabel>
+                      <Input
+                        className={inputClass}
+                        placeholder="담당자명"
+                        {...field}
+                      />
+                      <FormMessage className="text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control as never}
                 name="contact_phone"

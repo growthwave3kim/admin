@@ -7,6 +7,7 @@ export const fetchClients = async () => {
     .select('*')
     .is('deleted_at', null)
     .order('name')
+    .limit(10000)
   if (error) throw error
   return data as Client[]
 }
@@ -109,7 +110,17 @@ export const fetchClientsPage = async ({
   if (error) throw error
   return {
     data: data as Client[],
+    total: count ?? 0,
     nextPage:
       from + CLIENTS_PAGE_SIZE < (count ?? 0) ? pageParam + 1 : undefined,
   }
+}
+
+export const fetchClientsTotal = async () => {
+  const { count, error } = await supabase
+    .from('clients')
+    .select('*', { count: 'exact', head: true })
+    .is('deleted_at', null)
+  if (error) throw error
+  return count ?? 0
 }
