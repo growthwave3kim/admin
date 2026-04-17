@@ -86,7 +86,7 @@ export const importClients = async (
   return data as Client[]
 }
 
-const CLIENTS_PAGE_SIZE = 50
+const CLIENTS_PAGE_SIZE = 100
 
 export const fetchClientsPage = async ({
   search = '',
