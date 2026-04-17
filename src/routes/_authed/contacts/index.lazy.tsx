@@ -80,7 +80,7 @@ type ImportPreview = {
 const isValidPhone = (phone: string | null): boolean => {
   if (!phone) return true
   const d = phone.replace(/\D/g, '')
-  return d.length === 11 && /^01[016789]/.test(d)
+  return d.length === 11 && d.startsWith('0')
 }
 
 const ImportPreviewModal = ({
@@ -437,15 +437,17 @@ function ContactsPage() {
       const normalizePhone = (raw: string): string | null => {
         const v = raw.trim()
         if (!v) return null
-        // +82 10... → 010...
+        // +82 → 010...
         if (v.startsWith('+82')) {
           const digits = v.slice(3).replace(/\D/g, '')
           return `0${digits}`
         }
-        // 숫자만 추출 후 10으로 시작하면 0 추가
         const digits = v.replace(/\D/g, '')
-        if (digits.startsWith('10')) return `0${digits}`
-        return v
+        if (!digits) return null
+        // 이미 0으로 시작하면 그대로
+        if (digits.startsWith('0')) return digits
+        // 나머지는 010 붙이기
+        return `010${digits}`
       }
 
       const parsed: ImportRow[] = rows
