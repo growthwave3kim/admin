@@ -104,8 +104,8 @@ const ImportPreviewModal = ({
         {preview.irregular.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2">
-              확인 필요 {preview.irregular.length}개 (비표준 번호 — 그대로
-              추가됩니다)
+              확인 필요 {preview.irregular.length}개 (비표준 번호 — 등록
+              제외됩니다)
             </p>
             <div className="space-y-1">
               {preview.irregular.map((row) => (
@@ -218,13 +218,10 @@ const ImportPreviewModal = ({
         <Button
           size="sm"
           onClick={() => onConfirm(false)}
-          disabled={
-            isSubmitting ||
-            (preview.newRows.length === 0 && preview.irregular.length === 0)
-          }
+          disabled={isSubmitting || preview.newRows.length === 0}
         >
-          {preview.newRows.length + preview.irregular.length > 0
-            ? `신규만 추가 (${preview.newRows.length + preview.irregular.length}개)`
+          {preview.newRows.length > 0
+            ? `신규만 추가 (${preview.newRows.length}개)`
             : '신규 없음'}
         </Button>
       </DialogFooter>
@@ -514,9 +511,8 @@ function ContactsPage() {
       const { newRows, duplicates, irregular } = importPreview
       const promises: Promise<unknown>[] = []
 
-      const allNew = [...newRows, ...irregular]
-      if (allNew.length > 0) {
-        promises.push(importClients(allNew))
+      if (newRows.length > 0) {
+        promises.push(importClients(newRows))
       }
 
       if (overwrite) {
@@ -537,13 +533,13 @@ function ContactsPage() {
       qc.invalidateQueries({ queryKey: ['clients-total'] })
 
       const parts: string[] = []
-      if (allNew.length > 0) parts.push(`${allNew.length}개 추가`)
+      if (newRows.length > 0) parts.push(`${newRows.length}개 추가`)
       if (overwrite && duplicates.length > 0)
         parts.push(`${duplicates.length}개 업데이트`)
       if (!overwrite && duplicates.length > 0)
         parts.push(`${duplicates.length}개 중복 건너뜀`)
       if (irregular.length > 0)
-        parts.push(`비표준 번호 ${irregular.length}개 포함`)
+        parts.push(`비표준 번호 ${irregular.length}개 미등록`)
       toast.success(parts.join(', '))
 
       setImportPreview(null)
