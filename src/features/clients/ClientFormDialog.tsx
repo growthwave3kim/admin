@@ -18,10 +18,18 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+const formatPhone = (raw: string): string => {
+  const digits = raw.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+}
+
 const clientFormSchema = z.object({
   name: z.string().min(1, '거래처명을 입력해주세요'),
   contact_name: z.string().optional(),
   contact_phone: z.string().optional(),
+  email: z.string().optional(),
   note: z.string().optional(),
 })
 
@@ -48,6 +56,7 @@ export const ClientFormDialog = ({
       name: '',
       contact_name: '',
       contact_phone: '',
+      email: '',
       note: '',
     },
   })
@@ -57,6 +66,7 @@ export const ClientFormDialog = ({
       name: editTarget?.name ?? '',
       contact_name: editTarget?.contact_name ?? '',
       contact_phone: editTarget?.contact_phone ?? '',
+      email: editTarget?.email ?? '',
       note: editTarget?.note ?? '',
     })
   }, [editTarget, form])
@@ -67,6 +77,7 @@ export const ClientFormDialog = ({
         name: data.name,
         contact_name: data.contact_name || null,
         contact_phone: data.contact_phone || null,
+        email: data.email || null,
         note: data.note || null,
       }
       return editTarget
@@ -146,13 +157,32 @@ export const ClientFormDialog = ({
                     <Input
                       className={inputClass}
                       placeholder="010-0000-0000"
-                      {...field}
+                      value={field.value as string}
+                      onChange={(e) =>
+                        field.onChange(formatPhone(e.target.value))
+                      }
                     />
                     <FormMessage className="text-xs mt-1" />
                   </FormItem>
                 )}
               />
             </div>
+            <FormField
+              control={form.control as never}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FieldLabel>이메일</FieldLabel>
+                  <Input
+                    className={inputClass}
+                    placeholder="example@email.com"
+                    type="email"
+                    {...field}
+                  />
+                  <FormMessage className="text-xs mt-1" />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control as never}
               name="note"

@@ -327,10 +327,10 @@ function DashboardPage() {
   }, [tasks])
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="space-y-5 max-w-screen-xl">
         {/* Header + Period filter */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
               대시보드
@@ -361,7 +361,7 @@ function DashboardPage() {
         </div>
 
         {/* Row 1: 3 large KPI cards */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <KpiCard
             label="총 수입"
             display={`+${formatCurrency(totalRevenue)}`}
@@ -390,7 +390,7 @@ function DashboardPage() {
         </div>
 
         {/* Row 2: 2 smaller KPI cards */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <KpiCard
             label="수익률"
             display={`${profitRate.toFixed(1)}%`}
@@ -418,7 +418,7 @@ function DashboardPage() {
         </div>
 
         {/* Row 3: Monthly chart (2/3) + Status breakdown (1/3) */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <MonthlyChart
             data={monthlyData}
             highlightStart={highlightStart}
@@ -432,14 +432,16 @@ function DashboardPage() {
         </div>
 
         {/* Row 4: Task count (2/4) + Top clients (1/4) + Expense category pie (1/4) */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
           <MonthlyTaskCount
             data={monthlyTaskData}
             highlightStart={highlightStart}
             highlightEnd={highlightEnd}
           />
-          <TopClients data={topClients} isLoading={isLoading} />
-          <ExpenseCategoryChart data={categoryData} isLoading={anyLoading} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:col-span-2">
+            <TopClients data={topClients} isLoading={isLoading} />
+            <ExpenseCategoryChart data={categoryData} isLoading={anyLoading} />
+          </div>
         </div>
 
         {/* Row 5: Marketing table (full width) */}

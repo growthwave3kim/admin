@@ -34,12 +34,13 @@ import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 import { z } from 'zod'
-import type { MarketingType } from '../tasks/types'
+import type { MarketingType, Member } from '../tasks/types'
 import { TASK_STATUS_LABELS } from './types'
 
 const taskFormSchema = z.object({
   company_name: z.string(),
   client_id: z.string().min(1, '업체를 선택해주세요'),
+  member_id: z.string().optional().nullable(),
   received_amount: z.coerce.number().min(0),
   execution_cost: z.coerce.number().min(0),
   status: z.enum([
@@ -67,6 +68,7 @@ export type TaskFormValues = z.infer<typeof taskFormSchema>
 type TaskFormProps = {
   defaultValues?: Partial<TaskFormValues>
   marketingTypes: MarketingType[]
+  members: Member[]
   onSubmit: (data: TaskFormValues) => Promise<void>
   onCancel: () => void
   showEndDate?: boolean
@@ -124,6 +126,7 @@ const SectionHeader = ({ children }: { children: React.ReactNode }) => {
 export const TaskForm = ({
   defaultValues,
   marketingTypes,
+  members,
   onSubmit,
   onCancel,
   showEndDate = false,
@@ -137,6 +140,7 @@ export const TaskForm = ({
     defaultValues: {
       company_name: '',
       client_id: '',
+      member_id: null,
       received_amount: 0,
       execution_cost: 0,
       status: 'not_started',
@@ -194,7 +198,7 @@ export const TaskForm = ({
             )}
           />
 
-          <div className="mt-4">
+          <div className="mt-4 grid grid-cols-2 gap-4">
             <FormField
               control={form.control as never}
               name="status"
@@ -222,6 +226,33 @@ export const TaskForm = ({
                           </SelectItem>
                         ),
                       )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-xs mt-1" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control as never}
+              name="member_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FieldLabel>담당자</FieldLabel>
+                  <Select
+                    value={(field.value as string | null) ?? ''}
+                    onValueChange={(v) => field.onChange(v || null)}
+                  >
+                    <SelectTrigger className={cn(inputClass, 'w-full')}>
+                      <SelectValue placeholder="담당자 선택">
+                        {members.find((m) => m.id === field.value)?.name}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      {members.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-xs mt-1" />

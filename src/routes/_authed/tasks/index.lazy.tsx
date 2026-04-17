@@ -239,10 +239,10 @@ function TasksPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6">
+    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
       {/* Header */}
       <div className="shrink-0 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-baseline gap-2">
             <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
               업무 목록
@@ -297,9 +297,9 @@ function TasksPage() {
         </div>
 
         {/* Search + filter row */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5">
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-400 pointer-events-none" />
               <Input
                 value={searchInput}
@@ -373,7 +373,7 @@ function TasksPage() {
       {mode === 'list' && (
         <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <div className="flex-1 overflow-auto">
-            <table className="w-full table-fixed text-sm">
+            <table className="w-full table-fixed text-sm min-w-[1220px]">
               <colgroup>
                 <col className="w-44" />
                 <col className="w-40" />
@@ -382,6 +382,7 @@ function TasksPage() {
                 <col className="w-24" />
                 <col className="w-24" />
                 <col className="w-36" />
+                <col className="w-20" />
                 <col className="w-24" />
                 <col className="w-24" />
                 <col className="w-36" />
@@ -447,6 +448,9 @@ function TasksPage() {
                   <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
                     상태
                   </th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    담당자
+                  </th>
                   <th
                     className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
                     onClick={() => handleSort('start_date')}
@@ -492,7 +496,7 @@ function TasksPage() {
                 ) : paginatedTasks.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={11}
+                      colSpan={12}
                       className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
                     >
                       등록된 업무가 없습니다
@@ -546,6 +550,9 @@ function TasksPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <TaskStatusBadge status={task.status} />
+                      </td>
+                      <td className="px-4 py-3 text-center text-xs text-gray-600 dark:text-gray-300 truncate">
+                        {task.members?.name ?? '-'}
                       </td>
                       <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums truncate">
                         {formatDate(task.start_date)}
@@ -605,7 +612,7 @@ function TasksPage() {
       {mode === 'board' && (
         <div className="flex-1 min-h-0 overflow-auto">
           {isLoading ? (
-            <div className="grid grid-cols-4 gap-3 min-h-[500px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[500px]">
               {STATUS_ORDER.map((status) => (
                 <div
                   key={status}
@@ -627,7 +634,7 @@ function TasksPage() {
             </div>
           ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
-              <div className="grid grid-cols-4 gap-3 h-full min-h-[500px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 h-full min-h-[500px]">
                 {STATUS_ORDER.map((status) => (
                   <KanbanColumn
                     key={status}

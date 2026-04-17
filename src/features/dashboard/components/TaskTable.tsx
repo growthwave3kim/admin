@@ -37,92 +37,94 @@ export const TaskTable = ({
             진행중인 업무가 없습니다
           </p>
         ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800/60">
-                <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  업체명
-                </th>
-                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  상태
-                </th>
-                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  받은금액
-                </th>
-                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  실행비
-                </th>
-                <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  수익
-                </th>
-                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  종료일
-                </th>
-                <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium">
-                  주의
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
-              {tasks.map((task) => {
-                const isOverdue =
-                  task.status === 'in_progress' &&
-                  task.end_date &&
-                  isBefore(new Date(task.end_date), today)
-                const isUnsettled = task.status === 'done_unsettled'
-                const isAttention = isOverdue || isUnsettled
-                return (
-                  <tr
-                    key={task.id}
-                    className={cn(
-                      'hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors',
-                      isAttention &&
-                        'bg-red-50/50 dark:bg-red-900/5 hover:bg-red-50 dark:hover:bg-red-900/10',
-                    )}
-                  >
-                    <td className="py-2.5 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[160px]">
-                      <Link
-                        to="/tasks/$taskId"
-                        params={{ taskId: task.id }}
-                        className="hover:underline"
-                      >
-                        {task.company_name}
-                      </Link>
-                    </td>
-                    <td className="py-2.5 text-center">
-                      <TaskStatusBadge status={task.status} />
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
-                      +{formatCurrency(task.received_amount)}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums font-semibold text-red-500 dark:text-red-400">
-                      -{formatCurrency(task.execution_cost)}
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <ProfitAmount value={task.profit || 0} />
-                    </td>
-                    <td className="py-2.5 text-center tabular-nums text-gray-500 dark:text-gray-400">
-                      {formatDate(task.end_date)}
-                    </td>
-                    <td className="py-2.5 text-center">
-                      {isAttention && (
-                        <span
-                          className={cn(
-                            'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium',
-                            isOverdue
-                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                          )}
-                        >
-                          {isOverdue ? '기간초과' : '정산미완료'}
-                        </span>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs min-w-[480px]">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-gray-800/60">
+                  <th className="text-left pb-2 text-gray-400 dark:text-gray-400 font-medium">
+                    업체명
+                  </th>
+                  <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    상태
+                  </th>
+                  <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    받은금액
+                  </th>
+                  <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    실행비
+                  </th>
+                  <th className="text-right pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    수익
+                  </th>
+                  <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    종료일
+                  </th>
+                  <th className="text-center pb-2 text-gray-400 dark:text-gray-400 font-medium whitespace-nowrap">
+                    주의
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                {tasks.map((task) => {
+                  const isOverdue =
+                    task.status === 'in_progress' &&
+                    task.end_date &&
+                    isBefore(new Date(task.end_date), today)
+                  const isUnsettled = task.status === 'done_unsettled'
+                  const isAttention = isOverdue || isUnsettled
+                  return (
+                    <tr
+                      key={task.id}
+                      className={cn(
+                        'hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors',
+                        isAttention &&
+                          'bg-red-50/50 dark:bg-red-900/5 hover:bg-red-50 dark:hover:bg-red-900/10',
                       )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    >
+                      <td className="py-2.5 font-medium text-gray-800 dark:text-gray-200 truncate max-w-[120px]">
+                        <Link
+                          to="/tasks/$taskId"
+                          params={{ taskId: task.id }}
+                          className="hover:underline"
+                        >
+                          {task.company_name}
+                        </Link>
+                      </td>
+                      <td className="py-2.5 text-center whitespace-nowrap">
+                        <TaskStatusBadge status={task.status} />
+                      </td>
+                      <td className="py-2.5 text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        +{formatCurrency(task.received_amount)}
+                      </td>
+                      <td className="py-2.5 text-right tabular-nums font-semibold text-red-500 dark:text-red-400 whitespace-nowrap">
+                        -{formatCurrency(task.execution_cost)}
+                      </td>
+                      <td className="py-2.5 text-right whitespace-nowrap">
+                        <ProfitAmount value={task.profit || 0} />
+                      </td>
+                      <td className="py-2.5 text-center tabular-nums text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {formatDate(task.end_date)}
+                      </td>
+                      <td className="py-2.5 text-center whitespace-nowrap">
+                        {isAttention && (
+                          <span
+                            className={cn(
+                              'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap',
+                              isOverdue
+                                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                            )}
+                          >
+                            {isOverdue ? '기간초과' : '정산미완료'}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </CardContent>
     </Card>

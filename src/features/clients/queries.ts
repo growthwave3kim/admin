@@ -77,6 +77,14 @@ export const permanentDeleteClient = async (id: string) => {
   if (error) throw error
 }
 
+export const importClients = async (
+  rows: Pick<ClientFormData, 'name' | 'contact_phone' | 'email'>[],
+) => {
+  const { data, error } = await supabase.from('clients').insert(rows).select()
+  if (error) throw error
+  return data as Client[]
+}
+
 const CLIENTS_PAGE_SIZE = 20
 
 export const fetchClientsPage = async ({

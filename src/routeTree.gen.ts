@@ -18,6 +18,7 @@ import { Route as AuthedTasksIndexRouteImport } from './routes/_authed/tasks/ind
 import { Route as AuthedMarketingTypesIndexRouteImport } from './routes/_authed/marketing-types/index'
 import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses/index'
 import { Route as AuthedExpenseCategoriesIndexRouteImport } from './routes/_authed/expense-categories/index'
+import { Route as AuthedContactsIndexRouteImport } from './routes/_authed/contacts/index'
 import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
@@ -84,6 +85,13 @@ const AuthedExpenseCategoriesIndexRoute =
       (d) => d.Route,
     ),
   )
+const AuthedContactsIndexRoute = AuthedContactsIndexRouteImport.update({
+  id: '/contacts/',
+  path: '/contacts/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/contacts/index.lazy').then((d) => d.Route),
+)
 const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
   id: '/clients/',
   path: '/clients/',
@@ -129,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
   '/clients/': typeof AuthedClientsIndexRoute
+  '/contacts/': typeof AuthedContactsIndexRoute
   '/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses/': typeof AuthedExpensesIndexRoute
   '/marketing-types/': typeof AuthedMarketingTypesIndexRoute
@@ -144,6 +153,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
   '/clients': typeof AuthedClientsIndexRoute
+  '/contacts': typeof AuthedContactsIndexRoute
   '/expense-categories': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses': typeof AuthedExpensesIndexRoute
   '/marketing-types': typeof AuthedMarketingTypesIndexRoute
@@ -161,6 +171,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/tasks/new': typeof AuthedTasksNewRoute
   '/_authed/clients/': typeof AuthedClientsIndexRoute
+  '/_authed/contacts/': typeof AuthedContactsIndexRoute
   '/_authed/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/_authed/expenses/': typeof AuthedExpensesIndexRoute
   '/_authed/marketing-types/': typeof AuthedMarketingTypesIndexRoute
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/tasks/new'
     | '/clients/'
+    | '/contacts/'
     | '/expense-categories/'
     | '/expenses/'
     | '/marketing-types/'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/tasks/new'
     | '/clients'
+    | '/contacts'
     | '/expense-categories'
     | '/expenses'
     | '/marketing-types'
@@ -209,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/tasks/new'
     | '/_authed/clients/'
+    | '/_authed/contacts/'
     | '/_authed/expense-categories/'
     | '/_authed/expenses/'
     | '/_authed/marketing-types/'
@@ -290,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedExpenseCategoriesIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/contacts/': {
+      id: '/_authed/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof AuthedContactsIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/clients/': {
       id: '/_authed/clients/'
       path: '/clients'
@@ -332,6 +353,7 @@ interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedTasksNewRoute: typeof AuthedTasksNewRoute
   AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
+  AuthedContactsIndexRoute: typeof AuthedContactsIndexRoute
   AuthedExpenseCategoriesIndexRoute: typeof AuthedExpenseCategoriesIndexRoute
   AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
   AuthedMarketingTypesIndexRoute: typeof AuthedMarketingTypesIndexRoute
@@ -346,6 +368,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedTasksNewRoute: AuthedTasksNewRoute,
   AuthedClientsIndexRoute: AuthedClientsIndexRoute,
+  AuthedContactsIndexRoute: AuthedContactsIndexRoute,
   AuthedExpenseCategoriesIndexRoute: AuthedExpenseCategoriesIndexRoute,
   AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
   AuthedMarketingTypesIndexRoute: AuthedMarketingTypesIndexRoute,

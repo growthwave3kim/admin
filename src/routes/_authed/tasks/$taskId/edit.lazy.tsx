@@ -1,6 +1,7 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
+import { fetchMembers } from '@/features/members/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { fetchTask, updateTask } from '@/features/tasks/queries'
@@ -36,6 +37,11 @@ function EditTaskPage() {
     queryFn: fetchMarketingTypes,
   })
 
+  const { data: members = [] } = useQuery({
+    queryKey: ['members'],
+    queryFn: fetchMembers,
+  })
+
   const mutation = useMutation({
     mutationFn: (data: Partial<TaskFormValues>) => updateTask(taskId, data),
     onSuccess: () => {
@@ -59,6 +65,7 @@ function EditTaskPage() {
   const defaultValues: Partial<TaskFormValues> = {
     company_name: task.company_name,
     client_id: task.client_id ?? '',
+    member_id: task.member_id ?? null,
     received_amount: task.received_amount,
     execution_cost: task.execution_cost,
     status: task.status,
@@ -83,7 +90,7 @@ function EditTaskPage() {
   }
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center gap-2.5">
@@ -111,6 +118,7 @@ function EditTaskPage() {
           <TaskForm
             defaultValues={defaultValues}
             marketingTypes={marketingTypes}
+            members={members}
             onSubmit={handleSubmit}
             onCancel={() =>
               router.navigate({ to: '/tasks/$taskId', params: { taskId } })

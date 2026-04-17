@@ -133,7 +133,7 @@ function CategoryRow({
           <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-200">
             {category.name}
           </span>
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Button
               type="button"
               variant="ghost"
@@ -203,7 +203,7 @@ function ExpenseCategoriesPage() {
   })
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">

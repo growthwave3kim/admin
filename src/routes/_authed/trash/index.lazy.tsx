@@ -139,7 +139,7 @@ function TrashPage() {
   const isLoading = tasksLoading || clientsLoading || expensesLoading
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-3xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-baseline gap-2">
@@ -197,7 +197,7 @@ function TrashPage() {
                 {trashedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between px-5 py-3.5"
+                    className="flex items-start justify-between gap-2 px-4 md:px-5 py-3.5"
                   >
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -213,7 +213,7 @@ function TrashPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -252,7 +252,7 @@ function TrashPage() {
                 {trashedClients.map((client) => (
                   <div
                     key={client.id}
-                    className="flex items-center justify-between px-5 py-3.5"
+                    className="flex items-start justify-between gap-2 px-4 md:px-5 py-3.5"
                   >
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -268,7 +268,7 @@ function TrashPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"

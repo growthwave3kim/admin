@@ -89,7 +89,7 @@ function MarketingTypesPage() {
   }
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">

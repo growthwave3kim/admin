@@ -1,6 +1,7 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
+import { fetchMembers } from '@/features/members/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { createTask } from '@/features/tasks/queries'
@@ -22,6 +23,11 @@ function NewTaskPage() {
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
+  })
+
+  const { data: members = [] } = useQuery({
+    queryKey: ['members'],
+    queryFn: fetchMembers,
   })
 
   const mutation = useMutation({
@@ -51,7 +57,7 @@ function NewTaskPage() {
   }
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -73,6 +79,7 @@ function NewTaskPage() {
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
           <TaskForm
             marketingTypes={marketingTypes}
+            members={members}
             onSubmit={handleSubmit}
             onCancel={() => router.navigate({ to: '/tasks' })}
             showEndDate={false}

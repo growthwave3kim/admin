@@ -2,6 +2,12 @@ import type { MarketingType } from '@/features/marketing-types/types'
 
 export type { MarketingType }
 
+export type Member = {
+  id: string
+  name: string
+  created_at: string
+}
+
 export type TaskStatus =
   | 'proposal'
   | 'not_started'
@@ -44,6 +50,7 @@ export type Task = {
   id: string
   company_name: string
   client_id: string | null
+  member_id: string | null
   received_amount: number
   execution_cost: number
   profit: number
@@ -56,6 +63,7 @@ export type Task = {
   created_at: string
   updated_at: string
   task_marketings?: TaskMarketing[]
+  members?: Member | null
 }
 
 export const STATUS_ORDER: TaskStatus[] = [
@@ -79,6 +87,7 @@ export type SortBy =
 export type TaskFormData = {
   company_name: string
   client_id?: string | null
+  member_id?: string | null
   received_amount: number
   execution_cost: number
   status: TaskStatus

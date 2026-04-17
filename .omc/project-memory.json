@@ -181,8 +181,8 @@
   "hotPaths": [
     {
       "path": "src/routes/_authed/tasks/index.tsx",
-      "accessCount": 261,
-      "lastAccessed": 1776324269749,
+      "accessCount": 263,
+      "lastAccessed": 1776394430530,
       "type": "file"
     },
     {
@@ -193,20 +193,20 @@
     },
     {
       "path": "src/routes/_authed/dashboard.tsx",
-      "accessCount": 98,
-      "lastAccessed": 1776325503295,
+      "accessCount": 99,
+      "lastAccessed": 1776393503562,
       "type": "file"
     },
     {
       "path": "src/routes/_authed/marketing-types/index.tsx",
-      "accessCount": 55,
-      "lastAccessed": 1776324221133,
+      "accessCount": 56,
+      "lastAccessed": 1776394431070,
       "type": "file"
     },
     {
       "path": "src",
-      "accessCount": 55,
-      "lastAccessed": 1776325015163,
+      "accessCount": 56,
+      "lastAccessed": 1776394445011,
       "type": "directory"
     },
     {
@@ -222,6 +222,12 @@
       "type": "file"
     },
     {
+      "path": "src/components/layout/LNB.tsx",
+      "accessCount": 33,
+      "lastAccessed": 1776394423101,
+      "type": "file"
+    },
+    {
       "path": "src/features/tasks/types.ts",
       "accessCount": 27,
       "lastAccessed": 1776325523485,
@@ -229,15 +235,9 @@
     },
     {
       "path": "",
-      "accessCount": 23,
-      "lastAccessed": 1776320337320,
+      "accessCount": 26,
+      "lastAccessed": 1776393544840,
       "type": "directory"
-    },
-    {
-      "path": "src/components/layout/LNB.tsx",
-      "accessCount": 23,
-      "lastAccessed": 1776324279656,
-      "type": "file"
     },
     {
       "path": "src/features/tasks/queries.ts",
@@ -247,14 +247,20 @@
     },
     {
       "path": "src/routes/_authed.tsx",
-      "accessCount": 17,
-      "lastAccessed": 1776324237698,
+      "accessCount": 18,
+      "lastAccessed": 1776393497209,
       "type": "file"
     },
     {
       "path": "src/routes/_authed/tasks/$taskId/edit.tsx",
       "accessCount": 17,
       "lastAccessed": 1776324241254,
+      "type": "file"
+    },
+    {
+      "path": "src/components/layout/Header.tsx",
+      "accessCount": 17,
+      "lastAccessed": 1776394423387,
       "type": "file"
     },
     {
@@ -273,12 +279,6 @@
       "path": "src/index.css",
       "accessCount": 14,
       "lastAccessed": 1776304327670,
-      "type": "file"
-    },
-    {
-      "path": "src/components/layout/Header.tsx",
-      "accessCount": 12,
-      "lastAccessed": 1776315778058,
       "type": "file"
     },
     {
@@ -336,6 +336,12 @@
       "type": "file"
     },
     {
+      "path": "src/routes/__root.tsx",
+      "accessCount": 9,
+      "lastAccessed": 1776393496991,
+      "type": "file"
+    },
+    {
       "path": "netlify.toml",
       "accessCount": 8,
       "lastAccessed": 1776304316866,
@@ -345,12 +351,6 @@
       "path": "src/features/tasks/TaskStatusBadge.tsx",
       "accessCount": 8,
       "lastAccessed": 1776318709541,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/__root.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1776324237355,
       "type": "file"
     },
     {

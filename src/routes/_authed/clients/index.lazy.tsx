@@ -80,7 +80,7 @@ function ClientsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6">
+    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between">
         <div className="flex items-baseline gap-2">
@@ -111,7 +111,7 @@ function ClientsPage() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="거래처명, 담당자명 검색"
-            className="h-8 pl-8 pr-7 w-64 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+            className="h-8 pl-8 pr-7 w-full sm:w-64 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
           />
           {searchInput && (
             <button
@@ -147,7 +147,14 @@ function ClientsPage() {
       {/* Table */}
       <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm min-w-[560px]">
+            <colgroup>
+              <col className="w-36" />
+              <col className="w-24" />
+              <col className="w-32" />
+              <col />
+              <col className="w-20" />
+            </colgroup>
             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
               <tr className="border-b border-gray-200 dark:border-gray-800">
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -212,11 +219,11 @@ function ClientsPage() {
                     <td className="px-4 py-2 text-gray-600 dark:text-gray-300 text-xs tabular-nums">
                       {client.contact_phone ?? '-'}
                     </td>
-                    <td className="px-4 py-2 text-gray-500 dark:text-gray-400 text-xs truncate max-w-[200px]">
+                    <td className="px-4 py-2 text-gray-500 dark:text-gray-400 text-xs truncate">
                       {client.note ?? '-'}
                     </td>
                     <td className="px-4 py-2">
-                      <div className="flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"

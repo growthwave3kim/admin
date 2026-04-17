@@ -105,7 +105,7 @@ function TaskDetailPage() {
   const profit = task.profit || 0
 
   return (
-    <div className="h-full overflow-auto p-6">
+    <div className="h-full overflow-auto p-4 md:p-6">
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -146,7 +146,7 @@ function TaskDetailPage() {
         </div>
 
         {/* Revenue summary */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3.5">
             <p className="text-xs text-gray-400 dark:text-gray-400">
               받은 금액

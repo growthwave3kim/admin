@@ -4,6 +4,7 @@ export type Client = {
   normalized_name: string
   contact_name: string | null
   contact_phone: string | null
+  email: string | null
   note: string | null
   deleted_at: string | null
   created_at: string
@@ -14,5 +15,6 @@ export type ClientFormData = {
   name: string
   contact_name?: string | null
   contact_phone?: string | null
+  email?: string | null
   note?: string | null
 }

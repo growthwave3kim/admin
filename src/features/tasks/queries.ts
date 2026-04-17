@@ -2,18 +2,21 @@ import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import type { Task, TaskFormData } from './types'
 
+const TASK_SELECT = `
+  *,
+  members (id, name),
+  task_marketings (
+    id,
+    count,
+    marketing_type_id,
+    marketing_types (id, name)
+  )
+`
+
 export const fetchTasks = async () => {
   const { data, error } = await supabase
     .from('tasks')
-    .select(`
-      *,
-      task_marketings (
-        id,
-        count,
-        marketing_type_id,
-        marketing_types (id, name)
-      )
-    `)
+    .select(TASK_SELECT)
     .is('deleted_at', null)
     .order('start_date', { ascending: false })
 
@@ -24,15 +27,7 @@ export const fetchTasks = async () => {
 export const fetchTask = async (id: string) => {
   const { data, error } = await supabase
     .from('tasks')
-    .select(`
-      *,
-      task_marketings (
-        id,
-        count,
-        marketing_type_id,
-        marketing_types (id, name)
-      )
-    `)
+    .select(TASK_SELECT)
     .eq('id', id)
     .is('deleted_at', null)
     .single()

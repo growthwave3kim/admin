@@ -643,7 +643,7 @@ function ExpensesPage() {
     !!dateTo
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6">
+    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
       {/* Header */}
       <div className="shrink-0 space-y-3">
         <div className="flex items-center justify-between">
@@ -668,7 +668,7 @@ function ExpensesPage() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3">
             <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1 flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5" />총 수입
@@ -719,7 +719,7 @@ function ExpensesPage() {
         {/* Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <div className="relative w-56">
+            <div className="relative w-full sm:w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
               <Input
                 value={searchInput}
@@ -825,7 +825,7 @@ function ExpensesPage() {
       {/* Table */}
       <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="flex-1 overflow-auto">
-          <table className="w-full table-fixed text-sm">
+          <table className="w-full table-fixed text-sm min-w-[700px]">
             <colgroup>
               <col className="w-20" />
               <col />
