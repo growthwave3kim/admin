@@ -446,7 +446,9 @@ function ContactsPage() {
         if (!digits) return null
         // 이미 0으로 시작하면 그대로
         if (digits.startsWith('0')) return digits
-        // 나머지는 010 붙이기
+        // 10자리에 10으로 시작: 앞에 0만 추가 (1041446502 → 01041446502)
+        if (digits.length === 10 && digits.startsWith('10')) return `0${digits}`
+        // 그 외: 010 붙이기
         return `010${digits}`
       }
 
@@ -469,13 +471,14 @@ function ContactsPage() {
       const duplicates: DuplicateItem[] = []
       const irregular: ImportRow[] = []
 
-      // 비교용 정규화: 숫자만 추출 + 10으로 시작하는 10자리는 앞에 0 추가
+      // 비교용 정규화: normalizePhone과 동일 로직 적용
       const normalizeForCompare = (v: string | null): string | null => {
         if (!v) return null
         const d = v.replace(/\D/g, '')
         if (!d) return null
+        if (d.startsWith('0')) return d
         if (d.length === 10 && d.startsWith('10')) return `0${d}`
-        return d
+        return `010${d}`
       }
 
       for (const row of parsed) {
