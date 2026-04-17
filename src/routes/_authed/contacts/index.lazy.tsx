@@ -276,6 +276,12 @@ function ContactsPage() {
   const [editTarget, setEditTarget] = useState<Client | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
   const [searchText, setSearchText] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchText), 300)
+    return () => clearTimeout(t)
+  }, [searchText])
   const { sortDir: sortDirParam } = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
   const sortDir = sortDirParam
@@ -329,9 +335,9 @@ function ContactsPage() {
 
   const clients = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.data) ?? []
-    const filtered = searchText
+    const filtered = debouncedSearch
       ? list.filter((c) =>
-          c.name.toLowerCase().includes(searchText.toLowerCase()),
+          c.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
         )
       : list
     const sorted = sortDir
@@ -342,7 +348,7 @@ function ContactsPage() {
       : filtered
     clientsRef.current = sorted
     return sorted
-  }, [data, sortDir, searchText])
+  }, [data, sortDir, debouncedSearch])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
