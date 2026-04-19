@@ -149,7 +149,7 @@ function ClientsPage() {
         <div className="flex-1 overflow-auto">
           <table className="w-full text-sm min-w-[560px]">
             <colgroup>
-              <col className="w-36" />
+              <col className="w-56" />
               <col className="w-24" />
               <col className="w-32" />
               <col />
