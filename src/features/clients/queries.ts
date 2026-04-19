@@ -1,11 +1,26 @@
 import { supabase } from '@/lib/supabase'
 import type { Client, ClientFormData } from './types'
 
+// 거래처 전체 (업무 드롭다운 등)
 export const fetchClients = async () => {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
     .is('deleted_at', null)
+    .eq('is_contact', false)
+    .order('name')
+    .limit(10000)
+  if (error) throw error
+  return data as Client[]
+}
+
+// 고객 DB 전체 (연락처 복사, 엑셀 추출)
+export const fetchContacts = async () => {
+  const { data, error } = await supabase
+    .from('clients')
+    .select('*')
+    .is('deleted_at', null)
+    .eq('is_contact', true)
     .order('name')
     .limit(10000)
   if (error) throw error
@@ -81,13 +96,26 @@ export const permanentDeleteClient = async (id: string) => {
 export const importClients = async (
   rows: Pick<ClientFormData, 'name' | 'contact_phone' | 'email'>[],
 ) => {
-  const { data, error } = await supabase.from('clients').insert(rows).select()
+  const withFlag = rows.map((r) => ({ ...r, is_contact: true }))
+  const { data, error } = await supabase
+    .from('clients')
+    .insert(withFlag)
+    .select()
   if (error) throw error
   return data as Client[]
 }
 
-const CLIENTS_PAGE_SIZE = 100
+export const convertToClient = async (id: string) => {
+  const { error } = await supabase
+    .from('clients')
+    .update({ is_contact: false })
+    .eq('id', id)
+  if (error) throw error
+}
 
+const PAGE_SIZE = 100
+
+// 거래처 목록 (거래처 관리 페이지)
 export const fetchClientsPage = async ({
   search = '',
   pageParam = 0,
@@ -99,24 +127,48 @@ export const fetchClientsPage = async ({
     .from('clients')
     .select('*', { count: 'exact' })
     .is('deleted_at', null)
+    .eq('is_contact', false)
     .order('name')
   if (search) {
     const escaped = search.replace(/[%_\\]/g, (c) => `\\${c}`)
     query = query.ilike('name', `%${escaped}%`)
   }
-  const from = pageParam * CLIENTS_PAGE_SIZE
-  const to = from + CLIENTS_PAGE_SIZE - 1
+  const from = pageParam * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
   const { data, error, count } = await query.range(from, to)
   if (error) throw error
   return {
     data: data as Client[],
     total: count ?? 0,
-    nextPage:
-      from + CLIENTS_PAGE_SIZE < (count ?? 0) ? pageParam + 1 : undefined,
+    nextPage: from + PAGE_SIZE < (count ?? 0) ? pageParam + 1 : undefined,
   }
 }
 
-export const fetchClientsByNames = async (names: string[]) => {
+// 고객 DB 목록 (고객 DB 페이지)
+export const fetchContactsPage = async ({
+  pageParam = 0,
+}: {
+  pageParam?: number
+}) => {
+  const from = pageParam * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+  const { data, error, count } = await supabase
+    .from('clients')
+    .select('*', { count: 'exact' })
+    .is('deleted_at', null)
+    .eq('is_contact', true)
+    .order('name')
+    .range(from, to)
+  if (error) throw error
+  return {
+    data: data as Client[],
+    total: count ?? 0,
+    nextPage: from + PAGE_SIZE < (count ?? 0) ? pageParam + 1 : undefined,
+  }
+}
+
+// 고객 DB 이름으로 중복 검사
+export const fetchContactsByNames = async (names: string[]) => {
   if (names.length === 0) return []
   const CHUNK = 50
   const results: Client[] = []
@@ -126,6 +178,7 @@ export const fetchClientsByNames = async (names: string[]) => {
       .from('clients')
       .select('*')
       .is('deleted_at', null)
+      .eq('is_contact', true)
       .in('name', chunk)
     if (error) throw error
     results.push(...(data as Client[]))
@@ -133,11 +186,28 @@ export const fetchClientsByNames = async (names: string[]) => {
   return results
 }
 
+export const fetchContactsTotal = async () => {
+  const { count, error } = await supabase
+    .from('clients')
+    .select('*', { count: 'exact', head: true })
+    .is('deleted_at', null)
+    .eq('is_contact', true)
+  if (error) throw error
+  return count ?? 0
+}
+
+/** @deprecated contacts 페이지는 fetchContactsTotal 사용 */
 export const fetchClientsTotal = async () => {
   const { count, error } = await supabase
     .from('clients')
     .select('*', { count: 'exact', head: true })
     .is('deleted_at', null)
+    .eq('is_contact', false)
   if (error) throw error
   return count ?? 0
+}
+
+/** @deprecated contacts 페이지는 fetchContactsByNames 사용 */
+export const fetchClientsByNames = async (names: string[]) => {
+  return fetchContactsByNames(names)
 }

@@ -6,6 +6,7 @@ export type Client = {
   contact_phone: string | null
   email: string | null
   note: string | null
+  is_contact: boolean
   deleted_at: string | null
   created_at: string
   updated_at: string
@@ -17,4 +18,5 @@ export type ClientFormData = {
   contact_phone?: string | null
   email?: string | null
   note?: string | null
+  is_contact?: boolean
 }

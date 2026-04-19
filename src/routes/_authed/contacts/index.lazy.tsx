@@ -10,10 +10,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import {
-  fetchClients,
-  fetchClientsByNames,
-  fetchClientsPage,
-  fetchClientsTotal,
+  convertToClient,
+  fetchContacts,
+  fetchContactsByNames,
+  fetchContactsPage,
+  fetchContactsTotal,
   importClients,
   softDeleteClient,
   updateClient,
@@ -29,6 +30,7 @@ import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import {
   ArrowDown,
+  ArrowRightFromLine,
   ArrowUp,
   ArrowUpDown,
   ClipboardCopy,
@@ -310,17 +312,28 @@ function ContactsPage() {
 
   const { data: totalData } = useQuery({
     queryKey: ['clients-total'],
-    queryFn: fetchClientsTotal,
+    queryFn: fetchContactsTotal,
   })
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useInfiniteQuery({
       queryKey: ['clients-infinite', ''],
       queryFn: ({ pageParam }) =>
-        fetchClientsPage({ pageParam: pageParam as number }),
+        fetchContactsPage({ pageParam: pageParam as number }),
       getNextPageParam: (lastPage) => lastPage.nextPage,
       initialPageParam: 0,
     })
+
+  const convertMutation = useMutation({
+    mutationFn: (id: string) => convertToClient(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['clients'] })
+      qc.invalidateQueries({ queryKey: ['clients-infinite'] })
+      qc.invalidateQueries({ queryKey: ['clients-total'] })
+      toast.success('거래처로 전환되었습니다')
+    },
+    onError: () => toast.error('전환에 실패했습니다'),
+  })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => softDeleteClient(id),
@@ -414,7 +427,7 @@ function ContactsPage() {
       .filter(Boolean)
 
   const handleCopyAll = async () => {
-    const all = await fetchClients()
+    const all = await fetchContacts()
     const phones = phonesOnly(all)
     if (phones.length === 0) {
       toast.error('복사할 연락처가 없습니다')
@@ -436,7 +449,7 @@ function ContactsPage() {
   }
 
   const handleExport = async () => {
-    const all = await fetchClients()
+    const all = await fetchContacts()
     const ws = XLSX.utils.json_to_sheet(
       all.map((c) => ({
         업체명: c.name,
@@ -511,7 +524,7 @@ function ContactsPage() {
       }
 
       const names = parsed.map((r) => r.name)
-      const existing = await fetchClientsByNames(names)
+      const existing = await fetchContactsByNames(names)
 
       const newRows: ImportRow[] = []
       const duplicates: DuplicateItem[] = []
@@ -693,8 +706,8 @@ function ContactsPage() {
         <div ref={scrollContainerRef} className="flex-1 overflow-auto">
           {/* Header */}
           <div
-            className="sticky top-0 z-10 grid min-w-[580px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 select-none"
-            style={{ gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 60px' }}
+            className="sticky top-0 z-10 grid min-w-[600px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 select-none"
+            style={{ gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 80px' }}
           >
             <div className="px-2 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 text-center">
               #
@@ -741,14 +754,14 @@ function ContactsPage() {
                 return (
                   <div
                     key={client.id}
-                    className={`grid min-w-[580px] border-b border-gray-100 dark:border-gray-800/60 select-none cursor-pointer transition-colors ${
+                    className={`grid min-w-[600px] border-b border-gray-100 dark:border-gray-800/60 select-none cursor-pointer transition-colors ${
                       isSelected
                         ? 'bg-blue-100 dark:bg-blue-900/30'
                         : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
                     }`}
                     style={{
                       height: 35,
-                      gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 60px',
+                      gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 80px',
                     }}
                     onMouseDown={handleRowMouseDown(idx, client.id)}
                     onMouseEnter={handleRowMouseEnter(idx)}
@@ -774,6 +787,17 @@ function ContactsPage() {
                       className="flex items-center justify-center gap-0.5"
                       onMouseDown={(e) => e.stopPropagation()}
                     >
+                      <button
+                        type="button"
+                        className="p-1 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 rounded transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          convertMutation.mutate(client.id)
+                        }}
+                        title="거래처로 전환"
+                      >
+                        <ArrowRightFromLine className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         type="button"
                         className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded transition-colors"

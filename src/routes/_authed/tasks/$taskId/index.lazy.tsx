@@ -207,6 +207,18 @@ function TaskDetailPage() {
             </Select>
           </div>
 
+          {/* 담당자 */}
+          {task.members && (
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
+              <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
+                담당자
+              </span>
+              <span className="text-sm text-gray-700 dark:text-gray-200">
+                {task.members.name}
+              </span>
+            </div>
+          )}
+
           {/* Start date */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
             <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
