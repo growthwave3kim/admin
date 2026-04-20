@@ -1,8 +1,8 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { DatePicker } from '@/components/common/DatePicker'
 import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
 import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
   DialogContent,
@@ -11,11 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -34,21 +29,20 @@ import {
   type EntryType,
   type Expense,
   type ExpenseFormData,
-  type ExpenseRow,
   PAGE_SIZE,
   SPENDERS,
   type Spender,
 } from '@/features/expenses/types'
+import { useExpenseFilters } from '@/features/expenses/useExpenseFilters'
 import { fetchTasks } from '@/features/tasks/queries'
+import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
-import { format, parseISO } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import { parseISO } from 'date-fns'
 import {
-  CalendarIcon,
   Check,
   Pencil,
   Plus,
@@ -58,7 +52,7 @@ import {
   TrendingUp,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 import { toast } from 'sonner'
@@ -84,116 +78,6 @@ type ExpenseFormValues = z.infer<typeof expenseFormSchema>
 const smallInputClass =
   'h-7 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
 
-const DatePickerField = ({
-  value,
-  onChange,
-}: {
-  value: Date | null | undefined
-  onChange: (date: Date | undefined) => void
-}) => {
-  const [isOpen, setIsOpen] = useState(false)
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger
-        className={cn(
-          inputClass,
-          'w-full flex items-center text-left px-3',
-          !value && 'text-gray-400 dark:text-gray-400',
-        )}
-      >
-        <CalendarIcon className="mr-2 h-3.5 w-3.5 shrink-0 text-gray-400" />
-        {value ? format(value, 'yyyy-MM-dd') : '날짜 선택'}
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={value ?? undefined}
-          onSelect={(date) => {
-            onChange(date)
-            setIsOpen(false)
-          }}
-          locale={ko}
-          autoFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-const FilterDatePicker = ({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string | undefined
-  onChange: (val: string | undefined) => void
-  placeholder: string
-}) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const parsed = value ? parseISO(value) : undefined
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger
-        className={cn(
-          'h-8 w-28 px-3 flex items-center gap-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition',
-          !value && 'text-gray-400 dark:text-gray-400',
-        )}
-      >
-        <CalendarIcon className="h-3 w-3 text-gray-400" />
-        {value ? format(parseISO(value), 'yy.MM.dd') : placeholder}
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={parsed}
-          onSelect={(date) => {
-            onChange(date ? format(date, 'yyyy-MM-dd') : undefined)
-            setIsOpen(false)
-          }}
-          locale={ko}
-          autoFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-const InlineDatePicker = ({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (val: string) => void
-}) => {
-  const [isOpen, setIsOpen] = useState(false)
-  return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger
-        className={cn(
-          smallInputClass,
-          'w-full flex items-center gap-1.5 px-2 border',
-          !value && 'text-gray-400',
-        )}
-      >
-        <CalendarIcon className="h-3 w-3 shrink-0 text-gray-400" />
-        {value ? format(parseISO(value), 'yy.MM.dd') : '날짜'}
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={value ? parseISO(value) : undefined}
-          onSelect={(date) => {
-            if (date) onChange(format(date, 'yyyy-MM-dd'))
-            setIsOpen(false)
-          }}
-          locale={ko}
-          autoFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 function ExpenseFormDialog({
   open,
   onOpenChange,
@@ -218,6 +102,7 @@ function ExpenseFormDialog({
   const { data: categories = [] } = useQuery({
     queryKey: ['expense-categories'],
     queryFn: fetchExpenseCategories,
+    staleTime: STALE_FOREVER,
   })
 
   const entryType = form.watch('entry_type')
@@ -375,7 +260,8 @@ function ExpenseFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FieldLabel required>날짜</FieldLabel>
-                    <DatePickerField
+                    <DatePicker
+                      variant="form"
                       value={field.value as Date}
                       onChange={field.onChange}
                     />
@@ -486,9 +372,16 @@ function ExpensesPage() {
   const { data: expenseCategories = [] } = useQuery({
     queryKey: ['expense-categories'],
     queryFn: fetchExpenseCategories,
+    staleTime: STALE_FOREVER,
   })
 
   const isLoading = tasksLoading || expensesLoading
+
+  const { allRows, filteredRows, sortedRows, summary } = useExpenseFilters(
+    expenses,
+    tasks,
+    { searchText, spenderFilter, dateFrom, dateTo },
+  )
 
   const deleteMutation = useMutation({
     mutationFn: softDeleteExpense,
@@ -500,10 +393,10 @@ function ExpensesPage() {
     onError: () => toast.error('삭제에 실패했습니다'),
   })
 
-  const inlineSaveMutation = useMutation({
-    mutationFn: () => {
-      if (!editingId || !inlineValues) return Promise.resolve()
-      return updateExpense(editingId, {
+  const inlineSaveMutation = useMutation<void, Error, void>({
+    mutationFn: async () => {
+      if (!editingId || !inlineValues) return
+      await updateExpense(editingId, {
         description: inlineValues.description,
         amount: inlineValues.amount,
         expense_date: parseISO(inlineValues.date),
@@ -541,90 +434,6 @@ function ExpensesPage() {
   const patchInline = (patch: Partial<InlineValues>) => {
     setInlineValues((prev) => (prev ? { ...prev, ...patch } : prev))
   }
-
-  // Build unified rows
-  const allRows: ExpenseRow[] = useMemo(() => {
-    const rows: ExpenseRow[] = []
-
-    for (const task of tasks) {
-      if (task.received_amount > 0) {
-        rows.push({
-          id: `task-income-${task.id}`,
-          type: 'income',
-          source: 'task',
-          description: `${task.company_name} (받은금액)`,
-          amount: task.received_amount,
-          date: task.start_date,
-          spender: null,
-          category_id: null,
-          editable: false,
-        })
-      }
-      if (task.execution_cost > 0) {
-        rows.push({
-          id: `task-expense-${task.id}`,
-          type: 'expense',
-          source: 'task',
-          description: `${task.company_name} (실행비)`,
-          amount: task.execution_cost,
-          date: task.start_date,
-          spender: null,
-          category_id: null,
-          editable: false,
-        })
-      }
-    }
-
-    for (const expense of expenses) {
-      rows.push({
-        id: expense.id,
-        type: expense.entry_type,
-        source: 'manual',
-        description: expense.description,
-        amount: expense.amount,
-        date: expense.expense_date,
-        spender: expense.spender,
-        category_id: expense.category_id,
-        editable: true,
-      })
-    }
-
-    return rows
-  }, [tasks, expenses])
-
-  // Filters
-  const filteredRows = useMemo(() => {
-    return allRows.filter((row) => {
-      const matchSearch = searchText
-        ? row.description.toLowerCase().includes(searchText.toLowerCase())
-        : true
-      const matchSpender =
-        spenderFilter && spenderFilter !== 'all'
-          ? row.source === 'manual' && row.spender === spenderFilter
-          : true
-      const matchDateFrom = dateFrom ? row.date >= dateFrom : true
-      const matchDateTo = dateTo ? row.date <= dateTo : true
-      return matchSearch && matchSpender && matchDateFrom && matchDateTo
-    })
-  }, [allRows, searchText, spenderFilter, dateFrom, dateTo])
-
-  const sortedRows = useMemo(
-    () =>
-      [...filteredRows].sort((a, b) =>
-        a.date < b.date ? 1 : a.date > b.date ? -1 : 0,
-      ),
-    [filteredRows],
-  )
-
-  const summary = useMemo(() => {
-    const totalIncome = filteredRows
-      .filter((r) => r.type === 'income')
-      .reduce((sum, r) => sum + r.amount, 0)
-    const totalExpense = filteredRows
-      .filter((r) => r.type === 'expense')
-      .reduce((sum, r) => sum + r.amount, 0)
-    return { totalIncome, totalExpense, netProfit: totalIncome - totalExpense }
-  }, [filteredRows])
 
   const totalPages = Math.ceil(sortedRows.length / PAGE_SIZE)
   const paginatedRows = sortedRows.slice(
@@ -752,13 +561,15 @@ function ExpensesPage() {
           </div>
 
           <div className="flex items-center gap-1">
-            <FilterDatePicker
+            <DatePicker
+              variant="filter"
               value={dateFrom}
               onChange={(v) => update({ page: 1, dateFrom: v })}
               placeholder="시작일"
             />
             <span className="text-xs text-gray-400">~</span>
-            <FilterDatePicker
+            <DatePicker
+              variant="filter"
               value={dateTo}
               onChange={(v) => update({ page: 1, dateTo: v })}
               placeholder="종료일"
@@ -971,7 +782,8 @@ function ExpensesPage() {
                         </td>
                         {/* 날짜 */}
                         <td className="px-2 py-2">
-                          <InlineDatePicker
+                          <DatePicker
+                            variant="inline"
                             value={inlineValues.date}
                             onChange={(v) => patchInline({ date: v })}
                           />

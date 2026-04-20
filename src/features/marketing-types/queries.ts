@@ -42,6 +42,8 @@ export const deleteMarketingType = async (id: string) => {
 export const reorderMarketingTypes = async (
   items: { id: string; sort_order: number }[],
 ) => {
-  const { error } = await supabase.from('marketing_types').upsert(items)
+  const { error } = await supabase
+    .from('marketing_types')
+    .upsert(items as { id: string; name: string; sort_order: number }[])
   if (error) throw error
 }

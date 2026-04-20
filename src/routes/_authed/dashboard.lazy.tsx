@@ -20,6 +20,7 @@ import { fetchExpenses } from '@/features/expenses/queries'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { fetchTasks } from '@/features/tasks/queries'
 import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
+import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 import { cn, formatCurrency } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { createLazyFileRoute } from '@tanstack/react-router'
@@ -61,14 +62,17 @@ function DashboardPage() {
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
+    staleTime: STALE_FOREVER,
   })
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: fetchClients,
+    staleTime: STALE_30M,
   })
   const { data: expenseCategories = [] } = useQuery({
     queryKey: ['expense-categories'],
     queryFn: fetchExpenseCategories,
+    staleTime: STALE_FOREVER,
   })
 
   const anyLoading = isLoading || isLoadingExpenses

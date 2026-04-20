@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
-import type { Task, TaskFormData } from './types'
+import type { Task, TaskFormData, TaskStatus } from './types'
 
 const TASK_SELECT = `
   *,
@@ -111,7 +111,7 @@ export const updateTask = async (
   return task
 }
 
-export const updateTaskStatus = async (id: string, status: string) => {
+export const updateTaskStatus = async (id: string, status: TaskStatus) => {
   const { error } = await supabase.from('tasks').update({ status }).eq('id', id)
   if (error) throw error
 }

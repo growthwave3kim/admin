@@ -12,6 +12,7 @@ import {
 } from '@/features/marketing-types/queries'
 import { type NameForm, nameSchema } from '@/features/marketing-types/types'
 import type { MarketingType } from '@/features/marketing-types/types'
+import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
 import { DragDropContext, type DropResult, Droppable } from '@hello-pangea/dnd'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,6 +36,7 @@ function MarketingTypesPage() {
   const { data: types = [], isLoading } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
+    staleTime: STALE_FOREVER,
   })
 
   const addForm = useForm<NameForm>({

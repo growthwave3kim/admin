@@ -51,8 +51,12 @@ export const updateExpense = async (
   formData: Partial<ExpenseFormData>,
 ) => {
   const { expense_date, ...rest } = formData
-  const payload: Record<string, unknown> = { ...rest }
-  if (expense_date) payload.expense_date = format(expense_date, 'yyyy-MM-dd')
+  const payload = {
+    ...rest,
+    ...(expense_date
+      ? { expense_date: format(expense_date, 'yyyy-MM-dd') }
+      : {}),
+  }
 
   const { data, error } = await supabase
     .from('expenses')

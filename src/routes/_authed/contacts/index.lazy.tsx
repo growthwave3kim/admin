@@ -1,25 +1,17 @@
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
+import { ImportPreviewModal } from '@/features/clients/ImportPreviewModal'
 import {
   convertToClient,
   fetchContacts,
-  fetchContactsByNames,
   fetchContactsPage,
   fetchContactsTotal,
-  importClients,
   softDeleteClient,
-  updateClient,
 } from '@/features/clients/queries'
 import type { Client } from '@/features/clients/types'
+import { useContactImport } from '@/features/clients/useContactImport'
 import {
   useInfiniteQuery,
   useMutation,
@@ -63,216 +55,6 @@ const formatPhone = (phone: string): string => {
   return phone
 }
 
-type ImportRow = {
-  name: string
-  contact_phone: string | null
-  email: string | null
-}
-
-type DuplicateItem = {
-  existing: Client
-  incoming: ImportRow
-}
-
-type ImportPreview = {
-  newRows: ImportRow[]
-  duplicates: DuplicateItem[]
-  irregular: ImportRow[]
-}
-
-const isValidPhone = (phone: string | null): boolean => {
-  if (!phone) return true
-  const d = phone.replace(/\D/g, '')
-  return d.length === 11 && d.startsWith('0')
-}
-
-const ImportPreviewModal = ({
-  preview,
-  onClose,
-  onConfirm,
-  isSubmitting,
-}: {
-  preview: ImportPreview
-  onClose: () => void
-  onConfirm: (overwrite: boolean, filteredNewRows: ImportRow[]) => void
-  isSubmitting: boolean
-}) => {
-  const [excluded, setExcluded] = useState<Set<string>>(new Set())
-  const rowKey = (row: ImportRow) => `${row.name}-${row.contact_phone}`
-  const toggleExclude = (key: string) =>
-    setExcluded((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  const filteredNewRows = preview.newRows.filter(
-    (r) => !excluded.has(rowKey(r)),
-  )
-
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg flex flex-col max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>엑셀 가져오기 미리보기</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
-          {preview.irregular.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-2">
-                확인 필요 {preview.irregular.length}개 (비표준 번호 — 등록
-                제외됩니다)
-              </p>
-              <div className="space-y-1">
-                {preview.irregular.map((row) => (
-                  <div
-                    key={rowKey(row)}
-                    className="flex items-center gap-3 text-xs px-3 py-2 bg-orange-50 dark:bg-orange-900/10 rounded"
-                  >
-                    <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">
-                      {row.name}
-                    </span>
-                    <span className="text-orange-600 dark:text-orange-400 tabular-nums shrink-0">
-                      {row.contact_phone ?? '-'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {preview.newRows.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
-                신규 추가 {filteredNewRows.length}개
-                {excluded.size > 0 && (
-                  <span className="text-gray-400 font-normal ml-1">
-                    ({excluded.size}개 제외됨)
-                  </span>
-                )}
-              </p>
-              <div className="space-y-1">
-                {preview.newRows.map((row) => {
-                  const key = rowKey(row)
-                  const isExcluded = excluded.has(key)
-                  return (
-                    <div
-                      key={key}
-                      className={`flex items-center gap-3 text-xs px-3 py-2 rounded transition-colors ${
-                        isExcluded
-                          ? 'bg-gray-100 dark:bg-gray-800/40 opacity-50'
-                          : 'bg-emerald-50 dark:bg-emerald-900/10'
-                      }`}
-                    >
-                      <span
-                        className={`font-medium flex-1 truncate ${isExcluded ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}
-                      >
-                        {row.name}
-                      </span>
-                      {row.contact_phone && (
-                        <span className="text-gray-500 dark:text-gray-400 tabular-nums shrink-0">
-                          {row.contact_phone}
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => toggleExclude(key)}
-                        className={`shrink-0 rounded p-0.5 transition-colors ${
-                          isExcluded
-                            ? 'text-emerald-500 hover:text-emerald-700'
-                            : 'text-gray-400 hover:text-red-500'
-                        }`}
-                        title={isExcluded ? '제외 취소' : '제외'}
-                      >
-                        {isExcluded ? (
-                          <span className="text-[10px] font-medium">복원</span>
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {preview.duplicates.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-3">
-                중복 감지 {preview.duplicates.length}개
-              </p>
-              <div className="space-y-2">
-                {preview.duplicates.map(({ existing, incoming }) => {
-                  const emailChanged = existing.email !== incoming.email
-                  return (
-                    <div
-                      key={existing.id}
-                      className="text-xs px-3 py-2 bg-amber-50 dark:bg-amber-900/10 rounded space-y-1"
-                    >
-                      <span className="font-medium text-gray-800 dark:text-gray-200">
-                        {existing.name}
-                      </span>
-                      {emailChanged && (
-                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                          <span>이메일 기존: {existing.email ?? '-'}</span>
-                          <span className="text-amber-600 dark:text-amber-400">
-                            → {incoming.email ?? '-'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {preview.newRows.length === 0 &&
-            preview.duplicates.length === 0 &&
-            preview.irregular.length === 0 && (
-              <p className="text-center text-xs text-gray-400 py-8">
-                가져올 데이터가 없습니다
-              </p>
-            )}
-        </div>
-
-        <DialogFooter className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            disabled={isSubmitting}
-          >
-            취소
-          </Button>
-          {preview.duplicates.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20"
-              onClick={() => onConfirm(true, filteredNewRows)}
-              disabled={isSubmitting}
-            >
-              전체 덮어쓰기
-            </Button>
-          )}
-          <Button
-            size="sm"
-            onClick={() => onConfirm(false, filteredNewRows)}
-            disabled={isSubmitting || filteredNewRows.length === 0}
-          >
-            {filteredNewRows.length > 0
-              ? `신규만 추가 (${filteredNewRows.length}개)`
-              : '신규 없음'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 function ContactsPage() {
   const qc = useQueryClient()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -305,10 +87,16 @@ function ContactsPage() {
   const clientsRef = useRef<Client[]>([])
   const sentinelRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const {
+    fileInputRef,
+    isImporting,
+    importPreview,
+    isSubmitting,
+    handleImport,
+    handleImportConfirm,
+    clearPreview,
+  } = useContactImport()
 
   const { data: totalData } = useQuery({
     queryKey: ['clients-total'],
@@ -462,158 +250,6 @@ function ContactsPage() {
     XLSX.utils.book_append_sheet(wb, ws, '고객DB')
     XLSX.writeFile(wb, `고객DB_${format(new Date(), 'yyyyMMdd')}.xlsx`)
     toast.success('엑셀 파일이 다운로드되었습니다')
-  }
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
-
-    setIsImporting(true)
-    try {
-      const buffer = await file.arrayBuffer()
-      const wb = XLSX.read(buffer)
-      const ws = wb.Sheets[wb.SheetNames[0]]
-
-      // 헤더 행 위치 자동 탐지 (업체명 컬럼이 있는 행)
-      const rawRows = XLSX.utils.sheet_to_json(ws, {
-        header: 1,
-        defval: '',
-      }) as string[][]
-      const headerRowIdx = rawRows.findIndex((row) =>
-        row.some((cell) => String(cell).trim() === '업체명'),
-      )
-      if (headerRowIdx === -1) {
-        toast.error('가져올 데이터가 없습니다. 업체명 컬럼을 확인해주세요')
-        return
-      }
-      const rows = XLSX.utils.sheet_to_json(ws, {
-        range: headerRowIdx,
-        defval: '',
-      }) as Record<string, string>[]
-
-      const normalizePhone = (raw: string): string | null => {
-        const v = raw.trim()
-        if (!v) return null
-        // +82 → 010...
-        if (v.startsWith('+82')) {
-          const digits = v.slice(3).replace(/\D/g, '')
-          return `0${digits}`
-        }
-        const digits = v.replace(/\D/g, '')
-        if (!digits) return null
-        // 이미 0으로 시작하면 그대로
-        if (digits.startsWith('0')) return digits
-        // 10자리에 10으로 시작: 앞에 0만 추가 (1041446502 → 01041446502)
-        if (digits.length === 10 && digits.startsWith('10')) return `0${digits}`
-        // 그 외: 010 붙이기
-        return `010${digits}`
-      }
-
-      const parsed: ImportRow[] = rows
-        .map((r) => ({
-          name: String(r.업체명 ?? '').trim(),
-          contact_phone: normalizePhone(String(r.연락처 ?? '')),
-          email: String(r.이메일 ?? '').trim() || null,
-        }))
-        .filter((r) => r.name)
-
-      if (parsed.length === 0) {
-        toast.error('가져올 데이터가 없습니다. 업체명 컬럼을 확인해주세요')
-        return
-      }
-
-      const names = parsed.map((r) => r.name)
-      const existing = await fetchContactsByNames(names)
-
-      const newRows: ImportRow[] = []
-      const duplicates: DuplicateItem[] = []
-      const irregular: ImportRow[] = []
-
-      // 비교용 정규화: normalizePhone과 동일 로직 적용
-      const normalizeForCompare = (v: string | null): string | null => {
-        if (!v) return null
-        const d = v.replace(/\D/g, '')
-        if (!d) return null
-        if (d.startsWith('0')) return d
-        if (d.length === 10 && d.startsWith('10')) return `0${d}`
-        return `010${d}`
-      }
-
-      for (const row of parsed) {
-        const rowPhone = normalizeForCompare(row.contact_phone)
-        const match = existing.find((c) => {
-          const dbPhone = normalizeForCompare(c.contact_phone)
-          return (
-            c.name === row.name &&
-            (dbPhone === rowPhone || (!dbPhone && !rowPhone))
-          )
-        })
-        if (!isValidPhone(row.contact_phone)) {
-          irregular.push(row)
-        } else if (match) {
-          duplicates.push({ existing: match, incoming: row })
-        } else {
-          newRows.push(row)
-        }
-      }
-
-      setImportPreview({ newRows, duplicates, irregular })
-    } catch {
-      toast.error('파일을 읽는 중 오류가 발생했습니다')
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
-  const handleImportConfirm = async (
-    overwrite: boolean,
-    filteredNewRows: ImportRow[],
-  ) => {
-    if (!importPreview) return
-    setIsSubmitting(true)
-    try {
-      const { duplicates, irregular } = importPreview
-      const promises: Promise<unknown>[] = []
-
-      if (filteredNewRows.length > 0) {
-        promises.push(importClients(filteredNewRows))
-      }
-
-      if (overwrite) {
-        for (const { existing, incoming } of duplicates) {
-          promises.push(
-            updateClient(existing.id, {
-              name: incoming.name,
-              contact_phone: incoming.contact_phone,
-              email: incoming.email,
-            }),
-          )
-        }
-      }
-
-      await Promise.all(promises)
-      qc.invalidateQueries({ queryKey: ['clients'] })
-      qc.invalidateQueries({ queryKey: ['clients-infinite'] })
-      qc.invalidateQueries({ queryKey: ['clients-total'] })
-
-      const parts: string[] = []
-      if (filteredNewRows.length > 0)
-        parts.push(`${filteredNewRows.length}개 추가`)
-      if (overwrite && duplicates.length > 0)
-        parts.push(`${duplicates.length}개 업데이트`)
-      if (!overwrite && duplicates.length > 0)
-        parts.push(`${duplicates.length}개 중복 건너뜀`)
-      if (irregular.length > 0)
-        parts.push(`비표준 번호 ${irregular.length}개 미등록`)
-      toast.success(parts.join(', '))
-
-      setImportPreview(null)
-    } catch {
-      toast.error('가져오기에 실패했습니다')
-    } finally {
-      setIsSubmitting(false)
-    }
   }
 
   const selectedCount = selectedIds.size
@@ -869,7 +505,7 @@ function ContactsPage() {
       {importPreview && (
         <ImportPreviewModal
           preview={importPreview}
-          onClose={() => setImportPreview(null)}
+          onClose={clearPreview}
           onConfirm={handleImportConfirm}
           isSubmitting={isSubmitting}
         />

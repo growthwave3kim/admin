@@ -5,6 +5,7 @@ import { fetchMembers } from '@/features/members/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { createTask } from '@/features/tasks/queries'
+import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
@@ -23,11 +24,13 @@ function NewTaskPage() {
   const { data: marketingTypes = [] } = useQuery({
     queryKey: ['marketing-types'],
     queryFn: fetchMarketingTypes,
+    staleTime: STALE_FOREVER,
   })
 
   const { data: members = [] } = useQuery({
     queryKey: ['members'],
     queryFn: fetchMembers,
+    staleTime: STALE_30M,
   })
 
   const mutation = useMutation({

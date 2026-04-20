@@ -10,6 +10,7 @@ import {
   updateExpenseCategory,
 } from '@/features/expense-categories/queries'
 import type { ExpenseCategory } from '@/features/expense-categories/types'
+import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -168,6 +169,7 @@ function ExpenseCategoriesPage() {
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['expense-categories'],
     queryFn: fetchExpenseCategories,
+    staleTime: STALE_FOREVER,
   })
 
   const addForm = useForm<NameForm>({

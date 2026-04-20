@@ -147,18 +147,24 @@ export const fetchClientsPage = async ({
 // 고객 DB 목록 (고객 DB 페이지)
 export const fetchContactsPage = async ({
   pageParam = 0,
+  search = '',
 }: {
   pageParam?: number
+  search?: string
 }) => {
-  const from = pageParam * PAGE_SIZE
-  const to = from + PAGE_SIZE - 1
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
     .is('deleted_at', null)
     .eq('is_contact', true)
     .order('name')
-    .range(from, to)
+  if (search) {
+    const escaped = search.replace(/[%_\\]/g, (c) => `\\${c}`)
+    query = query.ilike('name', `%${escaped}%`)
+  }
+  const from = pageParam * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+  const { data, error, count } = await query.range(from, to)
   if (error) throw error
   return {
     data: data as Client[],
@@ -194,20 +200,4 @@ export const fetchContactsTotal = async () => {
     .eq('is_contact', true)
   if (error) throw error
   return count ?? 0
-}
-
-/** @deprecated contacts 페이지는 fetchContactsTotal 사용 */
-export const fetchClientsTotal = async () => {
-  const { count, error } = await supabase
-    .from('clients')
-    .select('*', { count: 'exact', head: true })
-    .is('deleted_at', null)
-    .eq('is_contact', false)
-  if (error) throw error
-  return count ?? 0
-}
-
-/** @deprecated contacts 페이지는 fetchContactsByNames 사용 */
-export const fetchClientsByNames = async (names: string[]) => {
-  return fetchContactsByNames(names)
 }
