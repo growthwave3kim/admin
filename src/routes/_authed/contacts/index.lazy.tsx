@@ -137,10 +137,15 @@ function ContactsPage() {
 
   const clients = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.data) ?? []
+    const normalizedSearch = debouncedSearch.replace(/\D/g, '')
     const filtered = debouncedSearch
-      ? list.filter((c) =>
-          c.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
-        )
+      ? list.filter((c) => {
+          if (c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+            return true
+          if (normalizedSearch && c.contact_phone)
+            return c.contact_phone.replace(/\D/g, '').includes(normalizedSearch)
+          return false
+        })
       : list
     const sorted = sortDir
       ? [...filtered].sort((a, b) => {
@@ -323,7 +328,7 @@ function ContactsPage() {
         <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          placeholder="업체명 검색"
+          placeholder="업체명, 연락처 검색"
           className="h-8 pl-8 pr-7 text-xs w-full sm:w-64 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
         />
         {searchText && (
