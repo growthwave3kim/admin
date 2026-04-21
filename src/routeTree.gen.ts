@@ -20,6 +20,7 @@ import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expens
 import { Route as AuthedExpenseCategoriesIndexRouteImport } from './routes/_authed/expense-categories/index'
 import { Route as AuthedContactsIndexRouteImport } from './routes/_authed/contacts/index'
 import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
+import { Route as AuthedCalendarIndexRouteImport } from './routes/_authed/calendar/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
 import { Route as AuthedClientsClientIdIndexRouteImport } from './routes/_authed/clients/$clientId/index'
@@ -99,6 +100,13 @@ const AuthedClientsIndexRoute = AuthedClientsIndexRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/clients/index.lazy').then((d) => d.Route),
 )
+const AuthedCalendarIndexRoute = AuthedCalendarIndexRouteImport.update({
+  id: '/calendar/',
+  path: '/calendar/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/calendar/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
@@ -136,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/calendar/': typeof AuthedCalendarIndexRoute
   '/clients/': typeof AuthedClientsIndexRoute
   '/contacts/': typeof AuthedContactsIndexRoute
   '/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
@@ -152,6 +161,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/calendar': typeof AuthedCalendarIndexRoute
   '/clients': typeof AuthedClientsIndexRoute
   '/contacts': typeof AuthedContactsIndexRoute
   '/expense-categories': typeof AuthedExpenseCategoriesIndexRoute
@@ -170,6 +180,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/tasks/new': typeof AuthedTasksNewRoute
+  '/_authed/calendar/': typeof AuthedCalendarIndexRoute
   '/_authed/clients/': typeof AuthedClientsIndexRoute
   '/_authed/contacts/': typeof AuthedContactsIndexRoute
   '/_authed/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/calendar/'
     | '/clients/'
     | '/contacts/'
     | '/expense-categories/'
@@ -204,6 +216,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/calendar'
     | '/clients'
     | '/contacts'
     | '/expense-categories'
@@ -221,6 +234,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/dashboard'
     | '/_authed/tasks/new'
+    | '/_authed/calendar/'
     | '/_authed/clients/'
     | '/_authed/contacts/'
     | '/_authed/expense-categories/'
@@ -318,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedClientsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/calendar/': {
+      id: '/_authed/calendar/'
+      path: '/calendar'
+      fullPath: '/calendar/'
+      preLoaderRoute: typeof AuthedCalendarIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/new': {
       id: '/_authed/tasks/new'
       path: '/tasks/new'
@@ -352,6 +373,7 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedTasksNewRoute: typeof AuthedTasksNewRoute
+  AuthedCalendarIndexRoute: typeof AuthedCalendarIndexRoute
   AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
   AuthedContactsIndexRoute: typeof AuthedContactsIndexRoute
   AuthedExpenseCategoriesIndexRoute: typeof AuthedExpenseCategoriesIndexRoute
@@ -367,6 +389,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedTasksNewRoute: AuthedTasksNewRoute,
+  AuthedCalendarIndexRoute: AuthedCalendarIndexRoute,
   AuthedClientsIndexRoute: AuthedClientsIndexRoute,
   AuthedContactsIndexRoute: AuthedContactsIndexRoute,
   AuthedExpenseCategoriesIndexRoute: AuthedExpenseCategoriesIndexRoute,

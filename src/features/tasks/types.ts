@@ -84,6 +84,15 @@ export type SortBy =
   | 'execution_cost'
   | 'profit'
 
+export type CalendarTask = {
+  id: string
+  company_name: string
+  status: TaskStatus
+  start_date: string
+  end_date: string | null
+  members: { id: string; name: string } | null
+}
+
 export type TaskFormData = {
   company_name: string
   client_id?: string | null

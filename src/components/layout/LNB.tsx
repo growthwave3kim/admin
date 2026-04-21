@@ -4,6 +4,7 @@ import { Link, useMatchRoute } from '@tanstack/react-router'
 import {
   BookUser,
   Building2,
+  CalendarDays,
   ClipboardList,
   FolderOpen,
   LayoutDashboard,
@@ -18,7 +19,10 @@ const navGroups = [
   },
   {
     label: '업무',
-    items: [{ to: '/tasks', label: '업무 목록', icon: ClipboardList }],
+    items: [
+      { to: '/tasks', label: '업무 목록', icon: ClipboardList },
+      { to: '/calendar', label: '캘린더', icon: CalendarDays },
+    ],
   },
   {
     label: '고객/거래처',

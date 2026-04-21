@@ -136,3 +136,13 @@ export const permanentDeleteTask = async (id: string) => {
   const { error } = await supabase.from('tasks').delete().eq('id', id)
   if (error) throw error
 }
+
+export const fetchTasksForCalendar = async () => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('id, company_name, status, start_date, end_date, members(id, name)')
+    .is('deleted_at', null)
+    .order('start_date')
+  if (error) throw error
+  return data as unknown as import('./types').CalendarTask[]
+}
