@@ -105,9 +105,12 @@ function ContactsPage() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     useInfiniteQuery({
-      queryKey: ['clients-infinite', ''],
+      queryKey: ['clients-infinite', debouncedSearch],
       queryFn: ({ pageParam }) =>
-        fetchContactsPage({ pageParam: pageParam as number }),
+        fetchContactsPage({
+          pageParam: pageParam as number,
+          search: debouncedSearch,
+        }),
       getNextPageParam: (lastPage) => lastPage.nextPage,
       initialPageParam: 0,
     })
@@ -137,16 +140,7 @@ function ContactsPage() {
 
   const clients = useMemo(() => {
     const list = data?.pages.flatMap((p) => p.data) ?? []
-    const normalizedSearch = debouncedSearch.replace(/\D/g, '')
-    const filtered = debouncedSearch
-      ? list.filter((c) => {
-          if (c.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
-            return true
-          if (normalizedSearch && c.contact_phone)
-            return c.contact_phone.replace(/\D/g, '').includes(normalizedSearch)
-          return false
-        })
-      : list
+    const filtered = list
     const sorted = sortDir
       ? [...filtered].sort((a, b) => {
           const cmp = a.name.localeCompare(b.name, 'ko')
@@ -155,7 +149,7 @@ function ContactsPage() {
       : filtered
     clientsRef.current = sorted
     return sorted
-  }, [data, sortDir, debouncedSearch])
+  }, [data, sortDir])
 
   useEffect(() => {
     const sentinel = sentinelRef.current

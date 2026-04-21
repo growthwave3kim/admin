@@ -144,6 +144,17 @@ export const fetchClientsPage = async ({
   }
 }
 
+const formatPhoneDigits = (digits: string): string => {
+  if (digits.length === 11 && digits.startsWith('0'))
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) {
+    if (digits.startsWith('02'))
+      return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  return digits
+}
+
 // 고객 DB 목록 (고객 DB 페이지)
 export const fetchContactsPage = async ({
   pageParam = 0,
@@ -160,7 +171,19 @@ export const fetchContactsPage = async ({
     .order('name')
   if (search) {
     const escaped = search.replace(/[%_\\]/g, (c) => `\\${c}`)
-    query = query.ilike('name', `%${escaped}%`)
+    const digits = search.replace(/\D/g, '')
+    if (digits.length >= 4) {
+      const escapedDigits = digits.replace(/[%_\\]/g, (c) => `\\${c}`)
+      const escapedFormatted = formatPhoneDigits(digits).replace(
+        /[%_\\]/g,
+        (c) => `\\${c}`,
+      )
+      query = query.or(
+        `name.ilike.%${escaped}%,contact_phone.ilike.%${escapedDigits}%,contact_phone.ilike.%${escapedFormatted}%`,
+      )
+    } else {
+      query = query.ilike('name', `%${escaped}%`)
+    }
   }
   const from = pageParam * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
