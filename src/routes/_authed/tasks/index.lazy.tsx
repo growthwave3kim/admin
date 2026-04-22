@@ -236,9 +236,9 @@ function TasksPage() {
       (new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     )
     if (diffDays <= 3)
-      return 'bg-red-50 dark:bg-red-950/20 hover:bg-red-100/80 dark:hover:bg-red-900/30'
+      return 'bg-red-100 dark:bg-red-900/40 hover:bg-red-200/80 dark:hover:bg-red-900/60'
     if (diffDays <= 7)
-      return 'bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100/80 dark:hover:bg-orange-900/30'
+      return 'bg-orange-100 dark:bg-orange-900/40 hover:bg-orange-200/80 dark:hover:bg-orange-900/60'
     return ''
   }
 
