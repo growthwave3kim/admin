@@ -30,7 +30,7 @@ export const Route = createLazyFileRoute('/_authed/calendar/')({
   component: CalendarPage,
 })
 
-const DAY_H = 28
+const DAY_H = 36
 const EVENT_H = 20
 const EVENT_GAP = 3
 const EVENT_SLOT = EVENT_H + EVENT_GAP
