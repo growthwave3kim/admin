@@ -20,16 +20,16 @@ export type WeekEvent = {
 
 export const STATUS_BAR_STYLES: Record<TaskStatus, string> = {
   proposal:
-    'border-purple-400 bg-purple-50 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-500',
+    'border-purple-500 bg-purple-100 text-purple-900 dark:bg-purple-800/50 dark:text-purple-200 dark:border-purple-500',
   not_started:
-    'border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
+    'border-gray-400 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500',
   in_progress:
-    'border-blue-400 bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-500',
+    'border-blue-500 bg-blue-100 text-blue-900 dark:bg-blue-800/50 dark:text-blue-200 dark:border-blue-500',
   done_settled:
-    'border-emerald-400 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-500',
+    'border-emerald-500 bg-emerald-100 text-emerald-900 dark:bg-emerald-800/50 dark:text-emerald-200 dark:border-emerald-500',
   done_unsettled:
-    'border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-500',
-  lost: 'border-red-300 bg-red-50/80 text-red-500 opacity-70 dark:bg-red-900/20 dark:text-red-400 dark:border-red-700',
+    'border-amber-500 bg-amber-100 text-amber-900 dark:bg-amber-800/50 dark:text-amber-200 dark:border-amber-500',
+  lost: 'border-red-400 bg-red-100/80 text-red-600 opacity-70 dark:bg-red-900/40 dark:text-red-300 dark:border-red-600',
 }
 
 export const STATUS_DOT: Record<TaskStatus, string> = {
