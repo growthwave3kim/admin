@@ -228,6 +228,20 @@ function TasksPage() {
     statusMutation.mutate({ id: draggableId, status: targetStatus })
   }
 
+  const getDeadlineRowClass = (task: Task): string => {
+    if (!task.end_date) return ''
+    if (['done_settled', 'done_unsettled', 'lost'].includes(task.status))
+      return ''
+    const diffDays = Math.ceil(
+      (new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+    )
+    if (diffDays <= 3)
+      return 'bg-red-50 dark:bg-red-950/20 hover:bg-red-100/80 dark:hover:bg-red-900/30'
+    if (diffDays <= 7)
+      return 'bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100/80 dark:hover:bg-orange-900/30'
+    return ''
+  }
+
   const handleSort = (col: SortBy) => {
     if (sortBy !== col) {
       update({ page: 1, sortBy: col, sortDir: 'desc' })
@@ -508,7 +522,11 @@ function TasksPage() {
                     <tr
                       key={task.id}
                       tabIndex={0}
-                      className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 cursor-pointer transition-colors"
+                      className={cn(
+                        'cursor-pointer transition-colors',
+                        getDeadlineRowClass(task) ||
+                          'hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
+                      )}
                       onClick={() =>
                         router.navigate({
                           to: '/tasks/$taskId',

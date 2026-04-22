@@ -85,7 +85,7 @@ function NewTaskPage() {
             members={members}
             onSubmit={handleSubmit}
             onCancel={() => router.navigate({ to: '/tasks' })}
-            showEndDate={false}
+            showEndDate={true}
             isLoading={mutation.isPending}
             submitLabel="등록"
           />
