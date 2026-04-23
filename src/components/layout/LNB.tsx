@@ -64,7 +64,11 @@ export const LNB = ({ isOpen, onClose }: LNBProps) => {
       )}
     >
       <div className="h-14 flex items-center px-5 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center gap-2.5">
+        <Link
+          to="/dashboard"
+          onClick={onClose}
+          className="flex items-center gap-2.5"
+        >
           <img
             src={theme === 'dark' ? '/logo_dark.png' : '/logo.png'}
             alt="GrowthWave"
@@ -73,7 +77,7 @@ export const LNB = ({ isOpen, onClose }: LNBProps) => {
           <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
             GrowthWave
           </span>
-        </div>
+        </Link>
       </div>
       <nav className="flex-1 p-3 overflow-y-auto">
         {navGroups.map((group, gi) => (

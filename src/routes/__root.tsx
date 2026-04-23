@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import {
+  Navigate,
   Outlet,
   createRootRouteWithContext,
   useRouter,
@@ -35,4 +36,5 @@ const RootErrorComponent = ({ error }: { error: unknown }) => {
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => <Outlet />,
   errorComponent: RootErrorComponent,
+  notFoundComponent: () => <Navigate to="/dashboard" />,
 })
