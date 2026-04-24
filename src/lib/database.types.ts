@@ -77,6 +77,101 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          id: string
+          actor_member_id: string | null
+          actor_name: string | null
+          table_name: string
+          record_id: string
+          action: string
+          changed_fields: Json | null
+          snapshot: Json | null
+          note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_member_id?: string | null
+          actor_name?: string | null
+          table_name: string
+          record_id: string
+          action: string
+          changed_fields?: Json | null
+          snapshot?: Json | null
+          note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_member_id?: string | null
+          actor_name?: string | null
+          table_name?: string
+          record_id?: string
+          action?: string
+          changed_fields?: Json | null
+          snapshot?: Json | null
+          note?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'audit_logs_actor_member_id_fkey'
+            columns: ['actor_member_id']
+            isOneToOne: false
+            referencedRelation: 'members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      expense_attachments: {
+        Row: {
+          id: string
+          expense_id: string
+          storage_path: string
+          file_name: string
+          mime_type: string
+          size_bytes: number
+          uploaded_by_member_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          expense_id: string
+          storage_path: string
+          file_name: string
+          mime_type: string
+          size_bytes: number
+          uploaded_by_member_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          expense_id?: string
+          storage_path?: string
+          file_name?: string
+          mime_type?: string
+          size_bytes?: number
+          uploaded_by_member_id?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'expense_attachments_expense_id_fkey'
+            columns: ['expense_id']
+            isOneToOne: false
+            referencedRelation: 'expenses'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'expense_attachments_uploaded_by_member_id_fkey'
+            columns: ['uploaded_by_member_id']
+            isOneToOne: false
+            referencedRelation: 'members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
@@ -87,7 +182,7 @@ export type Database = {
           entry_type: string
           expense_date: string
           id: string
-          spender: string
+          spender_member_id: string
           updated_at: string | null
         }
         Insert: {
@@ -99,7 +194,7 @@ export type Database = {
           entry_type?: string
           expense_date: string
           id?: string
-          spender: string
+          spender_member_id: string
           updated_at?: string | null
         }
         Update: {
@@ -111,7 +206,7 @@ export type Database = {
           entry_type?: string
           expense_date?: string
           id?: string
-          spender?: string
+          spender_member_id?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -120,6 +215,13 @@ export type Database = {
             columns: ['category_id']
             isOneToOne: false
             referencedRelation: 'expense_categories'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'expenses_spender_member_id_fkey'
+            columns: ['spender_member_id']
+            isOneToOne: false
+            referencedRelation: 'members'
             referencedColumns: ['id']
           },
         ]

@@ -9,6 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useCurrentMember } from '@/features/auth/useCurrentMember'
+import { useMembers } from '@/features/members/useMembers'
+import {
+  StatusChangeDialog,
+  requiresNote,
+} from '@/features/tasks/StatusChangeDialog'
 import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
 import { KanbanColumn } from '@/features/tasks/components/KanbanColumn'
 import { SkeletonRow } from '@/features/tasks/components/SkeletonRow'
@@ -51,6 +57,7 @@ function TasksPage() {
     sortDir: sortDirParam,
     search: searchParam,
     filterStatus: filterStatusParam,
+    memberId: memberIdParam,
   } = searchState
   const mode = modeParam ?? 'list'
   const page = pageParam ?? 1
@@ -58,8 +65,11 @@ function TasksPage() {
   const sortDir = sortDirParam ?? 'desc'
   const search = searchParam ?? ''
   const filterStatus = filterStatusParam ?? 'all'
+  const memberId = memberIdParam ?? 'all'
 
   const router = useRouter()
+  const { member: currentMember } = useCurrentMember()
+  const { data: members = [] } = useMembers()
 
   const qc = useQueryClient()
 
@@ -78,9 +88,18 @@ function TasksPage() {
     onError: () => toast.error('삭제에 실패했습니다'),
   })
 
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    id: string
+    status: TaskStatus
+  } | null>(null)
+
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TaskStatus }) =>
-      updateTaskStatus(id, status),
+    mutationFn: ({
+      id,
+      status,
+      note,
+    }: { id: string; status: TaskStatus; note?: string }) =>
+      updateTaskStatus(id, status, note),
     onMutate: async ({ id, status }) => {
       await qc.cancelQueries({ queryKey: ['tasks'] })
       const prev = qc.getQueryData<Task[]>(['tasks'])
@@ -126,9 +145,11 @@ function TasksPage() {
           filterStatus && filterStatus !== 'all'
             ? t.status === filterStatus
             : true
-        return matchSearch && matchStatus
+        const matchMember =
+          memberId && memberId !== 'all' ? t.members?.id === memberId : true
+        return matchSearch && matchStatus && matchMember
       }),
-    [tasks, search, filterStatus],
+    [tasks, search, filterStatus, memberId],
   )
 
   const sortedTasks = useMemo(() => {
@@ -225,7 +246,11 @@ function TasksPage() {
       nextDst.splice(destination.index, 0, draggableId)
       return { ...prev, [srcStatus]: nextSrc, [targetStatus]: nextDst }
     })
-    statusMutation.mutate({ id: draggableId, status: targetStatus })
+    if (requiresNote(targetStatus)) {
+      setPendingStatusChange({ id: draggableId, status: targetStatus })
+    } else {
+      statusMutation.mutate({ id: draggableId, status: targetStatus })
+    }
   }
 
   const getDeadlineRowClass = (task: Task): string => {
@@ -379,6 +404,38 @@ function TasksPage() {
               <SelectItem value="done_settled">정산완료</SelectItem>
               <SelectItem value="done_unsettled">정산미완료</SelectItem>
               <SelectItem value="lost">실패</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={memberId}
+            onValueChange={(val) =>
+              update({
+                page: 1,
+                memberId: val === 'all' ? undefined : (val ?? undefined),
+              })
+            }
+          >
+            <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+              <SelectValue>
+                {memberId === 'all'
+                  ? '담당자 전체'
+                  : (members.find((m) => m.id === memberId)?.name ??
+                    '담당자 전체')}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent side="bottom" sideOffset={4}>
+              <SelectItem value="all">담당자 전체</SelectItem>
+              {currentMember && (
+                <SelectItem value={currentMember.id}>내 업무만</SelectItem>
+              )}
+              {members
+                .filter((m) => m.id !== currentMember?.id)
+                .map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -683,6 +740,18 @@ function TasksPage() {
         tone="destructive"
         isPending={deleteMutation.isPending}
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+      />
+
+      <StatusChangeDialog
+        open={!!pendingStatusChange}
+        newStatus={pendingStatusChange?.status ?? null}
+        onConfirm={(note) => {
+          if (pendingStatusChange) {
+            statusMutation.mutate({ ...pendingStatusChange, note })
+          }
+          setPendingStatusChange(null)
+        }}
+        onCancel={() => setPendingStatusChange(null)}
       />
     </div>
   )

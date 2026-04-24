@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { fetchExpenseCategories } from '@/features/expense-categories/queries'
+import { AttachmentUploader } from '@/features/expenses/AttachmentUploader'
 import {
   createExpense,
   fetchExpenses,
@@ -30,10 +31,9 @@ import {
   type Expense,
   type ExpenseFormData,
   PAGE_SIZE,
-  SPENDERS,
-  type Spender,
 } from '@/features/expenses/types'
 import { useExpenseFilters } from '@/features/expenses/useExpenseFilters'
+import { useMembers } from '@/features/members/useMembers'
 import { fetchTasks } from '@/features/tasks/queries'
 import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
@@ -44,6 +44,7 @@ import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { parseISO } from 'date-fns'
 import {
   Check,
+  Paperclip,
   Pencil,
   Plus,
   Search,
@@ -69,7 +70,7 @@ const expenseFormSchema = z.object({
   description: z.string().min(1, '내용을 입력해주세요'),
   amount: z.coerce.number().min(1, '금액을 입력해주세요'),
   expense_date: z.date(),
-  spender: z.enum(['김도현', '김국민', '김태훈'] as const),
+  spender_member_id: z.string().min(1, '담당자를 선택해주세요'),
   category_id: z.string().nullable().optional(),
 })
 
@@ -87,6 +88,9 @@ function ExpenseFormDialog({
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }) {
+  const { data: members = [] } = useMembers()
+  const [createdExpenseId, setCreatedExpenseId] = useState<string | null>(null)
+
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema) as never,
     defaultValues: {
@@ -94,7 +98,7 @@ function ExpenseFormDialog({
       description: '',
       amount: 0,
       expense_date: new Date(),
-      spender: undefined,
+      spender_member_id: undefined,
       category_id: null,
     },
   })
@@ -112,13 +116,19 @@ function ExpenseFormDialog({
 
   const qc = useQueryClient()
 
+  const handleClose = () => {
+    form.reset()
+    setCreatedExpenseId(null)
+    onSuccess()
+  }
+
   const createMutation = useMutation({
     mutationFn: (data: ExpenseFormData) => createExpense(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['expenses'] })
       toast.success('내역이 등록되었습니다')
       form.reset()
-      onSuccess()
+      setCreatedExpenseId((data as { id: string }).id)
     },
     onError: () => toast.error('등록에 실패했습니다'),
   })
@@ -127,143 +137,137 @@ function ExpenseFormDialog({
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) form.reset()
+        if (!o) {
+          form.reset()
+          setCreatedExpenseId(null)
+        }
         onOpenChange(o)
       }}
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>내역 등록</DialogTitle>
+          <DialogTitle>
+            {createdExpenseId ? '영수증/증빙 첨부' : '내역 등록'}
+          </DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((v) =>
-              createMutation.mutate(v as ExpenseFormData),
-            )}
-            className="space-y-4 mt-2"
-          >
-            <FormField
-              control={form.control as never}
-              name="entry_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FieldLabel required>구분</FieldLabel>
-                  <Select
-                    value={field.value as string}
-                    onValueChange={(v) => {
-                      field.onChange(v)
-                      if (v === 'income') form.setValue('category_id', null)
-                    }}
-                  >
-                    <SelectTrigger className={cn(inputClass, 'w-full')}>
-                      <SelectValue placeholder="수입/지출 선택">
-                        {(field.value as string) === 'income'
-                          ? '수입'
-                          : (field.value as string) === 'expense'
-                            ? '지출'
-                            : ''}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false}>
-                      <SelectItem value="income">수입</SelectItem>
-                      <SelectItem value="expense">지출</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-xs mt-1" />
-                </FormItem>
+
+        {createdExpenseId ? (
+          <div className="space-y-4 mt-2">
+            <AttachmentUploader expenseId={createdExpenseId} />
+            <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleClose}
+                className="h-8 px-4 text-xs text-gray-500"
+              >
+                건너뛰기
+              </Button>
+              <Button
+                type="button"
+                onClick={handleClose}
+                className="h-8 px-5 text-xs"
+              >
+                완료
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {!createdExpenseId && (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((v) =>
+                createMutation.mutate(v as ExpenseFormData),
               )}
-            />
-            {entryType === 'expense' && (
+              className="space-y-4 mt-2"
+            >
               <FormField
                 control={form.control as never}
-                name="category_id"
+                name="entry_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FieldLabel>카테고리</FieldLabel>
+                    <FieldLabel required>구분</FieldLabel>
                     <Select
-                      value={(field.value as string) ?? ''}
+                      value={field.value as string}
                       onValueChange={(v) => {
-                        field.onChange(v || null)
-                        if (
-                          v &&
-                          categories.find((c) => c.id === v)?.name !== '기타'
-                        ) {
-                          form.setValue('description', '')
-                        }
+                        field.onChange(v)
+                        if (v === 'income') form.setValue('category_id', null)
                       }}
                     >
                       <SelectTrigger className={cn(inputClass, 'w-full')}>
-                        <SelectValue placeholder="카테고리 선택">
-                          {selectedCategoryId
-                            ? (categories.find(
-                                (c) => c.id === selectedCategoryId,
-                              )?.name ?? '')
-                            : undefined}
+                        <SelectValue placeholder="수입/지출 선택">
+                          {(field.value as string) === 'income'
+                            ? '수입'
+                            : (field.value as string) === 'expense'
+                              ? '지출'
+                              : ''}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent alignItemWithTrigger={false}>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="income">수입</SelectItem>
+                        <SelectItem value="expense">지출</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage className="text-xs mt-1" />
                   </FormItem>
                 )}
               />
-            )}
-            <FormField
-              control={form.control as never}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FieldLabel required>내용</FieldLabel>
-                  <Input
-                    className={inputClass}
-                    placeholder={
-                      isOtherCategory
-                        ? '어떤 항목인지 입력해주세요'
-                        : '내용 입력'
-                    }
-                    {...field}
-                  />
-                  <FormMessage className="text-xs mt-1" />
-                </FormItem>
+              {entryType === 'expense' && (
+                <FormField
+                  control={form.control as never}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldLabel>카테고리</FieldLabel>
+                      <Select
+                        value={(field.value as string) ?? ''}
+                        onValueChange={(v) => {
+                          field.onChange(v || null)
+                          if (
+                            v &&
+                            categories.find((c) => c.id === v)?.name !== '기타'
+                          ) {
+                            form.setValue('description', '')
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={cn(inputClass, 'w-full')}>
+                          <SelectValue placeholder="카테고리 선택">
+                            {selectedCategoryId
+                              ? (categories.find(
+                                  (c) => c.id === selectedCategoryId,
+                                )?.name ?? '')
+                              : undefined}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          {categories.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
-            <FormField
-              control={form.control as never}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FieldLabel required>금액</FieldLabel>
-                  <NumericFormat
-                    customInput={Input}
-                    thousandSeparator=","
-                    suffix="원"
-                    className={cn(inputClass, 'text-right tabular-nums')}
-                    value={field.value as number}
-                    onValueChange={({ floatValue }) =>
-                      field.onChange(floatValue ?? 0)
-                    }
-                  />
-                  <FormMessage className="text-xs mt-1" />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control as never}
-                name="expense_date"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FieldLabel required>날짜</FieldLabel>
-                    <DatePicker
-                      variant="form"
-                      value={field.value as Date}
-                      onChange={field.onChange}
+                    <FieldLabel required>내용</FieldLabel>
+                    <Input
+                      className={inputClass}
+                      placeholder={
+                        isOtherCategory
+                          ? '어떤 항목인지 입력해주세요'
+                          : '내용 입력'
+                      }
+                      {...field}
                     />
                     <FormMessage className="text-xs mt-1" />
                   </FormItem>
@@ -271,56 +275,95 @@ function ExpenseFormDialog({
               />
               <FormField
                 control={form.control as never}
-                name="spender"
+                name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FieldLabel required>담당자</FieldLabel>
-                    <Select
-                      value={field.value as string}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className={cn(inputClass, 'w-full')}>
-                        <SelectValue placeholder="선택" />
-                      </SelectTrigger>
-                      <SelectContent alignItemWithTrigger={false}>
-                        {SPENDERS.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FieldLabel required>금액</FieldLabel>
+                    <NumericFormat
+                      customInput={Input}
+                      thousandSeparator=","
+                      suffix="원"
+                      className={cn(inputClass, 'text-right tabular-nums')}
+                      value={field.value as number}
+                      onValueChange={({ floatValue }) =>
+                        field.onChange(floatValue ?? 0)
+                      }
+                    />
                     <FormMessage className="text-xs mt-1" />
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-                className="h-8 px-4 text-xs text-gray-500 dark:text-gray-400"
-              >
-                취소
-              </Button>
-              <Button
-                type="submit"
-                disabled={createMutation.isPending}
-                className="h-8 px-5 text-xs"
-              >
-                {createMutation.isPending ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    저장 중...
-                  </span>
-                ) : (
-                  '등록'
-                )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control as never}
+                  name="expense_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldLabel required>날짜</FieldLabel>
+                      <DatePicker
+                        variant="form"
+                        value={field.value as Date}
+                        onChange={field.onChange}
+                      />
+                      <FormMessage className="text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control as never}
+                  name="spender_member_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FieldLabel required>담당자</FieldLabel>
+                      <Select
+                        value={field.value as string}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className={cn(inputClass, 'w-full')}>
+                          <SelectValue placeholder="선택">
+                            {members.find((m) => m.id === field.value)?.name}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          {members.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-xs mt-1" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onOpenChange(false)}
+                  className="h-8 px-4 text-xs text-gray-500 dark:text-gray-400"
+                >
+                  취소
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="h-8 px-5 text-xs"
+                >
+                  {createMutation.isPending ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      저장 중...
+                    </span>
+                  ) : (
+                    '등록'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -330,7 +373,7 @@ type InlineValues = {
   description: string
   amount: number
   date: string
-  spender: string
+  spender_member_id: string
   entry_type: EntryType
   category_id: string | null
 }
@@ -338,6 +381,7 @@ type InlineValues = {
 function ExpensesPage() {
   const search = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
+  const { data: members = [] } = useMembers()
 
   const page = search.page ?? 1
   const searchText = search.search ?? ''
@@ -349,9 +393,11 @@ function ExpensesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  // Inline edit state
   const [editingId, setEditingId] = useState<string | null>(null)
   const [inlineValues, setInlineValues] = useState<InlineValues | null>(null)
+  const [attachmentExpenseId, setAttachmentExpenseId] = useState<string | null>(
+    null,
+  )
 
   const update = (patch: Partial<typeof search>) => {
     navigate({ search: (prev) => ({ ...prev, ...patch }) })
@@ -400,7 +446,7 @@ function ExpensesPage() {
         description: inlineValues.description,
         amount: inlineValues.amount,
         expense_date: parseISO(inlineValues.date),
-        spender: inlineValues.spender as Spender,
+        spender_member_id: inlineValues.spender_member_id,
         entry_type: inlineValues.entry_type,
         category_id: inlineValues.category_id,
       })
@@ -420,7 +466,7 @@ function ExpensesPage() {
       description: expense.description,
       amount: expense.amount,
       date: expense.expense_date,
-      spender: expense.spender,
+      spender_member_id: expense.spender_member_id,
       entry_type: expense.entry_type,
       category_id: expense.category_id,
     })
@@ -450,6 +496,9 @@ function ExpensesPage() {
     (!!spenderFilter && spenderFilter !== 'all') ||
     !!dateFrom ||
     !!dateTo
+
+  const selectedSpenderName =
+    members.find((m) => m.id === spenderFilter)?.name ?? '담당자 전체'
 
   return (
     <div className="h-full flex flex-col gap-4 p-4 md:p-6">
@@ -581,30 +630,20 @@ function ExpensesPage() {
             onValueChange={(val) =>
               update({
                 page: 1,
-                spender:
-                  val === 'all'
-                    ? undefined
-                    : (val as '김도현' | '김국민' | '김태훈'),
+                spender: val === 'all' ? undefined : (val ?? undefined),
               })
             }
           >
             <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
               <SelectValue>
-                {(
-                  {
-                    all: '담당자 전체',
-                    김도현: '김도현',
-                    김국민: '김국민',
-                    김태훈: '김태훈',
-                  } as Record<string, string>
-                )[spenderFilter] ?? '담당자 전체'}
+                {spenderFilter === 'all' ? '담당자 전체' : selectedSpenderName}
               </SelectValue>
             </SelectTrigger>
             <SelectContent side="bottom" sideOffset={4}>
               <SelectItem value="all">담당자 전체</SelectItem>
-              {SPENDERS.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
+              {members.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -791,18 +830,25 @@ function ExpensesPage() {
                         {/* 담당자 */}
                         <td className="px-2 py-2">
                           <Select
-                            value={inlineValues.spender}
+                            value={inlineValues.spender_member_id}
                             onValueChange={(v) =>
-                              v && patchInline({ spender: v })
+                              v && patchInline({ spender_member_id: v })
                             }
                           >
                             <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                              <SelectValue />
+                              <SelectValue>
+                                {
+                                  members.find(
+                                    (m) =>
+                                      m.id === inlineValues.spender_member_id,
+                                  )?.name
+                                }
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent alignItemWithTrigger={false}>
-                              {SPENDERS.map((s) => (
-                                <SelectItem key={s} value={s}>
-                                  {s}
+                              {members.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -810,7 +856,7 @@ function ExpensesPage() {
                         </td>
                         {/* 출처 */}
                         <td className="px-2 py-2 text-center">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
                             직접등록
                           </span>
                         </td>
@@ -848,7 +894,7 @@ function ExpensesPage() {
                       <td className="px-4 py-2 text-center">
                         <span
                           className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap',
+                            'inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
                             row.type === 'income'
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                               : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
@@ -884,7 +930,7 @@ function ExpensesPage() {
                       <td className="px-4 py-2 text-center">
                         <span
                           className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded-full text-xs whitespace-nowrap',
+                            'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
                             row.source === 'task'
                               ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                               : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -897,6 +943,15 @@ function ExpensesPage() {
                         <div className="flex items-center justify-center gap-0.5 h-7">
                           {row.editable && (
                             <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                onClick={() => setAttachmentExpenseId(row.id)}
+                                title="영수증/증빙"
+                              >
+                                <Paperclip className="w-3.5 h-3.5" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -945,6 +1000,22 @@ function ExpensesPage() {
         onOpenChange={setDialogOpen}
         onSuccess={() => setDialogOpen(false)}
       />
+
+      <Dialog
+        open={!!attachmentExpenseId}
+        onOpenChange={(o) => !o && setAttachmentExpenseId(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>영수증/증빙 첨부</DialogTitle>
+          </DialogHeader>
+          {attachmentExpenseId && (
+            <div className="mt-2">
+              <AttachmentUploader expenseId={attachmentExpenseId} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleteId}

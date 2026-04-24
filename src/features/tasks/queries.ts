@@ -1,3 +1,4 @@
+import { logAudit } from '@/features/audit/logAudit'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import type { Task, TaskFormData, TaskStatus } from './types'
@@ -71,6 +72,13 @@ export const createTask = async (formData: TaskFormData) => {
     if (mError) throw mError
   }
 
+  void logAudit({
+    tableName: 'tasks',
+    recordId: task.id,
+    action: 'insert',
+    snapshot: task,
+  }).catch(() => {})
+
   return task
 }
 
@@ -108,12 +116,39 @@ export const updateTask = async (
     }
   }
 
+  void logAudit({
+    tableName: 'tasks',
+    recordId: id,
+    action: 'update',
+    snapshot: task,
+  }).catch(() => {})
+
   return task
 }
 
-export const updateTaskStatus = async (id: string, status: TaskStatus) => {
+export const updateTaskStatus = async (
+  id: string,
+  status: TaskStatus,
+  note?: string,
+) => {
+  const { data: before } = await supabase
+    .from('tasks')
+    .select('status')
+    .eq('id', id)
+    .single()
+
   const { error } = await supabase.from('tasks').update({ status }).eq('id', id)
   if (error) throw error
+
+  void logAudit({
+    tableName: 'tasks',
+    recordId: id,
+    action: 'update',
+    changedFields: before
+      ? { status: { old: before.status, new: status } }
+      : undefined,
+    note,
+  }).catch(() => {})
 }
 
 export const softDeleteTask = async (id: string) => {
@@ -122,6 +157,10 @@ export const softDeleteTask = async (id: string) => {
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+
+  void logAudit({ tableName: 'tasks', recordId: id, action: 'delete' }).catch(
+    () => {},
+  )
 }
 
 export const restoreTask = async (id: string) => {

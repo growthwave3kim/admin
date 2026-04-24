@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/features/auth/queries'
+import { clearCurrentMember } from '@/features/auth/useCurrentMember'
 import { useTheme } from '@/hooks/useTheme'
 import { useRouter } from '@tanstack/react-router'
 import { LogOut, Menu, Moon, Sun } from 'lucide-react'
@@ -15,6 +16,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
 
   const handleLogout = async () => {
     await signOut()
+    clearCurrentMember()
     toast.success('로그아웃되었습니다')
     router.navigate({ to: '/login' })
   }

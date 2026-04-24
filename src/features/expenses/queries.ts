@@ -1,3 +1,4 @@
+import { logAudit } from '@/features/audit/logAudit'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import type { Expense, ExpenseFormData } from './types'
@@ -5,12 +6,16 @@ import type { Expense, ExpenseFormData } from './types'
 export const fetchExpenses = async () => {
   const { data, error } = await supabase
     .from('expenses')
-    .select('*')
+    .select('*, members!spender_member_id(name)')
     .is('deleted_at', null)
     .order('expense_date', { ascending: false })
 
   if (error) throw error
-  return data as Expense[]
+  return (data ?? []).map((row) => ({
+    ...row,
+    spender_name: (row.members as { name: string } | null)?.name ?? '',
+    members: undefined,
+  })) as Expense[]
 }
 
 export const fetchTrashedExpenses = async () => {
@@ -43,6 +48,14 @@ export const createExpense = async (formData: ExpenseFormData) => {
     .single()
 
   if (error) throw error
+
+  void logAudit({
+    tableName: 'expenses',
+    recordId: data.id,
+    action: 'insert',
+    snapshot: data,
+  }).catch(() => {})
+
   return data
 }
 
@@ -66,6 +79,14 @@ export const updateExpense = async (
     .single()
 
   if (error) throw error
+
+  void logAudit({
+    tableName: 'expenses',
+    recordId: id,
+    action: 'update',
+    snapshot: data,
+  }).catch(() => {})
+
   return data
 }
 
@@ -75,6 +96,12 @@ export const softDeleteExpense = async (id: string) => {
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+
+  void logAudit({
+    tableName: 'expenses',
+    recordId: id,
+    action: 'delete',
+  }).catch(() => {})
 }
 
 export const restoreExpense = async (id: string) => {
@@ -88,4 +115,10 @@ export const restoreExpense = async (id: string) => {
 export const permanentDeleteExpense = async (id: string) => {
   const { error } = await supabase.from('expenses').delete().eq('id', id)
   if (error) throw error
+
+  void logAudit({
+    tableName: 'expenses',
+    recordId: id,
+    action: 'delete',
+  }).catch(() => {})
 }

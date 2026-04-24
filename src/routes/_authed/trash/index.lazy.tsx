@@ -170,7 +170,7 @@ function TrashPage() {
               {tab.count > 0 && (
                 <span
                   className={cn(
-                    'px-1.5 py-0.5 rounded-full text-[10px] font-semibold',
+                    'px-1.5 py-0.5 rounded-sm text-[10px] font-semibold',
                     activeTab === tab.key
                       ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400',

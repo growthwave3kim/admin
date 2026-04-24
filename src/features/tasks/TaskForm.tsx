@@ -18,6 +18,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import { ClientCombobox } from '@/features/clients/components/ClientCombobox'
+import { clearDraft, useFormDraft } from '@/features/tasks/useFormDraft'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
@@ -30,9 +31,10 @@ import {
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
+import { toast } from 'sonner'
 import { z } from 'zod'
 import type { MarketingType, Member } from '../tasks/types'
 import { TASK_STATUS_LABELS } from './types'
@@ -74,6 +76,7 @@ type TaskFormProps = {
   showEndDate?: boolean
   isLoading?: boolean
   submitLabel?: string
+  enableDraft?: boolean
 }
 
 const DatePicker = ({
@@ -132,6 +135,7 @@ export const TaskForm = ({
   showEndDate = false,
   isLoading = false,
   submitLabel = '저장',
+  enableDraft = false,
 }: TaskFormProps) => {
   const [addClientOpen, setAddClientOpen] = useState(false)
 
@@ -151,6 +155,25 @@ export const TaskForm = ({
     },
   })
 
+  const { hasDraft, restoreDraft, dismissDraft } = useFormDraft(
+    form,
+    enableDraft,
+  )
+
+  useEffect(() => {
+    if (!hasDraft) return
+    toast('이전에 작성 중인 내용이 있습니다', {
+      duration: Number.POSITIVE_INFINITY,
+      action: { label: '이어쓰기', onClick: restoreDraft },
+      cancel: { label: '무시', onClick: dismissDraft },
+    })
+  }, [hasDraft, restoreDraft, dismissDraft])
+
+  const handleSubmit = async (data: TaskFormValues) => {
+    await onSubmit(data)
+    if (enableDraft) clearDraft()
+  }
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'marketings',
@@ -165,7 +188,7 @@ export const TaskForm = ({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit as never)}
+        onSubmit={form.handleSubmit(handleSubmit as never)}
         className="space-y-7"
       >
         {/* 기본 정보 */}

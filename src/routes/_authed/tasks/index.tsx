@@ -28,6 +28,7 @@ const searchSchema = z.object({
       'lost',
     ])
     .optional(),
+  memberId: z.string().optional(),
 })
 
 export const Route = createFileRoute('/_authed/tasks/')({

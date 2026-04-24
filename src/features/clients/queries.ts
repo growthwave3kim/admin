@@ -1,3 +1,4 @@
+import { logAudit } from '@/features/audit/logAudit'
 import { supabase } from '@/lib/supabase'
 import type { Client, ClientFormData } from './types'
 
@@ -55,6 +56,12 @@ export const createClient = async (formData: ClientFormData) => {
     .select()
     .single()
   if (error) throw error
+  void logAudit({
+    tableName: 'clients',
+    recordId: (data as Client).id,
+    action: 'insert',
+    snapshot: data,
+  }).catch(() => {})
   return data as Client
 }
 
@@ -69,6 +76,12 @@ export const updateClient = async (
     .select()
     .single()
   if (error) throw error
+  void logAudit({
+    tableName: 'clients',
+    recordId: id,
+    action: 'update',
+    snapshot: data,
+  }).catch(() => {})
   return data as Client
 }
 
@@ -78,6 +91,9 @@ export const softDeleteClient = async (id: string) => {
     .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
   if (error) throw error
+  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(
+    () => {},
+  )
 }
 
 export const restoreClient = async (id: string) => {
@@ -91,6 +107,9 @@ export const restoreClient = async (id: string) => {
 export const permanentDeleteClient = async (id: string) => {
   const { error } = await supabase.from('clients').delete().eq('id', id)
   if (error) throw error
+  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(
+    () => {},
+  )
 }
 
 export const importClients = async (

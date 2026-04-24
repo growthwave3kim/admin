@@ -1,7 +1,16 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { signIn } from '@/features/auth/queries'
+import { writeCurrentMember } from '@/features/auth/useCurrentMember'
+import { useMembers } from '@/features/members/useMembers'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { Eye, EyeOff } from 'lucide-react'
@@ -10,19 +19,15 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-const SAVED_ID_KEY = 'growthwave_saved_id'
+const SHARED_ACCOUNT_EMAIL = 'growthwave@growthwave.kr'
+const SAVED_MEMBER_ID_KEY = 'growthwave_saved_member_id'
 
 const loginSchema = z.object({
-  id: z.string().min(1, '아이디를 입력해주세요'),
+  memberId: z.string().min(1, '멤버를 선택해주세요'),
   password: z.string().min(1, '비밀번호를 입력해주세요'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
-
-const idToEmail = (id: string): string => {
-  if (id.includes('@')) return id
-  return `${id}@growthwave.kr`
-}
 
 export const Route = createLazyFileRoute('/login')({
   component: LoginPage,
@@ -30,34 +35,48 @@ export const Route = createLazyFileRoute('/login')({
 
 function LoginPage() {
   const router = useRouter()
+  const { data: members = [] } = useMembers()
   const [isLoading, setIsLoading] = useState(false)
   const [isShowPassword, setIsShowPassword] = useState(false)
-  const [isRememberMe, setIsRememberMe] = useState(
-    () => !!localStorage.getItem(SAVED_ID_KEY),
+  const [isRememberMember, setIsRememberMember] = useState(
+    () => !!localStorage.getItem(SAVED_MEMBER_ID_KEY),
   )
+
+  const savedMemberId = localStorage.getItem(SAVED_MEMBER_ID_KEY) ?? ''
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      id: localStorage.getItem(SAVED_ID_KEY) ?? '',
+      memberId: savedMemberId,
       password: '',
     },
   })
 
   const handleSubmit = async (data: LoginForm) => {
-    setIsLoading(true)
-    try {
-      await signIn(idToEmail(data.id), data.password)
-    } catch {
-      setIsLoading(false)
-      toast.error('로그인 실패: 아이디 또는 비밀번호를 확인해주세요')
+    const selectedMember = members.find((m) => m.id === data.memberId)
+    if (!selectedMember) {
+      toast.error('멤버를 선택해주세요')
       return
     }
+
+    setIsLoading(true)
+    try {
+      await signIn(SHARED_ACCOUNT_EMAIL, data.password)
+    } catch {
+      setIsLoading(false)
+      toast.error('로그인 실패: 비밀번호를 확인해주세요')
+      return
+    }
+
+    writeCurrentMember({ id: selectedMember.id, name: selectedMember.name })
+
+    if (isRememberMember) {
+      localStorage.setItem(SAVED_MEMBER_ID_KEY, selectedMember.id)
+    } else {
+      localStorage.removeItem(SAVED_MEMBER_ID_KEY)
+    }
+
     setIsLoading(false)
-
-    if (isRememberMe) localStorage.setItem(SAVED_ID_KEY, data.id)
-    else localStorage.removeItem(SAVED_ID_KEY)
-
     router.navigate({ to: '/dashboard' })
   }
 
@@ -65,12 +84,9 @@ function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left panel — branding */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0f] flex-col items-center justify-center p-12">
-        {/* Ambient blobs */}
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-white/5 blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-violet-500/15 blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full bg-indigo-600/10 blur-[80px] pointer-events-none" />
-
-        {/* Grid overlay */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -79,8 +95,6 @@ function LoginPage() {
             backgroundSize: '40px 40px',
           }}
         />
-
-        {/* Content */}
         <div className="relative z-10 flex flex-col items-center text-center gap-8">
           <img
             src="/logo.png"
@@ -100,8 +114,6 @@ function LoginPage() {
             </p>
           </div>
         </div>
-
-        {/* Bottom watermark */}
         <p className="absolute bottom-8 text-xs text-white/15 tracking-widest uppercase">
           © 2025 GrowthWave
         </p>
@@ -110,7 +122,6 @@ function LoginPage() {
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center bg-white px-6 py-12">
         <div className="w-full max-w-sm space-y-8">
-          {/* Mobile logo */}
           <div className="flex lg:hidden justify-center">
             <img
               src="/logo.png"
@@ -126,7 +137,7 @@ function LoginPage() {
               오늘도 파이팅이에요 👋
             </div>
             <div className="text-sm text-gray-500">
-              로그인하고 업무를 시작해보세요
+              본인을 선택하고 업무를 시작해보세요
             </div>
           </div>
 
@@ -135,19 +146,29 @@ function LoginPage() {
             className="space-y-5"
           >
             <div className="space-y-1.5">
-              <Label htmlFor="id" className="text-sm font-medium text-gray-700">
-                아이디
+              <Label className="text-sm font-medium text-gray-700">
+                멤버 선택
               </Label>
-              <Input
-                id="id"
-                placeholder="아이디를 입력하세요"
-                autoComplete="username"
-                className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:ring-gray-400/40 focus-visible:border-gray-500 transition"
-                {...form.register('id')}
-              />
-              {form.formState.errors.id && (
+              <Select
+                value={form.watch('memberId')}
+                onValueChange={(v) =>
+                  form.setValue('memberId', v ?? '', { shouldValidate: true })
+                }
+              >
+                <SelectTrigger className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 focus:ring-gray-400/40 focus:border-gray-500 transition">
+                  <SelectValue placeholder="이름을 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.memberId && (
                 <p className="text-xs text-red-500">
-                  {form.formState.errors.id.message}
+                  {form.formState.errors.memberId.message}
                 </p>
               )}
             </div>
@@ -193,13 +214,13 @@ function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setIsRememberMe((v) => !v)}
+              onClick={() => setIsRememberMember((v) => !v)}
               className="flex items-center gap-2 group w-fit"
             >
               <span
-                className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isRememberMe ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'}`}
+                className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${isRememberMember ? 'bg-gray-900 border-gray-900' : 'bg-white border-gray-300'}`}
               >
-                {isRememberMe && (
+                {isRememberMember && (
                   <svg
                     className="w-2.5 h-2.5 text-white"
                     viewBox="0 0 10 8"
@@ -217,7 +238,7 @@ function LoginPage() {
                 )}
               </span>
               <span className="text-sm text-gray-500 select-none group-hover:text-gray-700 transition-colors">
-                아이디 저장
+                멤버 저장
               </span>
             </button>
 

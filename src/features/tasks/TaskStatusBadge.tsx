@@ -12,7 +12,7 @@ type TaskStatusBadgeProps = {
 export const TaskStatusBadge = ({ status }: TaskStatusBadgeProps) => (
   <span
     className={cn(
-      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+      'inline-flex items-center px-2.5 py-0.5 rounded-sm text-xs font-medium',
       TASK_STATUS_COLORS[status],
     )}
   >

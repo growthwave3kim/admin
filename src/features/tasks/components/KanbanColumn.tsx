@@ -53,7 +53,7 @@ export const KanbanColumn = ({
             {TASK_STATUS_LABELS[status]}
           </span>
         </div>
-        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-2 py-0.5 min-w-[22px] text-center">
+        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-sm px-2 py-0.5 min-w-[22px] text-center">
           {tasks.length}
         </span>
       </div>

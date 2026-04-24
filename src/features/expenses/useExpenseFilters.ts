@@ -47,6 +47,7 @@ export const useExpenseFilters = (
           amount: task.received_amount,
           date: task.start_date,
           spender: null,
+          spender_member_id: null,
           category_id: null,
           editable: false,
         })
@@ -60,6 +61,7 @@ export const useExpenseFilters = (
           amount: task.execution_cost,
           date: task.start_date,
           spender: null,
+          spender_member_id: null,
           category_id: null,
           editable: false,
         })
@@ -74,7 +76,8 @@ export const useExpenseFilters = (
         description: expense.description,
         amount: expense.amount,
         date: expense.expense_date,
-        spender: expense.spender,
+        spender: expense.spender_name,
+        spender_member_id: expense.spender_member_id,
         category_id: expense.category_id,
         editable: true,
       })
@@ -90,7 +93,7 @@ export const useExpenseFilters = (
         : true
       const matchSpender =
         spenderFilter && spenderFilter !== 'all'
-          ? row.source === 'manual' && row.spender === spenderFilter
+          ? row.source === 'manual' && row.spender_member_id === spenderFilter
           : true
       const matchDateFrom = dateFrom ? row.date >= dateFrom : true
       const matchDateTo = dateTo ? row.date <= dateTo : true

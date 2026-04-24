@@ -9,6 +9,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   Receipt,
+  ScrollText,
   Tag,
   Trash2,
 } from 'lucide-react'
@@ -40,7 +41,10 @@ const navGroups = [
   },
   {
     label: '설정',
-    items: [{ to: '/marketing-types', label: '마케팅 유형', icon: Tag }],
+    items: [
+      { to: '/marketing-types', label: '마케팅 유형', icon: Tag },
+      { to: '/audit', label: '변경 이력', icon: ScrollText },
+    ],
   },
 ] as const
 

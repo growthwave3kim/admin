@@ -21,6 +21,7 @@ import { Route as AuthedExpenseCategoriesIndexRouteImport } from './routes/_auth
 import { Route as AuthedContactsIndexRouteImport } from './routes/_authed/contacts/index'
 import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients/index'
 import { Route as AuthedCalendarIndexRouteImport } from './routes/_authed/calendar/index'
+import { Route as AuthedAuditIndexRouteImport } from './routes/_authed/audit/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
 import { Route as AuthedClientsClientIdIndexRouteImport } from './routes/_authed/clients/$clientId/index'
@@ -107,6 +108,13 @@ const AuthedCalendarIndexRoute = AuthedCalendarIndexRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/calendar/index.lazy').then((d) => d.Route),
 )
+const AuthedAuditIndexRoute = AuthedAuditIndexRouteImport.update({
+  id: '/audit/',
+  path: '/audit/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/audit/index.lazy').then((d) => d.Route),
+)
 const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
   id: '/tasks/new',
   path: '/tasks/new',
@@ -144,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/audit/': typeof AuthedAuditIndexRoute
   '/calendar/': typeof AuthedCalendarIndexRoute
   '/clients/': typeof AuthedClientsIndexRoute
   '/contacts/': typeof AuthedContactsIndexRoute
@@ -161,6 +170,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/tasks/new': typeof AuthedTasksNewRoute
+  '/audit': typeof AuthedAuditIndexRoute
   '/calendar': typeof AuthedCalendarIndexRoute
   '/clients': typeof AuthedClientsIndexRoute
   '/contacts': typeof AuthedContactsIndexRoute
@@ -180,6 +190,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/tasks/new': typeof AuthedTasksNewRoute
+  '/_authed/audit/': typeof AuthedAuditIndexRoute
   '/_authed/calendar/': typeof AuthedCalendarIndexRoute
   '/_authed/clients/': typeof AuthedClientsIndexRoute
   '/_authed/contacts/': typeof AuthedContactsIndexRoute
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/audit/'
     | '/calendar/'
     | '/clients/'
     | '/contacts/'
@@ -216,6 +228,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/dashboard'
     | '/tasks/new'
+    | '/audit'
     | '/calendar'
     | '/clients'
     | '/contacts'
@@ -234,6 +247,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authed/dashboard'
     | '/_authed/tasks/new'
+    | '/_authed/audit/'
     | '/_authed/calendar/'
     | '/_authed/clients/'
     | '/_authed/contacts/'
@@ -339,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedCalendarIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/audit/': {
+      id: '/_authed/audit/'
+      path: '/audit'
+      fullPath: '/audit/'
+      preLoaderRoute: typeof AuthedAuditIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/new': {
       id: '/_authed/tasks/new'
       path: '/tasks/new'
@@ -373,6 +394,7 @@ declare module '@tanstack/react-router' {
 interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedTasksNewRoute: typeof AuthedTasksNewRoute
+  AuthedAuditIndexRoute: typeof AuthedAuditIndexRoute
   AuthedCalendarIndexRoute: typeof AuthedCalendarIndexRoute
   AuthedClientsIndexRoute: typeof AuthedClientsIndexRoute
   AuthedContactsIndexRoute: typeof AuthedContactsIndexRoute
@@ -389,6 +411,7 @@ interface AuthedRouteChildren {
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedTasksNewRoute: AuthedTasksNewRoute,
+  AuthedAuditIndexRoute: AuthedAuditIndexRoute,
   AuthedCalendarIndexRoute: AuthedCalendarIndexRoute,
   AuthedClientsIndexRoute: AuthedClientsIndexRoute,
   AuthedContactsIndexRoute: AuthedContactsIndexRoute,

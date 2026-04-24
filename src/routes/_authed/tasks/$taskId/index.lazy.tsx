@@ -13,6 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  StatusChangeDialog,
+  requiresNote,
+} from '@/features/tasks/StatusChangeDialog'
 import { ProfitAmount } from '@/features/tasks/components/ProfitAmount'
 import {
   fetchTask,
@@ -47,6 +51,7 @@ function TaskDetailPage() {
   const qc = useQueryClient()
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isEndDateOpen, setIsEndDateOpen] = useState(false)
+  const [pendingStatus, setPendingStatus] = useState<TaskStatus | null>(null)
 
   const { data: task, isLoading } = useQuery({
     queryKey: ['task', taskId],
@@ -54,7 +59,8 @@ function TaskDetailPage() {
   })
 
   const statusMutation = useMutation({
-    mutationFn: (status: TaskStatus) => updateTaskStatus(taskId, status),
+    mutationFn: ({ status, note }: { status: TaskStatus; note?: string }) =>
+      updateTaskStatus(taskId, status, note),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
@@ -192,7 +198,15 @@ function TaskDetailPage() {
             </span>
             <Select
               value={task.status}
-              onValueChange={(v) => v && statusMutation.mutate(v)}
+              onValueChange={(v) => {
+                if (!v) return
+                const s = v as TaskStatus
+                if (requiresNote(s)) {
+                  setPendingStatus(s)
+                } else {
+                  statusMutation.mutate({ status: s })
+                }
+              }}
             >
               <SelectTrigger className="w-44 h-8 text-xs border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-gray-100">
                 <SelectValue>{TASK_STATUS_LABELS[task.status]}</SelectValue>
@@ -317,6 +331,17 @@ function TaskDetailPage() {
         tone="destructive"
         isPending={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate()}
+      />
+
+      <StatusChangeDialog
+        open={!!pendingStatus}
+        newStatus={pendingStatus}
+        onConfirm={(note) => {
+          if (pendingStatus)
+            statusMutation.mutate({ status: pendingStatus, note })
+          setPendingStatus(null)
+        }}
+        onCancel={() => setPendingStatus(null)}
       />
     </div>
   )

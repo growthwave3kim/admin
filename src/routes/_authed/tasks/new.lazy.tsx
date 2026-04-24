@@ -5,6 +5,7 @@ import { fetchMembers } from '@/features/members/queries'
 import { TaskForm } from '@/features/tasks/TaskForm'
 import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { createTask } from '@/features/tasks/queries'
+import { clearDraft } from '@/features/tasks/useFormDraft'
 import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
@@ -84,10 +85,14 @@ function NewTaskPage() {
             marketingTypes={marketingTypes}
             members={members}
             onSubmit={handleSubmit}
-            onCancel={() => router.navigate({ to: '/tasks' })}
+            onCancel={() => {
+              clearDraft()
+              router.navigate({ to: '/tasks' })
+            }}
             showEndDate={true}
             isLoading={mutation.isPending}
             submitLabel="등록"
+            enableDraft={true}
           />
         </div>
       </div>

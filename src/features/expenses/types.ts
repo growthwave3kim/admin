@@ -1,7 +1,4 @@
-export type Spender = '김도현' | '김국민' | '김태훈'
 export type EntryType = 'income' | 'expense'
-
-export const SPENDERS: Spender[] = ['김도현', '김국민', '김태훈']
 
 export const ENTRY_TYPE_LABELS: Record<EntryType, string> = {
   income: '수입',
@@ -13,7 +10,8 @@ export type Expense = {
   description: string
   amount: number
   expense_date: string
-  spender: Spender
+  spender_member_id: string
+  spender_name: string
   entry_type: EntryType
   category_id: string | null
   deleted_at: string | null
@@ -25,7 +23,7 @@ export type ExpenseFormData = {
   description: string
   amount: number
   expense_date: Date
-  spender: Spender
+  spender_member_id: string
   entry_type: EntryType
   category_id?: string | null
 }
@@ -38,6 +36,7 @@ export type ExpenseRow = {
   amount: number
   date: string
   spender: string | null
+  spender_member_id: string | null
   category_id: string | null
   editable: boolean
 }
