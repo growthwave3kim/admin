@@ -155,10 +155,10 @@ function LoginPage() {
                   form.setValue('memberId', v ?? '', { shouldValidate: true })
                 }
               >
-                <SelectTrigger className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 focus:ring-gray-400/40 focus:border-gray-500 transition">
-                  <SelectValue placeholder="이름을 선택하세요">
+                <SelectTrigger className="w-full h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 focus:ring-gray-400/40 focus:border-gray-500 transition">
+                  <SelectValue placeholder="접속할 유저를 선택해주세요">
                     {members.find((m) => m.id === form.watch('memberId'))
-                      ?.name ?? ''}
+                      ?.name || undefined}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
