@@ -150,16 +150,14 @@ function LoginPage() {
                 멤버 선택
               </Label>
               <Select
-                value={form.watch('memberId')}
+                value={form.watch('memberId') || null}
                 onValueChange={(v) =>
                   form.setValue('memberId', v ?? '', { shouldValidate: true })
                 }
+                items={Object.fromEntries(members.map((m) => [m.id, m.name]))}
               >
                 <SelectTrigger className="w-full h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 focus:ring-gray-400/40 focus:border-gray-500 transition">
-                  <SelectValue placeholder="접속할 유저를 선택해주세요">
-                    {members.find((m) => m.id === form.watch('memberId'))
-                      ?.name || undefined}
-                  </SelectValue>
+                  <SelectValue placeholder="접속할 유저를 선택해주세요" />
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
