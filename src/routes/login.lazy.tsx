@@ -156,7 +156,10 @@ function LoginPage() {
                 }
               >
                 <SelectTrigger className="h-11 rounded-xl border-gray-300 bg-gray-50 px-4 text-sm text-gray-900 focus:ring-gray-400/40 focus:border-gray-500 transition">
-                  <SelectValue placeholder="이름을 선택하세요" />
+                  <SelectValue placeholder="이름을 선택하세요">
+                    {members.find((m) => m.id === form.watch('memberId'))
+                      ?.name ?? ''}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
