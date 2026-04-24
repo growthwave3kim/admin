@@ -1,6 +1,33 @@
-import { readCurrentMember } from '@/features/auth/useCurrentMember'
+import {
+  clearCurrentMember,
+  readCurrentMember,
+} from '@/features/auth/useCurrentMember'
 import { supabase } from '@/lib/supabase'
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import {
+  Outlet,
+  createFileRoute,
+  redirect,
+  useRouter,
+} from '@tanstack/react-router'
+import { useEffect } from 'react'
+
+function AuthGuard() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        clearCurrentMember()
+        router.navigate({ to: '/login' })
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [router])
+
+  return <Outlet />
+}
 
 export const Route = createFileRoute('/_authed')({
   beforeLoad: async ({ location }) => {
@@ -12,4 +39,5 @@ export const Route = createFileRoute('/_authed')({
       throw redirect({ to: '/login', search: { redirect: location.href } })
     }
   },
+  component: AuthGuard,
 })

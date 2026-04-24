@@ -15,7 +15,11 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme()
 
   const handleLogout = async () => {
-    await signOut()
+    try {
+      await signOut()
+    } catch {
+      // proceed with local cleanup even if signOut fails
+    }
     clearCurrentMember()
     toast.success('로그아웃되었습니다')
     router.navigate({ to: '/login' })

@@ -262,13 +262,14 @@ export const TaskForm = ({
                 <FormItem>
                   <FieldLabel>담당자</FieldLabel>
                   <Select
-                    value={(field.value as string | null) ?? ''}
+                    value={(field.value as string | null) || null}
                     onValueChange={(v) => field.onChange(v || null)}
+                    items={Object.fromEntries(
+                      members.map((m) => [m.id, m.name]),
+                    )}
                   >
                     <SelectTrigger className={cn(inputClass, 'w-full')}>
-                      <SelectValue placeholder="담당자 선택">
-                        {members.find((m) => m.id === field.value)?.name}
-                      </SelectValue>
+                      <SelectValue placeholder="담당자 선택" />
                     </SelectTrigger>
                     <SelectContent alignItemWithTrigger={false}>
                       {members.map((m) => (
