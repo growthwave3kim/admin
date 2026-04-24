@@ -235,6 +235,7 @@ function TasksPage() {
     const diffDays = Math.ceil(
       (new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     )
+    if (diffDays < 0) return ''
     if (diffDays <= 3)
       return 'bg-red-100 dark:bg-red-900/40 hover:bg-red-200/80 dark:hover:bg-red-900/60'
     if (diffDays <= 7)
