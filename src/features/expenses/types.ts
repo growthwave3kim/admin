@@ -18,6 +18,12 @@ export type Expense = {
   created_at: string
   updated_at: string
   attachment_count: number
+  attachments: {
+    id: string
+    storage_path: string
+    mime_type: string
+    file_name: string
+  }[]
 }
 
 export type ExpenseFormData = {
@@ -41,6 +47,12 @@ export type ExpenseRow = {
   category_id: string | null
   editable: boolean
   attachment_count: number
+  attachments: {
+    id: string
+    storage_path: string
+    mime_type: string
+    file_name: string
+  }[]
 }
 
 export const PAGE_SIZE = 20

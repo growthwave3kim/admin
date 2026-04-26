@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { fetchExpenseCategories } from '@/features/expense-categories/queries'
+import { AttachmentThumbStrip } from '@/features/expenses/AttachmentThumbStrip'
 import { AttachmentUploader } from '@/features/expenses/AttachmentUploader'
 import {
   createExpense,
@@ -41,7 +42,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
-import { parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import {
   Check,
   Paperclip,
@@ -378,6 +379,129 @@ type InlineValues = {
   category_id: string | null
 }
 
+type ExpenseCategory = { id: string; name: string }
+
+type ExpenseCardProps = {
+  row: import('@/features/expenses/types').ExpenseRow
+  expenseCategories: ExpenseCategory[]
+  onEdit: () => void
+  onDelete: () => void
+  onOpenAttachment: () => void
+}
+
+const ExpenseCard = ({
+  row,
+  expenseCategories,
+  onEdit,
+  onDelete,
+  onOpenAttachment,
+}: ExpenseCardProps) => {
+  const categoryName =
+    row.type === 'income'
+      ? '수입'
+      : (expenseCategories.find((c) => c.id === row.category_id)?.name ??
+        '지출')
+
+  return (
+    <div
+      className={cn(
+        'p-3 bg-white dark:bg-gray-900',
+        row.type === 'income'
+          ? 'border-l-4 border-emerald-500'
+          : 'border-l-4 border-red-500',
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={cn(
+              'shrink-0 inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
+              row.type === 'income'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+            )}
+          >
+            {categoryName}
+          </span>
+          <span
+            className={cn(
+              'text-sm font-semibold tabular-nums',
+              row.type === 'income'
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-red-500 dark:text-red-400',
+            )}
+          >
+            {row.type === 'income' ? '+' : '-'}
+            {row.amount.toLocaleString('ko-KR')}원
+          </span>
+        </div>
+        <span className="shrink-0 text-xs text-gray-400 tabular-nums">
+          {formatDate(row.date)}
+        </span>
+      </div>
+
+      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">
+        {row.description}
+      </p>
+
+      <AttachmentThumbStrip
+        attachments={row.attachments}
+        onOpen={onOpenAttachment}
+        size={40}
+      />
+
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
+              row.source === 'task'
+                ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+            )}
+          >
+            {row.source === 'task' ? '업무연동' : '직접등록'}
+          </span>
+          {row.spender && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {row.spender}
+            </span>
+          )}
+        </div>
+        {row.editable && (
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              onClick={onOpenAttachment}
+              title="영수증/증빙"
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              onClick={onEdit}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function ExpensesPage() {
   const search = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
@@ -395,6 +519,7 @@ function ExpensesPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [inlineValues, setInlineValues] = useState<InlineValues | null>(null)
+  const [isMobileEditOpen, setIsMobileEditOpen] = useState(false)
   const [attachmentExpenseId, setAttachmentExpenseId] = useState<string | null>(
     null,
   )
@@ -456,6 +581,7 @@ function ExpensesPage() {
       toast.success('수정되었습니다')
       setEditingId(null)
       setInlineValues(null)
+      setIsMobileEditOpen(false)
     },
     onError: () => toast.error('수정에 실패했습니다'),
   })
@@ -475,6 +601,7 @@ function ExpensesPage() {
   const handleCancelEdit = () => {
     setEditingId(null)
     setInlineValues(null)
+    setIsMobileEditOpen(false)
   }
 
   const patchInline = (patch: Partial<InlineValues>) => {
@@ -526,488 +653,526 @@ function ExpensesPage() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3">
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5" />총 수입
-            </p>
-            <p className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
-              {formatCurrency(summary.totalIncome)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3">
-            <p className="text-xs text-red-500 dark:text-red-400 font-medium mb-1 flex items-center gap-1.5">
-              <TrendingDown className="w-3.5 h-3.5" />총 지출
-            </p>
-            <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
-              {formatCurrency(summary.totalExpense)}
-            </p>
-          </div>
-          <div
-            className={cn(
-              'rounded-xl border px-4 py-3',
-              summary.netProfit >= 0
-                ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20',
-            )}
-          >
-            <p
+        <div className="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-x-visible">
+          <div className="flex gap-2 sm:grid sm:grid-cols-3 sm:gap-3">
+            <div className="shrink-0 w-44 sm:w-auto rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 sm:px-4 sm:py-3">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5" />총 수입
+              </p>
+              <p className="text-base sm:text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
+                {formatCurrency(summary.totalIncome)}
+              </p>
+            </div>
+            <div className="shrink-0 w-44 sm:w-auto rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 sm:px-4 sm:py-3">
+              <p className="text-xs text-red-500 dark:text-red-400 font-medium mb-1 flex items-center gap-1.5">
+                <TrendingDown className="w-3.5 h-3.5" />총 지출
+              </p>
+              <p className="text-base sm:text-lg font-bold tabular-nums text-red-600 dark:text-red-400 whitespace-nowrap">
+                {formatCurrency(summary.totalExpense)}
+              </p>
+            </div>
+            <div
               className={cn(
-                'text-xs font-medium mb-1',
+                'shrink-0 w-44 sm:w-auto rounded-xl border px-3 py-2 sm:px-4 sm:py-3',
                 summary.netProfit >= 0
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-orange-500 dark:text-orange-400',
+                  ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20',
               )}
             >
-              순수익
-            </p>
-            <p
-              className={cn(
-                'text-lg font-bold tabular-nums',
-                summary.netProfit >= 0
-                  ? 'text-blue-700 dark:text-blue-300'
-                  : 'text-orange-600 dark:text-orange-400',
-              )}
-            >
-              {formatCurrency(summary.netProfit)}
-            </p>
+              <p
+                className={cn(
+                  'text-xs font-medium mb-1',
+                  summary.netProfit >= 0
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-orange-500 dark:text-orange-400',
+                )}
+              >
+                순수익
+              </p>
+              <p
+                className={cn(
+                  'text-base sm:text-lg font-bold tabular-nums whitespace-nowrap',
+                  summary.netProfit >= 0
+                    ? 'text-blue-700 dark:text-blue-300'
+                    : 'text-orange-600 dark:text-orange-400',
+                )}
+              >
+                {formatCurrency(summary.netProfit)}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <div className="relative w-full sm:w-56">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="내용 검색"
-                className="h-8 pl-8 pr-7 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchInput('')
-                    update({ page: 1, search: undefined })
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+        <div className="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-x-visible">
+          <div className="flex items-center gap-2 sm:flex-wrap min-w-max sm:min-w-0">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="relative w-44 sm:w-56">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="내용 검색"
+                  className="h-8 pl-8 pr-7 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchInput('')
+                      update({ page: 1, search: undefined })
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 px-3 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                onClick={handleSearch}
+              >
+                검색
+              </Button>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 px-3 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={handleSearch}
-            >
-              검색
-            </Button>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <DatePicker
+                variant="filter"
+                value={dateFrom}
+                onChange={(v) => update({ page: 1, dateFrom: v })}
+                placeholder="시작일"
+              />
+              <span className="text-xs text-gray-400 shrink-0">~</span>
+              <DatePicker
+                variant="filter"
+                value={dateTo}
+                onChange={(v) => update({ page: 1, dateTo: v })}
+                placeholder="종료일"
+              />
+              <Select
+                value={spenderFilter}
+                onValueChange={(val) =>
+                  update({
+                    page: 1,
+                    spender: val === 'all' ? undefined : (val ?? undefined),
+                  })
+                }
+              >
+                <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 shrink-0">
+                  <SelectValue>
+                    {spenderFilter === 'all' ? '담당자' : selectedSpenderName}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent side="bottom" sideOffset={4}>
+                  <SelectItem value="all">담당자 전체</SelectItem>
+                  {members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {hasActiveFilter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 gap-1 shrink-0"
+                onClick={() => {
+                  setSearchInput('')
+                  update({
+                    page: 1,
+                    search: undefined,
+                    spender: undefined,
+                    dateFrom: undefined,
+                    dateTo: undefined,
+                  })
+                }}
+              >
+                <X className="w-3 h-3" />
+                초기화
+              </Button>
+            )}
           </div>
-
-          <div className="flex items-center gap-1">
-            <DatePicker
-              variant="filter"
-              value={dateFrom}
-              onChange={(v) => update({ page: 1, dateFrom: v })}
-              placeholder="시작일"
-            />
-            <span className="text-xs text-gray-400">~</span>
-            <DatePicker
-              variant="filter"
-              value={dateTo}
-              onChange={(v) => update({ page: 1, dateTo: v })}
-              placeholder="종료일"
-            />
-          </div>
-
-          <Select
-            value={spenderFilter}
-            onValueChange={(val) =>
-              update({
-                page: 1,
-                spender: val === 'all' ? undefined : (val ?? undefined),
-              })
-            }
-          >
-            <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
-              <SelectValue>
-                {spenderFilter === 'all' ? '담당자 전체' : selectedSpenderName}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent side="bottom" sideOffset={4}>
-              <SelectItem value="all">담당자 전체</SelectItem>
-              {members.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilter && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 gap-1"
-              onClick={() => {
-                setSearchInput('')
-                update({
-                  page: 1,
-                  search: undefined,
-                  spender: undefined,
-                  dateFrom: undefined,
-                  dateTo: undefined,
-                })
-              }}
-            >
-              <X className="w-3 h-3" />
-              초기화
-            </Button>
-          )}
         </div>
       </div>
 
-      {/* Table */}
-      <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-        <div className="flex-1 overflow-auto">
-          <table className="w-full table-fixed text-sm min-w-[700px]">
-            <colgroup>
-              <col className="w-20" />
-              <col />
-              <col className="w-32" />
-              <col className="w-24" />
-              <col className="w-24" />
-              <col className="w-24" />
-              <col className="w-20" />
-            </colgroup>
-            <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-              <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  구분
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  내용
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  금액
-                </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  날짜
-                </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  담당자
-                </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                  출처
-                </th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
-              {isLoading ? (
-                ['a', 'b', 'c', 'd', 'e', 'f'].map((k) => (
-                  <tr key={k} className="h-[45px]">
-                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                      <td key={i} className="px-4 py-2">
-                        <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : paginatedRows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
-                  >
-                    등록된 내역이 없습니다
-                  </td>
+      {/* Table — desktop only */}
+      <div className="hidden lg:flex flex-1 min-h-0 flex-col">
+        <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+          <div className="flex-1 overflow-auto">
+            <table className="w-full table-fixed text-sm min-w-[700px]">
+              <colgroup>
+                <col className="w-20" />
+                <col className="w-24" />
+                <col />
+                <col className="w-32" />
+                <col className="w-24" />
+                <col className="w-24" />
+                <col className="w-28" />
+              </colgroup>
+              <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
+                <tr className="border-b border-gray-200 dark:border-gray-800">
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    구분
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    날짜
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    내용
+                  </th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    금액
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    담당자
+                  </th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    출처
+                  </th>
+                  <th className="px-4 py-3" />
                 </tr>
-              ) : (
-                paginatedRows.map((row) => {
-                  const isEditing = row.editable && row.id === editingId
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                {isLoading ? (
+                  ['a', 'b', 'c', 'd', 'e', 'f'].map((k) => (
+                    <tr key={k} className="h-[45px]">
+                      {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                        <td key={i} className="px-4 py-2">
+                          <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : paginatedRows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
+                    >
+                      등록된 내역이 없습니다
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedRows.map((row) => {
+                    const isEditing = row.editable && row.id === editingId
 
-                  if (isEditing && inlineValues) {
-                    return (
-                      <tr
-                        key={row.id}
-                        className="h-[45px] bg-blue-50/40 dark:bg-blue-900/10"
-                      >
-                        {/* 구분 */}
-                        <td className="px-2 py-2">
-                          <div className="flex flex-col gap-1">
+                    if (isEditing && inlineValues) {
+                      return (
+                        <tr
+                          key={row.id}
+                          className="h-[45px] bg-blue-50/40 dark:bg-blue-900/10"
+                        >
+                          {/* 구분 */}
+                          <td className="px-2 py-2">
+                            <div className="flex flex-col gap-1">
+                              <Select
+                                value={inlineValues.entry_type}
+                                onValueChange={(v) =>
+                                  patchInline({
+                                    entry_type: v as EntryType,
+                                    category_id:
+                                      v === 'income'
+                                        ? null
+                                        : inlineValues.category_id,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                                  <SelectValue>
+                                    {inlineValues.entry_type === 'income'
+                                      ? '수입'
+                                      : '지출'}
+                                  </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent alignItemWithTrigger={false}>
+                                  <SelectItem value="income">수입</SelectItem>
+                                  <SelectItem value="expense">지출</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {inlineValues.entry_type === 'expense' && (
+                                <Select
+                                  value={inlineValues.category_id ?? ''}
+                                  onValueChange={(v) =>
+                                    patchInline({ category_id: v || null })
+                                  }
+                                >
+                                  <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                                    <SelectValue placeholder="카테고리">
+                                      {inlineValues.category_id
+                                        ? (expenseCategories.find(
+                                            (c) =>
+                                              c.id === inlineValues.category_id,
+                                          )?.name ?? '')
+                                        : undefined}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent alignItemWithTrigger={false}>
+                                    {expenseCategories.map((c) => (
+                                      <SelectItem key={c.id} value={c.id}>
+                                        {c.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                          </td>
+                          {/* 날짜 */}
+                          <td className="px-2 py-2">
+                            <DatePicker
+                              variant="inline"
+                              value={inlineValues.date}
+                              onChange={(v) => patchInline({ date: v })}
+                            />
+                          </td>
+                          {/* 내용 */}
+                          <td className="px-2 py-2">
+                            <Input
+                              className={smallInputClass}
+                              value={inlineValues.description}
+                              onChange={(e) =>
+                                patchInline({ description: e.target.value })
+                              }
+                            />
+                          </td>
+                          {/* 금액 */}
+                          <td className="px-2 py-2">
+                            <NumericFormat
+                              customInput={Input}
+                              thousandSeparator=","
+                              suffix="원"
+                              className={cn(
+                                smallInputClass,
+                                'text-right tabular-nums',
+                              )}
+                              value={inlineValues.amount}
+                              onValueChange={({ floatValue }) =>
+                                patchInline({ amount: floatValue ?? 0 })
+                              }
+                            />
+                          </td>
+                          {/* 담당자 */}
+                          <td className="px-2 py-2">
                             <Select
-                              value={inlineValues.entry_type}
+                              value={inlineValues.spender_member_id}
                               onValueChange={(v) =>
-                                patchInline({
-                                  entry_type: v as EntryType,
-                                  category_id:
-                                    v === 'income'
-                                      ? null
-                                      : inlineValues.category_id,
-                                })
+                                v && patchInline({ spender_member_id: v })
                               }
                             >
                               <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                                 <SelectValue>
-                                  {inlineValues.entry_type === 'income'
-                                    ? '수입'
-                                    : '지출'}
+                                  {
+                                    members.find(
+                                      (m) =>
+                                        m.id === inlineValues.spender_member_id,
+                                    )?.name
+                                  }
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent alignItemWithTrigger={false}>
-                                <SelectItem value="income">수입</SelectItem>
-                                <SelectItem value="expense">지출</SelectItem>
+                                {members.map((m) => (
+                                  <SelectItem key={m.id} value={m.id}>
+                                    {m.name}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
-                            {inlineValues.entry_type === 'expense' && (
-                              <Select
-                                value={inlineValues.category_id ?? ''}
-                                onValueChange={(v) =>
-                                  patchInline({ category_id: v || null })
-                                }
+                          </td>
+                          {/* 출처 */}
+                          <td className="px-2 py-2 text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                              직접등록
+                            </span>
+                          </td>
+                          {/* 저장/취소 */}
+                          <td className="px-2 py-2">
+                            <div className="flex items-center justify-center gap-0.5">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                                disabled={inlineSaveMutation.isPending}
+                                onClick={() => inlineSaveMutation.mutate()}
                               >
-                                <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                                  <SelectValue placeholder="카테고리">
-                                    {inlineValues.category_id
-                                      ? (expenseCategories.find(
-                                          (c) =>
-                                            c.id === inlineValues.category_id,
-                                        )?.name ?? '')
-                                      : undefined}
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                  {expenseCategories.map((c) => (
-                                    <SelectItem key={c.id} value={c.id}>
-                                      {c.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            )}
-                          </div>
-                        </td>
-                        {/* 내용 */}
-                        <td className="px-2 py-2">
-                          <Input
-                            className={smallInputClass}
-                            value={inlineValues.description}
-                            onChange={(e) =>
-                              patchInline({ description: e.target.value })
-                            }
-                          />
-                        </td>
-                        {/* 금액 */}
-                        <td className="px-2 py-2">
-                          <NumericFormat
-                            customInput={Input}
-                            thousandSeparator=","
-                            suffix="원"
+                                <Check className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                onClick={handleCancelEdit}
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    }
+
+                    return (
+                      <tr
+                        key={row.id}
+                        className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
+                      >
+                        <td className="px-4 py-2 text-center">
+                          <span
                             className={cn(
-                              smallInputClass,
-                              'text-right tabular-nums',
+                              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
+                              row.type === 'income'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
                             )}
-                            value={inlineValues.amount}
-                            onValueChange={({ floatValue }) =>
-                              patchInline({ amount: floatValue ?? 0 })
-                            }
-                          />
-                        </td>
-                        {/* 날짜 */}
-                        <td className="px-2 py-2">
-                          <DatePicker
-                            variant="inline"
-                            value={inlineValues.date}
-                            onChange={(v) => patchInline({ date: v })}
-                          />
-                        </td>
-                        {/* 담당자 */}
-                        <td className="px-2 py-2">
-                          <Select
-                            value={inlineValues.spender_member_id}
-                            onValueChange={(v) =>
-                              v && patchInline({ spender_member_id: v })
-                            }
                           >
-                            <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                              <SelectValue>
-                                {
-                                  members.find(
-                                    (m) =>
-                                      m.id === inlineValues.spender_member_id,
-                                  )?.name
-                                }
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent alignItemWithTrigger={false}>
-                              {members.map((m) => (
-                                <SelectItem key={m.id} value={m.id}>
-                                  {m.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        {/* 출처 */}
-                        <td className="px-2 py-2 text-center">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                            직접등록
+                            {row.type === 'income'
+                              ? '수입'
+                              : (expenseCategories.find(
+                                  (c) => c.id === row.category_id,
+                                )?.name ?? '지출')}
                           </span>
                         </td>
-                        {/* 저장/취소 */}
-                        <td className="px-2 py-2">
-                          <div className="flex items-center justify-center gap-0.5">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-                              disabled={inlineSaveMutation.isPending}
-                              onClick={() => inlineSaveMutation.mutate()}
-                            >
-                              <Check className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                              onClick={handleCancelEdit}
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </Button>
+                        <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums">
+                          {formatDate(row.date)}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span className="text-sm text-gray-900 dark:text-gray-100 truncate block">
+                            {row.description}
+                          </span>
+                          <AttachmentThumbStrip
+                            attachments={row.attachments}
+                            onOpen={() =>
+                              setAttachmentExpenseId(
+                                row.source === 'manual' ? row.id : '',
+                              )
+                            }
+                            size={48}
+                          />
+                        </td>
+                        <td
+                          className={cn(
+                            'px-4 py-2 text-right text-xs font-semibold tabular-nums truncate',
+                            row.type === 'income'
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-500 dark:text-red-400',
+                          )}
+                        >
+                          {row.type === 'income' ? '+' : '-'}
+                          {formatCurrency(row.amount)}
+                        </td>
+                        <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300">
+                          {row.spender ?? '-'}
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <span
+                            className={cn(
+                              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
+                              row.source === 'task'
+                                ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                                : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+                            )}
+                          >
+                            {row.source === 'task' ? '업무연동' : '직접등록'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex items-center justify-center gap-0.5 h-7">
+                            {row.editable && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                  onClick={() => setAttachmentExpenseId(row.id)}
+                                  title="영수증/증빙"
+                                >
+                                  <Paperclip className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                  onClick={() => {
+                                    const expense = expenses.find(
+                                      (e) => e.id === row.id,
+                                    )
+                                    if (expense) handleStartEdit(expense)
+                                  }}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                  onClick={() => setDeleteId(row.id)}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
                     )
-                  }
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
-                  return (
-                    <tr
-                      key={row.id}
-                      className="h-[45px] hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
-                    >
-                      <td className="px-4 py-2 text-center">
-                        <span
-                          className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
-                            row.type === 'income'
-                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                              : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-                          )}
-                        >
-                          {row.type === 'income'
-                            ? '수입'
-                            : (expenseCategories.find(
-                                (c) => c.id === row.category_id,
-                              )?.name ?? '지출')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                            {row.description}
-                          </span>
-                          {row.attachment_count > 0 && (
-                            <span className="flex items-center gap-0.5 text-blue-500 dark:text-blue-400 shrink-0">
-                              <Paperclip className="w-3 h-3" />
-                              <span className="text-[10px] font-medium">
-                                {row.attachment_count}
-                              </span>
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td
-                        className={cn(
-                          'px-4 py-2 text-right text-xs font-semibold tabular-nums truncate',
-                          row.type === 'income'
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-red-500 dark:text-red-400',
-                        )}
-                      >
-                        {row.type === 'income' ? '+' : '-'}
-                        {formatCurrency(row.amount)}
-                      </td>
-                      <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums">
-                        {formatDate(row.date)}
-                      </td>
-                      <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300">
-                        {row.spender ?? '-'}
-                      </td>
-                      <td className="px-4 py-2 text-center">
-                        <span
-                          className={cn(
-                            'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
-                            row.source === 'task'
-                              ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                              : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
-                          )}
-                        >
-                          {row.source === 'task' ? '업무연동' : '직접등록'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center justify-center gap-0.5 h-7">
-                          {row.editable && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                  'relative h-7 w-7',
-                                  row.attachment_count > 0
-                                    ? 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
-                                    : 'text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
-                                )}
-                                onClick={() => setAttachmentExpenseId(row.id)}
-                                title="영수증/증빙"
-                              >
-                                <Paperclip className="w-3.5 h-3.5" />
-                                {row.attachment_count > 0 && (
-                                  <span className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[8px] leading-none w-3.5 h-3.5 rounded-full flex items-center justify-center font-medium">
-                                    {row.attachment_count}
-                                  </span>
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                onClick={() => {
-                                  const expense = expenses.find(
-                                    (e) => e.id === row.id,
-                                  )
-                                  if (expense) handleStartEdit(expense)
-                                }}
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                                onClick={() => setDeleteId(row.id)}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+          {/* Pagination */}
+          <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(p) => update({ page: p })}
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Pagination */}
+      {/* Mobile / tablet card list */}
+      <div className="lg:hidden flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 overflow-auto divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          {isLoading ? (
+            ['a', 'b', 'c', 'd'].map((k) => (
+              <div key={k} className="p-3 space-y-2 animate-pulse">
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/3" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+              </div>
+            ))
+          ) : paginatedRows.length === 0 ? (
+            <div className="text-center py-20 text-xs text-gray-400">
+              등록된 내역이 없습니다
+            </div>
+          ) : (
+            paginatedRows.map((row) => (
+              <ExpenseCard
+                key={row.id}
+                row={row}
+                expenseCategories={expenseCategories}
+                onEdit={() => {
+                  const expense = expenses.find((e) => e.id === row.id)
+                  if (expense) {
+                    handleStartEdit(expense)
+                    setIsMobileEditOpen(true)
+                  }
+                }}
+                onDelete={() => setDeleteId(row.id)}
+                onOpenAttachment={() =>
+                  setAttachmentExpenseId(row.source === 'manual' ? row.id : '')
+                }
+              />
+            ))
+          )}
+        </div>
         <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
           <Pagination
             page={page}
@@ -1022,6 +1187,155 @@ function ExpensesPage() {
         onOpenChange={setDialogOpen}
         onSuccess={() => setDialogOpen(false)}
       />
+
+      <Dialog
+        open={isMobileEditOpen}
+        onOpenChange={(o) => !o && handleCancelEdit()}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>내역 수정</DialogTitle>
+          </DialogHeader>
+          {inlineValues && (
+            <div className="space-y-3 mt-2">
+              <div>
+                <FieldLabel required>구분</FieldLabel>
+                <Select
+                  value={inlineValues.entry_type}
+                  onValueChange={(v) =>
+                    patchInline({
+                      entry_type: v as EntryType,
+                      category_id:
+                        v === 'income' ? null : inlineValues.category_id,
+                    })
+                  }
+                >
+                  <SelectTrigger className={cn(inputClass, 'w-full')}>
+                    <SelectValue>
+                      {inlineValues.entry_type === 'income' ? '수입' : '지출'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    <SelectItem value="income">수입</SelectItem>
+                    <SelectItem value="expense">지출</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {inlineValues.entry_type === 'expense' && (
+                <div>
+                  <FieldLabel>카테고리</FieldLabel>
+                  <Select
+                    value={inlineValues.category_id ?? ''}
+                    onValueChange={(v) =>
+                      patchInline({ category_id: v || null })
+                    }
+                  >
+                    <SelectTrigger className={cn(inputClass, 'w-full')}>
+                      <SelectValue placeholder="카테고리">
+                        {inlineValues.category_id
+                          ? (expenseCategories.find(
+                              (c) => c.id === inlineValues.category_id,
+                            )?.name ?? '')
+                          : undefined}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      {expenseCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <FieldLabel required>날짜</FieldLabel>
+                <DatePicker
+                  variant="form"
+                  value={inlineValues.date ? parseISO(inlineValues.date) : null}
+                  onChange={(d) =>
+                    patchInline({
+                      date: d ? format(d, 'yyyy-MM-dd') : '',
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <FieldLabel required>내용</FieldLabel>
+                <Input
+                  className={inputClass}
+                  value={inlineValues.description}
+                  onChange={(e) => patchInline({ description: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <FieldLabel required>금액</FieldLabel>
+                <NumericFormat
+                  customInput={Input}
+                  thousandSeparator=","
+                  suffix="원"
+                  className={cn(inputClass, 'text-right tabular-nums')}
+                  value={inlineValues.amount}
+                  onValueChange={({ floatValue }) =>
+                    patchInline({ amount: floatValue ?? 0 })
+                  }
+                />
+              </div>
+
+              <div>
+                <FieldLabel required>담당자</FieldLabel>
+                <Select
+                  value={inlineValues.spender_member_id}
+                  onValueChange={(v) =>
+                    v && patchInline({ spender_member_id: v })
+                  }
+                >
+                  <SelectTrigger className={cn(inputClass, 'w-full')}>
+                    <SelectValue>
+                      {
+                        members.find(
+                          (m) => m.id === inlineValues.spender_member_id,
+                        )?.name
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false}>
+                    {members.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 px-4 text-xs text-gray-500"
+                  onClick={handleCancelEdit}
+                >
+                  취소
+                </Button>
+                <Button
+                  type="button"
+                  className="h-8 px-5 text-xs"
+                  disabled={inlineSaveMutation.isPending}
+                  onClick={() => inlineSaveMutation.mutate()}
+                >
+                  저장
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={!!attachmentExpenseId}

@@ -140,7 +140,9 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
   )
 }
 
-const AttachmentThumb = ({ attachment }: { attachment: ExpenseAttachment }) => {
+export const AttachmentThumb = ({
+  attachment,
+}: { attachment: ExpenseAttachment }) => {
   const { data: dataUrl, isError } = useQuery({
     queryKey: ['attachment-thumb', attachment.id],
     queryFn: () => downloadAsDataUrl(attachment.storage_path),

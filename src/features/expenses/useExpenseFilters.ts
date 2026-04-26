@@ -51,6 +51,7 @@ export const useExpenseFilters = (
           category_id: null,
           editable: false,
           attachment_count: 0,
+          attachments: [],
         })
       }
       if (task.execution_cost > 0) {
@@ -66,6 +67,7 @@ export const useExpenseFilters = (
           category_id: null,
           editable: false,
           attachment_count: 0,
+          attachments: [],
         })
       }
     }
@@ -83,6 +85,7 @@ export const useExpenseFilters = (
         category_id: expense.category_id,
         editable: true,
         attachment_count: expense.attachment_count,
+        attachments: expense.attachments,
       })
     }
 

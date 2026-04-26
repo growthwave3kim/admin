@@ -32,13 +32,24 @@ import {
   type Task,
   type TaskStatus,
 } from '@/features/tasks/types'
-import { formatMarketingSummary } from '@/features/tasks/utils'
+import { formatMarketingSummary, getDeadlineDays } from '@/features/tasks/utils'
 import { cn } from '@/lib/utils'
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
+import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { Columns, List, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
+import {
+  AlertTriangle,
+  Clock,
+  Columns,
+  List,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -47,6 +58,194 @@ export const Route = createLazyFileRoute('/_authed/tasks/')({
 })
 
 const VIEW_MODE_KEY = 'tasks_view_mode'
+
+const DONE_STATUSES = ['done_settled', 'done_unsettled', 'lost']
+
+type TaskEndDateCellProps = {
+  endDate: string | null
+  status: string
+}
+
+const TaskEndDateCell = ({ endDate, status }: TaskEndDateCellProps) => {
+  if (!endDate) {
+    return <span className="text-xs text-gray-400">-</span>
+  }
+
+  const formatted = format(parseISO(endDate), 'yy-MM-dd')
+
+  let indicator: React.ReactNode = null
+  if (!DONE_STATUSES.includes(status)) {
+    const days = getDeadlineDays(endDate)
+    if (days !== null) {
+      if (days <= 3) {
+        const label = days < 0 ? `D+${Math.abs(days)}` : `D-${days}`
+        indicator = (
+          <span className="flex items-center gap-0.5 text-red-500 dark:text-red-400 font-semibold text-[10px]">
+            <AlertTriangle className="w-3 h-3" />
+            {label}
+          </span>
+        )
+      } else if (days <= 7) {
+        indicator = (
+          <span className="flex items-center gap-0.5 text-orange-500 dark:text-orange-400 font-semibold text-[10px]">
+            <Clock className="w-3 h-3" />
+            {`D-${days}`}
+          </span>
+        )
+      }
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="tabular-nums text-xs text-gray-700 dark:text-gray-300">
+        {formatted}
+      </span>
+      {indicator}
+    </div>
+  )
+}
+
+type TaskCardProps = {
+  task: Task
+  onDelete: (taskId: string) => void
+  onClick: (taskId: string) => void
+}
+
+const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
+  const marketingSummary = formatMarketingSummary(task)
+  const profit = task.profit || 0
+
+  let borderColor = 'border-l-transparent'
+  if (!DONE_STATUSES.includes(task.status) && task.end_date) {
+    const days = getDeadlineDays(task.end_date)
+    if (days !== null) {
+      if (days <= 3) borderColor = 'border-l-red-500'
+      else if (days <= 7) borderColor = 'border-l-orange-400'
+    }
+  }
+
+  const startFmt = task.start_date
+    ? format(parseISO(task.start_date), 'MM-dd')
+    : '-'
+  const endFmt = task.end_date ? format(parseISO(task.end_date), 'MM-dd') : '-'
+
+  let deadlineIndicator: React.ReactNode = null
+  if (!DONE_STATUSES.includes(task.status) && task.end_date) {
+    const days = getDeadlineDays(task.end_date)
+    if (days !== null) {
+      if (days <= 3) {
+        const label = days < 0 ? `D+${Math.abs(days)}` : `D-${days}`
+        deadlineIndicator = (
+          <span className="flex items-center gap-0.5 text-red-500 dark:text-red-400 font-semibold text-xs">
+            <AlertTriangle className="w-3 h-3" />
+            {label}
+          </span>
+        )
+      } else if (days <= 7) {
+        deadlineIndicator = (
+          <span className="flex items-center gap-0.5 text-orange-500 dark:text-orange-400 font-semibold text-xs">
+            <Clock className="w-3 h-3" />
+            {`D-${days}`}
+          </span>
+        )
+      }
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'w-full text-left rounded-lg border bg-white dark:bg-gray-900 p-3 cursor-pointer relative border-l-4',
+        borderColor,
+        'hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors',
+      )}
+      onClick={() => onClick(task.id)}
+    >
+      {/* Top row: company name + status badge */}
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <span className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+          {task.company_name}
+        </span>
+        <TaskStatusBadge status={task.status} />
+      </div>
+
+      {/* Marketing summary */}
+      {marketingSummary !== '-' && (
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate mb-2">
+          {marketingSummary}
+        </p>
+      )}
+
+      <hr className="border-gray-100 dark:border-gray-800 mb-2" />
+
+      {/* Profit */}
+      <div className="flex items-baseline gap-1 mb-1">
+        <span
+          className={cn(
+            'text-sm font-semibold tabular-nums',
+            profit >= 0
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-red-500 dark:text-red-400',
+          )}
+        >
+          {formatCurrency(profit)}
+        </span>
+        <span className="text-xs text-gray-400 dark:text-gray-500">수익</span>
+      </div>
+
+      {/* Received + execution costs */}
+      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 tabular-nums mb-2">
+        <span>받은금액 {formatCurrency(task.received_amount)}</span>
+        <span>·</span>
+        <span>실행비 {formatCurrency(task.execution_cost)}</span>
+      </div>
+
+      {/* Date range + D-N indicator */}
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <span className="tabular-nums">
+          {startFmt} ~ {endFmt}
+        </span>
+        {deadlineIndicator}
+      </div>
+
+      {/* Bottom row: member + actions */}
+      <div
+        className="flex items-center justify-between"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {task.members?.name ?? '-'}
+        </span>
+        <div className="flex items-center gap-0.5">
+          <Link
+            to="/tasks/$taskId/edit"
+            params={{ taskId: task.id }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+            onClick={() => onDelete(task.id)}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+    </button>
+  )
+}
 
 function TasksPage() {
   const { search: searchState, update } = useTaskSearchState()
@@ -255,8 +454,7 @@ function TasksPage() {
 
   const getDeadlineRowClass = (task: Task): string => {
     if (!task.end_date) return ''
-    if (['done_settled', 'done_unsettled', 'lost'].includes(task.status))
-      return ''
+    if (DONE_STATUSES.includes(task.status)) return ''
     const diffDays = Math.ceil(
       (new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     )
@@ -276,6 +474,10 @@ function TasksPage() {
     } else {
       update({ page: 1, sortBy: undefined, sortDir: undefined })
     }
+  }
+
+  const handleNavigateToTask = (taskId: string) => {
+    router.navigate({ to: '/tasks/$taskId', params: { taskId } })
   }
 
   return (
@@ -444,233 +646,264 @@ function TasksPage() {
       {/* List Mode */}
       {mode === 'list' && (
         <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-          <div className="flex-1 overflow-auto">
-            <table className="w-full table-fixed text-sm min-w-[1220px]">
-              <colgroup>
-                <col className="w-44" />
-                <col className="w-40" />
-                <col className="w-32" />
-                <col className="w-28" />
-                <col className="w-24" />
-                <col className="w-24" />
-                <col className="w-36" />
-                <col className="w-20" />
-                <col className="w-24" />
-                <col className="w-24" />
-                <col className="w-36" />
-                <col className="w-16" />
-              </colgroup>
-              <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-                <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    업체명
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    마케팅
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    비고
-                  </th>
-                  <th
-                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSort('received_amount')}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && handleSort('received_amount')
-                    }
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      받은금액
-                      <SortIcon
-                        col="received_amount"
-                        sortBy={sortBy}
-                        sortDir={sortDir}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSort('execution_cost')}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && handleSort('execution_cost')
-                    }
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      실행비
-                      <SortIcon
-                        col="execution_cost"
-                        sortBy={sortBy}
-                        sortDir={sortDir}
-                      />
-                    </div>
-                  </th>
-                  <th
-                    className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSort('profit')}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSort('profit')}
-                  >
-                    <div className="flex items-center justify-end gap-1">
-                      수익
-                      <SortIcon
-                        col="profit"
-                        sortBy={sortBy}
-                        sortDir={sortDir}
-                      />
-                    </div>
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    상태
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    담당자
-                  </th>
-                  <th
-                    className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSort('start_date')}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && handleSort('start_date')
-                    }
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      시작일
-                      <SortIcon
-                        col="start_date"
-                        sortBy={sortBy}
-                        sortDir={sortDir}
-                      />
-                    </div>
-                  </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
-                    종료일
-                  </th>
-                  <th
-                    className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSort('created_at')}
-                    onKeyDown={(e) =>
-                      e.key === 'Enter' && handleSort('created_at')
-                    }
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      등록일
-                      <SortIcon
-                        col="created_at"
-                        sortBy={sortBy}
-                        sortDir={sortDir}
-                      />
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
-                {isLoading ? (
-                  ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((k) => (
-                    <SkeletonRow key={k} />
-                  ))
-                ) : paginatedTasks.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={12}
-                      className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
-                    >
-                      등록된 업무가 없습니다
-                    </td>
-                  </tr>
-                ) : null}
-                {!isLoading &&
-                  paginatedTasks.map((task) => (
-                    <tr
-                      key={task.id}
-                      tabIndex={0}
-                      className={cn(
-                        'cursor-pointer transition-colors',
-                        getDeadlineRowClass(task) ||
-                          'hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
-                      )}
-                      onClick={() =>
-                        router.navigate({
-                          to: '/tasks/$taskId',
-                          params: { taskId: task.id },
-                        })
-                      }
+          {/* Desktop table */}
+          <div className="hidden lg:flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div className="flex-1 overflow-auto">
+              <table className="w-full table-fixed text-sm min-w-[1200px]">
+                <colgroup>
+                  <col className="w-44" />
+                  <col className="w-36" />
+                  <col className="w-36" />
+                  <col className="w-28" />
+                  <col className="w-24" />
+                  <col className="w-24" />
+                  <col className="w-24" />
+                  <col className="w-28" />
+                  <col className="w-20" />
+                  <col className="w-24" />
+                  <col className="w-24" />
+                  <col className="w-16" />
+                </colgroup>
+                <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
+                  <tr className="border-b border-gray-200 dark:border-gray-800">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      업체명
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      상태
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      마케팅
+                    </th>
+                    <th
+                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      onClick={() => handleSort('received_amount')}
                       onKeyDown={(e) =>
-                        e.key === 'Enter' &&
-                        router.navigate({
-                          to: '/tasks/$taskId',
-                          params: { taskId: task.id },
-                        })
+                        e.key === 'Enter' && handleSort('received_amount')
                       }
                     >
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
-                        {task.company_name}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
-                        {formatMarketingSummary(task)}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
-                        {task.note || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
-                        {formatCurrency(task.received_amount)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
-                        {formatCurrency(task.execution_cost)}
-                      </td>
+                      <div className="flex items-center justify-end gap-1">
+                        받은금액
+                        <SortIcon
+                          col="received_amount"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
+                      </div>
+                    </th>
+                    <th
+                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      onClick={() => handleSort('execution_cost')}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && handleSort('execution_cost')
+                      }
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        실행비
+                        <SortIcon
+                          col="execution_cost"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
+                      </div>
+                    </th>
+                    <th
+                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      onClick={() => handleSort('profit')}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && handleSort('profit')
+                      }
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        수익
+                        <SortIcon
+                          col="profit"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
+                      </div>
+                    </th>
+                    <th
+                      className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      onClick={() => handleSort('start_date')}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && handleSort('start_date')
+                      }
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        시작일
+                        <SortIcon
+                          col="start_date"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
+                      </div>
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      종료일
+                    </th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      담당자
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                      비고
+                    </th>
+                    <th
+                      className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      onClick={() => handleSort('created_at')}
+                      onKeyDown={(e) =>
+                        e.key === 'Enter' && handleSort('created_at')
+                      }
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        등록일
+                        <SortIcon
+                          col="created_at"
+                          sortBy={sortBy}
+                          sortDir={sortDir}
+                        />
+                      </div>
+                    </th>
+                    <th className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
+                  {isLoading ? (
+                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((k) => (
+                      <SkeletonRow key={k} />
+                    ))
+                  ) : paginatedTasks.length === 0 ? (
+                    <tr>
                       <td
-                        className={cn(
-                          'px-4 py-3 text-right text-xs font-semibold tabular-nums truncate',
-                          (task.profit || 0) >= 0
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-red-500 dark:text-red-400',
-                        )}
+                        colSpan={12}
+                        className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
                       >
-                        {formatCurrency(task.profit || 0)}
+                        등록된 업무가 없습니다
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <TaskStatusBadge status={task.status} />
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-600 dark:text-gray-300 truncate">
-                        {task.members?.name ?? '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums truncate">
-                        {formatDate(task.start_date)}
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums truncate">
-                        {formatDate(task.end_date)}
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-gray-400 tabular-nums truncate">
-                        {formatDateTime(task.created_at)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div
-                          className="flex items-center justify-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
+                    </tr>
+                  ) : null}
+                  {!isLoading &&
+                    paginatedTasks.map((task) => (
+                      <tr
+                        key={task.id}
+                        tabIndex={0}
+                        className={cn(
+                          'cursor-pointer transition-colors',
+                          getDeadlineRowClass(task) ||
+                            'hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
+                        )}
+                        onClick={() => handleNavigateToTask(task.id)}
+                        onKeyDown={(e) =>
+                          e.key === 'Enter' && handleNavigateToTask(task.id)
+                        }
+                      >
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                          {task.company_name}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <TaskStatusBadge status={task.status} />
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
+                          {formatMarketingSummary(task)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
+                          {formatCurrency(task.received_amount)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
+                          {formatCurrency(task.execution_cost)}
+                        </td>
+                        <td
+                          className={cn(
+                            'px-4 py-3 text-right text-xs font-semibold tabular-nums truncate',
+                            (task.profit || 0) >= 0
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-500 dark:text-red-400',
+                          )}
                         >
-                          <Link
-                            to="/tasks/$taskId/edit"
-                            params={{ taskId: task.id }}
+                          {formatCurrency(task.profit || 0)}
+                        </td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-700 dark:text-gray-300 tabular-nums whitespace-nowrap">
+                          {task.start_date
+                            ? format(parseISO(task.start_date), 'yy-MM-dd')
+                            : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <TaskEndDateCell
+                            endDate={task.end_date}
+                            status={task.status}
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-600 dark:text-gray-300 truncate">
+                          {task.members?.name ?? '-'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
+                          {task.note || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-gray-400 tabular-nums truncate">
+                          {formatDateTime(task.created_at)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div
+                            className="flex items-center justify-center gap-0.5"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
                           >
+                            <Link
+                              to="/tasks/$taskId/edit"
+                              params={{ taskId: task.id }}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                            </Link>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                              className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                              onClick={() => setDeleteId(task.id)}
                             >
-                              <Pencil className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                            onClick={() => setDeleteId(task.id)}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile card list */}
+          <div className="lg:hidden flex-1 overflow-auto p-3 space-y-2">
+            {isLoading ? (
+              ['a', 'b', 'c', 'd', 'e'].map((k) => (
+                <div
+                  key={k}
+                  className="rounded-lg border bg-white dark:bg-gray-900 p-3 animate-pulse space-y-2"
+                >
+                  <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+                </div>
+              ))
+            ) : paginatedTasks.length === 0 ? (
+              <div className="text-center py-20 text-xs text-gray-400 dark:text-gray-400">
+                등록된 업무가 없습니다
+              </div>
+            ) : (
+              paginatedTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onDelete={(taskId) => setDeleteId(taskId)}
+                  onClick={handleNavigateToTask}
+                />
+              ))
+            )}
           </div>
 
           {/* Pagination */}

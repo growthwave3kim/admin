@@ -6,7 +6,9 @@ import type { Expense, ExpenseFormData } from './types'
 export const fetchExpenses = async () => {
   const { data, error } = await supabase
     .from('expenses')
-    .select('*, members!spender_member_id(name), expense_attachments(id)')
+    .select(
+      '*, members!spender_member_id(name), expense_attachments(id, storage_path, mime_type, file_name)',
+    )
     .is('deleted_at', null)
     .order('expense_date', { ascending: false })
 
@@ -14,6 +16,15 @@ export const fetchExpenses = async () => {
   return (data ?? []).map((row) => ({
     ...row,
     spender_name: (row.members as { name: string } | null)?.name ?? '',
+    attachments:
+      (row.expense_attachments as
+        | {
+            id: string
+            storage_path: string
+            mime_type: string
+            file_name: string
+          }[]
+        | null) ?? [],
     attachment_count:
       (row.expense_attachments as { id: string }[] | null)?.length ?? 0,
     members: undefined,
