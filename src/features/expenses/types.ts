@@ -17,6 +17,7 @@ export type Expense = {
   deleted_at: string | null
   created_at: string
   updated_at: string
+  attachment_count: number
 }
 
 export type ExpenseFormData = {
@@ -39,6 +40,7 @@ export type ExpenseRow = {
   spender_member_id: string | null
   category_id: string | null
   editable: boolean
+  attachment_count: number
 }
 
 export const PAGE_SIZE = 20

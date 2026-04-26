@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import {
   type ExpenseAttachment,
   deleteAttachment,
+  downloadAsDataUrl,
   getSignedUrl,
   listAttachments,
   uploadAttachment,
@@ -30,6 +31,7 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
     mutationFn: (file: File) => uploadAttachment(expenseId, file),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: attachmentKey(expenseId) })
+      qc.invalidateQueries({ queryKey: ['expenses'] })
       toast.success('파일이 업로드되었습니다')
     },
     onError: (e: Error) => toast.error(e.message ?? '업로드에 실패했습니다'),
@@ -39,6 +41,7 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
     mutationFn: (attachment: ExpenseAttachment) => deleteAttachment(attachment),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: attachmentKey(expenseId) })
+      qc.invalidateQueries({ queryKey: ['expenses'] })
       toast.success('삭제되었습니다')
     },
     onError: () => toast.error('삭제에 실패했습니다'),
@@ -138,20 +141,31 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
 }
 
 const AttachmentThumb = ({ attachment }: { attachment: ExpenseAttachment }) => {
-  const { data: url } = useQuery({
+  const { data: dataUrl, isError } = useQuery({
     queryKey: ['attachment-thumb', attachment.id],
-    queryFn: () => getSignedUrl(attachment.storage_path, 300),
-    staleTime: 4 * 60 * 1000,
+    queryFn: () => downloadAsDataUrl(attachment.storage_path),
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
   })
 
-  if (!url)
+  if (isError)
+    return (
+      <div className="w-full aspect-square flex flex-col items-center justify-center gap-1 p-2 bg-gray-50 dark:bg-gray-800">
+        <FileText className="w-6 h-6 text-gray-400" />
+        <span className="text-[10px] text-gray-500 truncate w-full text-center">
+          {attachment.file_name}
+        </span>
+      </div>
+    )
+
+  if (!dataUrl)
     return (
       <div className="w-full aspect-square bg-gray-100 dark:bg-gray-700 animate-pulse" />
     )
 
   return (
     <img
-      src={url}
+      src={dataUrl}
       alt={attachment.file_name}
       className="w-full h-full object-cover"
     />

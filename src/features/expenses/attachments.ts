@@ -108,6 +108,21 @@ export const getSignedUrl = async (
   return data.signedUrl
 }
 
+export const downloadAsDataUrl = async (
+  storagePath: string,
+): Promise<string> => {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .download(storagePath)
+  if (error || !data) throw error ?? new Error('다운로드 실패')
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(data)
+  })
+}
+
 export const deleteAllAttachments = async (
   expenseId: string,
 ): Promise<void> => {

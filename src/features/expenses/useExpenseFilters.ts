@@ -50,6 +50,7 @@ export const useExpenseFilters = (
           spender_member_id: null,
           category_id: null,
           editable: false,
+          attachment_count: 0,
         })
       }
       if (task.execution_cost > 0) {
@@ -64,6 +65,7 @@ export const useExpenseFilters = (
           spender_member_id: null,
           category_id: null,
           editable: false,
+          attachment_count: 0,
         })
       }
     }
@@ -80,6 +82,7 @@ export const useExpenseFilters = (
         spender_member_id: expense.spender_member_id,
         category_id: expense.category_id,
         editable: true,
+        attachment_count: expense.attachment_count,
       })
     }
 

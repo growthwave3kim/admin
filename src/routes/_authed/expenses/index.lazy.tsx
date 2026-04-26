@@ -907,8 +907,20 @@ function ExpensesPage() {
                               )?.name ?? '지출')}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-100 truncate">
-                        {row.description}
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                            {row.description}
+                          </span>
+                          {row.attachment_count > 0 && (
+                            <span className="flex items-center gap-0.5 text-blue-500 dark:text-blue-400 shrink-0">
+                              <Paperclip className="w-3 h-3" />
+                              <span className="text-[10px] font-medium">
+                                {row.attachment_count}
+                              </span>
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td
                         className={cn(
@@ -946,11 +958,21 @@ function ExpensesPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                className={cn(
+                                  'relative h-7 w-7',
+                                  row.attachment_count > 0
+                                    ? 'text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+                                    : 'text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+                                )}
                                 onClick={() => setAttachmentExpenseId(row.id)}
                                 title="영수증/증빙"
                               >
                                 <Paperclip className="w-3.5 h-3.5" />
+                                {row.attachment_count > 0 && (
+                                  <span className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[8px] leading-none w-3.5 h-3.5 rounded-full flex items-center justify-center font-medium">
+                                    {row.attachment_count}
+                                  </span>
+                                )}
                               </Button>
                               <Button
                                 variant="ghost"
