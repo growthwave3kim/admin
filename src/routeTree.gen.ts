@@ -14,6 +14,7 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedTrashIndexRouteImport } from './routes/_authed/trash/index'
+import { Route as AuthedThreadsIndexRouteImport } from './routes/_authed/threads/index'
 import { Route as AuthedTasksIndexRouteImport } from './routes/_authed/tasks/index'
 import { Route as AuthedMarketingTypesIndexRouteImport } from './routes/_authed/marketing-types/index'
 import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses/index'
@@ -23,6 +24,7 @@ import { Route as AuthedClientsIndexRouteImport } from './routes/_authed/clients
 import { Route as AuthedCalendarIndexRouteImport } from './routes/_authed/calendar/index'
 import { Route as AuthedAuditIndexRouteImport } from './routes/_authed/audit/index'
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
+import { Route as AuthedThreadsPostIdIndexRouteImport } from './routes/_authed/threads/$postId/index'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
 import { Route as AuthedClientsClientIdIndexRouteImport } from './routes/_authed/clients/$clientId/index'
 import { Route as AuthedTasksTaskIdEditRouteImport } from './routes/_authed/tasks/$taskId/edit'
@@ -54,6 +56,13 @@ const AuthedTrashIndexRoute = AuthedTrashIndexRouteImport.update({
   getParentRoute: () => AuthedRoute,
 } as any).lazy(() =>
   import('./routes/_authed/trash/index.lazy').then((d) => d.Route),
+)
+const AuthedThreadsIndexRoute = AuthedThreadsIndexRouteImport.update({
+  id: '/threads/',
+  path: '/threads/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/threads/index.lazy').then((d) => d.Route),
 )
 const AuthedTasksIndexRoute = AuthedTasksIndexRouteImport.update({
   id: '/tasks/',
@@ -122,6 +131,14 @@ const AuthedTasksNewRoute = AuthedTasksNewRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/tasks/new.lazy').then((d) => d.Route),
 )
+const AuthedThreadsPostIdIndexRoute =
+  AuthedThreadsPostIdIndexRouteImport.update({
+    id: '/threads/$postId/',
+    path: '/threads/$postId/',
+    getParentRoute: () => AuthedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authed/threads/$postId/index.lazy').then((d) => d.Route),
+  )
 const AuthedTasksTaskIdIndexRoute = AuthedTasksTaskIdIndexRouteImport.update({
   id: '/tasks/$taskId/',
   path: '/tasks/$taskId/',
@@ -160,10 +177,12 @@ export interface FileRoutesByFullPath {
   '/expenses/': typeof AuthedExpensesIndexRoute
   '/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/tasks/': typeof AuthedTasksIndexRoute
+  '/threads/': typeof AuthedThreadsIndexRoute
   '/trash/': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
   '/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
+  '/threads/$postId/': typeof AuthedThreadsPostIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -178,10 +197,12 @@ export interface FileRoutesByTo {
   '/expenses': typeof AuthedExpensesIndexRoute
   '/marketing-types': typeof AuthedMarketingTypesIndexRoute
   '/tasks': typeof AuthedTasksIndexRoute
+  '/threads': typeof AuthedThreadsIndexRoute
   '/trash': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/clients/$clientId': typeof AuthedClientsClientIdIndexRoute
   '/tasks/$taskId': typeof AuthedTasksTaskIdIndexRoute
+  '/threads/$postId': typeof AuthedThreadsPostIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,10 +219,12 @@ export interface FileRoutesById {
   '/_authed/expenses/': typeof AuthedExpensesIndexRoute
   '/_authed/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/_authed/tasks/': typeof AuthedTasksIndexRoute
+  '/_authed/threads/': typeof AuthedThreadsIndexRoute
   '/_authed/trash/': typeof AuthedTrashIndexRoute
   '/_authed/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/_authed/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
   '/_authed/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
+  '/_authed/threads/$postId/': typeof AuthedThreadsPostIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -218,10 +241,12 @@ export interface FileRouteTypes {
     | '/expenses/'
     | '/marketing-types/'
     | '/tasks/'
+    | '/threads/'
     | '/trash/'
     | '/tasks/$taskId/edit'
     | '/clients/$clientId/'
     | '/tasks/$taskId/'
+    | '/threads/$postId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -236,10 +261,12 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/marketing-types'
     | '/tasks'
+    | '/threads'
     | '/trash'
     | '/tasks/$taskId/edit'
     | '/clients/$clientId'
     | '/tasks/$taskId'
+    | '/threads/$postId'
   id:
     | '__root__'
     | '/'
@@ -255,10 +282,12 @@ export interface FileRouteTypes {
     | '/_authed/expenses/'
     | '/_authed/marketing-types/'
     | '/_authed/tasks/'
+    | '/_authed/threads/'
     | '/_authed/trash/'
     | '/_authed/tasks/$taskId/edit'
     | '/_authed/clients/$clientId/'
     | '/_authed/tasks/$taskId/'
+    | '/_authed/threads/$postId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -302,6 +331,13 @@ declare module '@tanstack/react-router' {
       path: '/trash'
       fullPath: '/trash/'
       preLoaderRoute: typeof AuthedTrashIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/threads/': {
+      id: '/_authed/threads/'
+      path: '/threads'
+      fullPath: '/threads/'
+      preLoaderRoute: typeof AuthedThreadsIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/tasks/': {
@@ -367,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTasksNewRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/threads/$postId/': {
+      id: '/_authed/threads/$postId/'
+      path: '/threads/$postId'
+      fullPath: '/threads/$postId/'
+      preLoaderRoute: typeof AuthedThreadsPostIdIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/tasks/$taskId/': {
       id: '/_authed/tasks/$taskId/'
       path: '/tasks/$taskId'
@@ -402,10 +445,12 @@ interface AuthedRouteChildren {
   AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
   AuthedMarketingTypesIndexRoute: typeof AuthedMarketingTypesIndexRoute
   AuthedTasksIndexRoute: typeof AuthedTasksIndexRoute
+  AuthedThreadsIndexRoute: typeof AuthedThreadsIndexRoute
   AuthedTrashIndexRoute: typeof AuthedTrashIndexRoute
   AuthedTasksTaskIdEditRoute: typeof AuthedTasksTaskIdEditRoute
   AuthedClientsClientIdIndexRoute: typeof AuthedClientsClientIdIndexRoute
   AuthedTasksTaskIdIndexRoute: typeof AuthedTasksTaskIdIndexRoute
+  AuthedThreadsPostIdIndexRoute: typeof AuthedThreadsPostIdIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -419,10 +464,12 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
   AuthedMarketingTypesIndexRoute: AuthedMarketingTypesIndexRoute,
   AuthedTasksIndexRoute: AuthedTasksIndexRoute,
+  AuthedThreadsIndexRoute: AuthedThreadsIndexRoute,
   AuthedTrashIndexRoute: AuthedTrashIndexRoute,
   AuthedTasksTaskIdEditRoute: AuthedTasksTaskIdEditRoute,
   AuthedClientsClientIdIndexRoute: AuthedClientsClientIdIndexRoute,
   AuthedTasksTaskIdIndexRoute: AuthedTasksTaskIdIndexRoute,
+  AuthedThreadsPostIdIndexRoute: AuthedThreadsPostIdIndexRoute,
 }
 
 const AuthedRouteWithChildren =

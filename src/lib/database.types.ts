@@ -8,6 +8,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_member_id: string | null
+          actor_name: string | null
+          changed_fields: Json | null
+          created_at: string | null
+          id: string
+          note: string | null
+          record_id: string
+          snapshot: Json | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          actor_member_id?: string | null
+          actor_name?: string | null
+          changed_fields?: Json | null
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          record_id: string
+          snapshot?: Json | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          actor_member_id?: string | null
+          actor_name?: string | null
+          changed_fields?: Json | null
+          created_at?: string | null
+          id?: string
+          note?: string | null
+          record_id?: string
+          snapshot?: Json | null
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'audit_logs_actor_member_id_fkey'
+            columns: ['actor_member_id']
+            isOneToOne: false
+            referencedRelation: 'members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       clients: {
         Row: {
           contact_name: string | null
@@ -50,6 +97,90 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          message: string | null
+          name: string
+          profession: string | null
+          source: string | null
+          tel: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          profession?: string | null
+          source?: string | null
+          tel: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          profession?: string | null
+          source?: string | null
+          tel?: string
+        }
+        Relationships: []
+      }
+      expense_attachments: {
+        Row: {
+          created_at: string | null
+          expense_id: string
+          file_name: string
+          id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by_member_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expense_id: string
+          file_name: string
+          id?: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by_member_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expense_id?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_by_member_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'expense_attachments_expense_id_fkey'
+            columns: ['expense_id']
+            isOneToOne: false
+            referencedRelation: 'expenses'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'expense_attachments_uploaded_by_member_id_fkey'
+            columns: ['uploaded_by_member_id']
+            isOneToOne: false
+            referencedRelation: 'members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           created_at: string | null
@@ -70,101 +201,6 @@ export type Database = {
           sort_order?: number | null
         }
         Relationships: []
-      }
-      audit_logs: {
-        Row: {
-          id: string
-          actor_member_id: string | null
-          actor_name: string | null
-          table_name: string
-          record_id: string
-          action: string
-          changed_fields: Json | null
-          snapshot: Json | null
-          note: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          actor_member_id?: string | null
-          actor_name?: string | null
-          table_name: string
-          record_id: string
-          action: string
-          changed_fields?: Json | null
-          snapshot?: Json | null
-          note?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          actor_member_id?: string | null
-          actor_name?: string | null
-          table_name?: string
-          record_id?: string
-          action?: string
-          changed_fields?: Json | null
-          snapshot?: Json | null
-          note?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'audit_logs_actor_member_id_fkey'
-            columns: ['actor_member_id']
-            isOneToOne: false
-            referencedRelation: 'members'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      expense_attachments: {
-        Row: {
-          id: string
-          expense_id: string
-          storage_path: string
-          file_name: string
-          mime_type: string
-          size_bytes: number
-          uploaded_by_member_id: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          expense_id: string
-          storage_path: string
-          file_name: string
-          mime_type: string
-          size_bytes: number
-          uploaded_by_member_id?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          expense_id?: string
-          storage_path?: string
-          file_name?: string
-          mime_type?: string
-          size_bytes?: number
-          uploaded_by_member_id?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'expense_attachments_expense_id_fkey'
-            columns: ['expense_id']
-            isOneToOne: false
-            referencedRelation: 'expenses'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'expense_attachments_uploaded_by_member_id_fkey'
-            columns: ['uploaded_by_member_id']
-            isOneToOne: false
-            referencedRelation: 'members'
-            referencedColumns: ['id']
-          },
-        ]
       }
       expenses: {
         Row: {
@@ -366,6 +402,74 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      threads_post_segments: {
+        Row: {
+          content: string
+          id: string
+          order_index: number
+          post_id: string
+          reply_thread_id: string | null
+        }
+        Insert: {
+          content?: string
+          id?: string
+          order_index?: number
+          post_id: string
+          reply_thread_id?: string | null
+        }
+        Update: {
+          content?: string
+          id?: string
+          order_index?: number
+          post_id?: string
+          reply_thread_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'threads_post_segments_post_id_fkey'
+            columns: ['post_id']
+            isOneToOne: false
+            referencedRelation: 'threads_posts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      threads_posts: {
+        Row: {
+          created_at: string
+          generated_at: string
+          hook_pattern: number | null
+          id: string
+          published_at: string | null
+          status: string
+          thread_post_id: string | null
+          thread_post_url: string | null
+          topic: string
+        }
+        Insert: {
+          created_at?: string
+          generated_at?: string
+          hook_pattern?: number | null
+          id?: string
+          published_at?: string | null
+          status?: string
+          thread_post_id?: string | null
+          thread_post_url?: string | null
+          topic?: string
+        }
+        Update: {
+          created_at?: string
+          generated_at?: string
+          hook_pattern?: number | null
+          id?: string
+          published_at?: string | null
+          status?: string
+          thread_post_id?: string | null
+          thread_post_url?: string | null
+          topic?: string
+        }
+        Relationships: []
       }
     }
     Views: {

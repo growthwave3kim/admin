@@ -6,6 +6,7 @@ import {
   ClipboardList,
   FolderOpen,
   LayoutDashboard,
+  MessageSquare,
   Receipt,
   ScrollText,
   Tag,
@@ -38,6 +39,10 @@ const navGroups = [
       { to: '/expenses', label: '지출내역서', icon: Receipt },
       { to: '/expense-categories', label: '지출 카테고리', icon: FolderOpen },
     ],
+  },
+  {
+    label: 'SNS',
+    items: [{ to: '/threads', label: '스레드 관리', icon: MessageSquare }],
   },
   {
     label: '설정',

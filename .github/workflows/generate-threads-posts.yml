@@ -1,0 +1,114 @@
+name: Daily Threads Content Generation
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 매일 KST 08:00 (UTC 23:00 전날)
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read system prompt
+        id: system_prompt
+        run: |
+          {
+            echo 'content<<__PROMPT_EOF__'
+            cat .github/prompts/threads-system.md
+            echo '__PROMPT_EOF__'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Generate 2 Threads posts and save to Supabase
+        uses: anthropics/claude-code-action@v1
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowedTools Bash'
+          system_prompt: ${{ steps.system_prompt.outputs.content }}
+          show_full_output: true
+          prompt: |
+            오늘의 Threads 바이럴 게시글 **2개**를 생성하고 Supabase에 저장하세요.
+            발행은 하지 않습니다 — 관리자 화면에서 검토 후 발행합니다.
+
+            ## 작업 순서
+
+            ### 1. 전략 문서 읽기
+            ```bash
+            cat CONTENT_STRATEGY.md
+            ```
+
+            ### 2. 글 2개 생성 후 /tmp/posts_batch.json으로 저장
+            서로 다른 주제·훅 패턴·템플릿으로 2개를 생성합니다.
+            **N/N 페이지 표시 절대 금지** (1/6 같은 표기 포함하지 말 것)
+
+            ```json
+            [
+              {
+                "topic": "첫 번째 주제",
+                "hook_pattern": 3,
+                "segments": [
+                  {"order_index": 0, "content": "본문 내용"},
+                  {"order_index": 1, "content": "첫 번째 댓글"},
+                  {"order_index": 2, "content": "두 번째 댓글"}
+                ]
+              },
+              {
+                "topic": "두 번째 주제",
+                "hook_pattern": 1,
+                "segments": [
+                  {"order_index": 0, "content": "본문 내용"},
+                  {"order_index": 1, "content": "첫 번째 댓글"}
+                ]
+              }
+            ]
+            ```
+
+            ### 3. Supabase에 저장 — /tmp/save_to_supabase.py 작성 후 실행
+            ```python
+            import os, json, urllib.request
+
+            SUPABASE_URL = os.environ["SUPABASE_URL"]
+            SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+
+            headers = {
+                "apikey": SERVICE_KEY,
+                "Authorization": f"Bearer {SERVICE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            }
+
+            def supabase_post(path, body):
+                url = f"{SUPABASE_URL}/rest/v1/{path}"
+                data = json.dumps(body).encode()
+                req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+                with urllib.request.urlopen(req) as r:
+                    return json.loads(r.read())
+
+            with open("/tmp/posts_batch.json") as f:
+                posts = json.load(f)
+
+            for post in posts:
+                post_record = supabase_post("threads_posts", {
+                    "topic": post["topic"],
+                    "hook_pattern": post.get("hook_pattern"),
+                    "status": "draft",
+                })
+                post_id = post_record[0]["id"]
+                print(f"Created post: {post_id} ({post['topic']})")
+
+                segments = [
+                    {"post_id": post_id, "order_index": s["order_index"], "content": s["content"]}
+                    for s in post["segments"]
+                ]
+                supabase_post("threads_post_segments", segments)
+                print(f"  Saved {len(segments)} segments")
+
+            print("Done — 2 posts saved to Supabase as drafts")
+            ```
+
+            **중요:** 저장에 실패하면 즉시 오류를 출력하고 종료하세요.
