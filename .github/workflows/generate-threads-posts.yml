@@ -1,4 +1,4 @@
-name: Daily Threads Content Generation
+name: 쓰레드 게시글 자동 생성
 
 on:
   schedule:
