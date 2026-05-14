@@ -8,6 +8,7 @@ jobs:
   quality-check:
     name: Quality Check
     runs-on: ubuntu-latest
+    if: github.actor != 'cloudflare-workers-and-pages[bot]'
 
     steps:
       - uses: actions/checkout@v4
