@@ -5,6 +5,14 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   fetchThreadsPost,
   publishToThreads,
   saveThreadsPostSegments,
@@ -42,6 +50,7 @@ function ThreadsPostDetailPage() {
 
   const [topic, setTopic] = useState('')
   const [segments, setSegments] = useState<ThreadsPostSegment[]>([])
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
   const isPublished = post?.status === 'published'
 
   useEffect(() => {
@@ -254,13 +263,44 @@ function ThreadsPostDetailPage() {
             size="sm"
             className="h-8 gap-1.5 text-xs"
             disabled={saveMutation.isPending || publishMutation.isPending}
-            onClick={() => publishMutation.mutate()}
+            onClick={() => setIsPublishDialogOpen(true)}
           >
             <Send className="h-3.5 w-3.5" />
             {publishMutation.isPending ? '발행 중...' : '발행하기'}
           </Button>
         </div>
       )}
+
+      <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>스레드에 발행하기</DialogTitle>
+            <DialogDescription>발행하면 Threads에 즉시 게시됩니다. 발행 후에는 수정할 수 없습니다.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPublishDialogOpen(false)}
+              disabled={publishMutation.isPending}
+            >
+              취소
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              disabled={publishMutation.isPending}
+              onClick={() => {
+                setIsPublishDialogOpen(false)
+                publishMutation.mutate()
+              }}
+            >
+              <Send className="h-3.5 w-3.5" />
+              {publishMutation.isPending ? '발행 중...' : '발행하기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
