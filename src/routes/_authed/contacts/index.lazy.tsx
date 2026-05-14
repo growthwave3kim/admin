@@ -357,9 +357,11 @@ function ContactsPage() {
               {clients.map((client, idx) => {
                 const isSelected = selectedIds.has(client.id)
                 return (
-                  // biome-ignore lint/a11y/noStaticElementInteractions: spreadsheet-style multi-select row
                   <div
                     key={client.id}
+                    role="option"
+                    tabIndex={0}
+                    aria-selected={isSelected}
                     className={`grid min-w-[600px] cursor-pointer select-none border-gray-100 border-b transition-colors dark:border-gray-800/60 ${
                       isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
                     }`}
@@ -369,6 +371,17 @@ function ContactsPage() {
                     }}
                     onMouseDown={handleRowMouseDown(idx, client.id)}
                     onMouseEnter={handleRowMouseEnter(idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(client.id)) next.delete(client.id)
+                          else next.add(client.id)
+                          return next
+                        })
+                      }
+                    }}
                   >
                     <div className="flex items-center justify-center text-[11px] text-gray-400 tabular-nums dark:text-gray-500">
                       {idx + 1}
@@ -385,11 +398,11 @@ function ContactsPage() {
                     <div className="flex items-center truncate px-4 text-gray-500 text-xs dark:text-gray-400">
                       {client.note ?? '-'}
                     </div>
-                    {/* biome-ignore lint/a11y/noStaticElementInteractions: stops row selection propagation from action buttons */}
-                    <div className="flex items-center justify-center gap-0.5" onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center gap-0.5">
                       <button
                         type="button"
                         className="rounded p-1 text-blue-400 transition-colors hover:text-blue-600 dark:hover:text-blue-300"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation()
                           convertMutation.mutate(client.id)
@@ -401,6 +414,7 @@ function ContactsPage() {
                       <button
                         type="button"
                         className="rounded p-1 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation()
                           setEditTarget(client)
@@ -411,6 +425,7 @@ function ContactsPage() {
                       <button
                         type="button"
                         className="rounded p-1 text-red-400 transition-colors hover:text-red-600 dark:hover:text-red-300"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation()
                           setDeleteTarget(client)

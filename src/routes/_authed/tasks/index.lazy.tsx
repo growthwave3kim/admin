@@ -171,12 +171,7 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
       </div>
 
       {/* Bottom row: member + actions */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation from actions inside kanban card */}
-      <div
-        className="flex items-center justify-between"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
+      <div className="flex items-center justify-between">
         <span className="text-gray-500 text-xs dark:text-gray-400">{task.members?.name ?? '-'}</span>
         <div className="flex items-center gap-0.5">
           <Link to="/tasks/$taskId/edit" params={{ taskId: task.id }} onClick={(e) => e.stopPropagation()}>
@@ -192,7 +187,10 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-            onClick={() => onDelete(task.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(task.id)
+            }}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -713,13 +711,12 @@ function TasksPage() {
                           {formatDateTime(task.created_at)}
                         </td>
                         <td className="px-4 py-3">
-                          {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation from action buttons in table row */}
-                          <div
-                            className="flex items-center justify-center gap-0.5"
-                            onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => e.stopPropagation()}
-                          >
-                            <Link to="/tasks/$taskId/edit" params={{ taskId: task.id }}>
+                          <div className="flex items-center justify-center gap-0.5">
+                            <Link
+                              to="/tasks/$taskId/edit"
+                              params={{ taskId: task.id }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -732,7 +729,10 @@ function TasksPage() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                              onClick={() => setDeleteId(task.id)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteId(task.id)
+                              }}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>

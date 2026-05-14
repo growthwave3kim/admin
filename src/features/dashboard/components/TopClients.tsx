@@ -25,7 +25,7 @@ export const TopClients = ({ data, isLoading }: { data: ClientRow[]; isLoading: 
       ) : data.length === 0 ? (
         <p className="py-8 text-center text-gray-400 text-xs dark:text-gray-400">데이터가 없습니다</p>
       ) : (
-        <div className="divide-y divide-gray-100 dark:divide-gray-800/60">
+        <div className="min-h-[210px] divide-y divide-gray-100 dark:divide-gray-800/60">
           {data.map((row) => (
             <div
               key={row.rank}
@@ -49,10 +49,6 @@ export const TopClients = ({ data, isLoading }: { data: ClientRow[]; isLoading: 
                 </span>
               </div>
             </div>
-          ))}
-          {Array.from({ length: Math.max(0, 5 - data.length) }, (_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: placeholder rows have no identity
-            <div key={`empty-${data.length + i}`} className="h-[42px]" />
           ))}
         </div>
       )}

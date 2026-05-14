@@ -13,12 +13,11 @@ function AuthedLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#f5f6f8] dark:bg-[#0d0f18]">
       {isSidebarOpen && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: overlay backdrop
-        <div
-          role="presentation"
+        <button
+          type="button"
+          aria-label="사이드바 닫기"
           className="fixed inset-0 z-30 bg-black/40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
-          onKeyDown={(e) => e.key === 'Escape' && setIsSidebarOpen(false)}
         />
       )}
       <LNB isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
