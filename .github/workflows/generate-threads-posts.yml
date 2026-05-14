@@ -37,18 +37,38 @@ jobs:
                - AI 티 금지, 실제 현장 전문가처럼 자연스럽게
                - 생성 후 체크리스트 자가 검증 및 수정
 
-            3. 완성된 게시글을 `/tmp/posts_batch.json`에 저장하세요:
-            ```json
-            [
+            3. 게시글 2개가 완성되면 반드시 아래 bash 명령으로 파일을 저장하세요:
+
+            ```bash
+            python3 -c "
+            import json
+            posts = [
               {
-                "topic": "주제",
-                "hook_pattern": 3,
-                "segments": [
-                  {"order_index": 0, "content": "본문"},
-                  {"order_index": 1, "content": "댓글1"}
+                'topic': '실제 주제1',
+                'hook_pattern': 3,
+                'segments': [
+                  {'order_index': 0, 'content': '본문 내용'},
+                  {'order_index': 1, 'content': '댓글1 내용'},
+                ]
+              },
+              {
+                'topic': '실제 주제2',
+                'hook_pattern': 1,
+                'segments': [
+                  {'order_index': 0, 'content': '본문 내용'},
+                  {'order_index': 1, 'content': '댓글1 내용'},
                 ]
               }
             ]
+            with open('/tmp/posts_batch.json', 'w') as f:
+                json.dump(posts, f, ensure_ascii=False, indent=2)
+            print('저장 완료')
+            "
+            ```
+
+            저장 후 반드시 확인:
+            ```bash
+            cat /tmp/posts_batch.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d)}개 저장됨')"
             ```
 
             **Supabase 저장은 하지 마세요. 파일 저장만 합니다.**
