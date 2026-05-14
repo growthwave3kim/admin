@@ -142,73 +142,99 @@ function ThreadsPostDetailPage() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[600px]">
-          {/* ── 본문: 텍스트만 ── */}
-          {mainSegment && (
-            <div className="px-4 py-5">
-              {isPublished ? (
-                <p className="whitespace-pre-wrap text-[16px] text-gray-900 leading-relaxed dark:text-gray-100">
-                  {mainSegment.content}
-                </p>
-              ) : (
-                <AutoResizeTextarea
-                  value={mainSegment.content}
-                  onChange={(v) => updateSegment(mainSegment.id, v)}
-                  placeholder="본문 내용을 입력하세요..."
-                  className="w-full resize-none bg-transparent text-[16px] text-gray-900 leading-relaxed outline-none placeholder:text-gray-300 dark:text-gray-100 dark:placeholder:text-gray-600"
-                />
-              )}
+          {/* ── 전체 래퍼: 본문 + 구분선 + 정렬바 + 댓글 ── */}
+          <div className="mx-4 my-4 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700">
+            {/* 본문 */}
+            {mainSegment && (
+              <div className="px-4 py-4">
+                {/* 프로필 */}
+                <div className="mb-3 flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 shrink-0 select-none items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-violet-500 to-pink-500">
+                    <span className="font-bold text-sm text-white">G</span>
+                  </div>
+                  <span className="font-semibold text-[15px] text-gray-900 dark:text-white">growthwave</span>
+                  <svg className="h-[14px] w-[14px] shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="12" fill="#3B82F6" />
+                    <path
+                      d="M7 12.5L10.5 16L17 9"
+                      stroke="white"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+
+                {/* 텍스트 */}
+                {isPublished ? (
+                  <p className="whitespace-pre-wrap text-[15px] text-gray-900 leading-normal dark:text-gray-100">
+                    {mainSegment.content}
+                  </p>
+                ) : (
+                  <AutoResizeTextarea
+                    value={mainSegment.content}
+                    onChange={(v) => updateSegment(mainSegment.id, v)}
+                    placeholder="본문 내용을 입력하세요..."
+                    className="w-full resize-none bg-transparent text-[15px] text-gray-900 leading-normal outline-none placeholder:text-gray-300 dark:text-gray-100 dark:placeholder:text-gray-600"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* 구분선 */}
+            <div className="border-gray-200 border-t dark:border-gray-700" />
+
+            {/* 정렬 바 */}
+            <div className="flex items-center justify-between px-4 py-2.5">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 font-medium text-[14px] text-gray-700 transition-opacity hover:opacity-70 dark:text-gray-300"
+              >
+                <svg viewBox="0 0 24 24" className="h-[14px] w-[14px] fill-current" aria-hidden="true">
+                  <path d="M9.29 15.74 7 18.03V3.436a1 1 0 0 0-2 0v14.599l-2.296-2.295a1 1 0 0 0-1.414 1.414l4.002 4a1.001 1.001 0 0 0 1.416 0l3.996-4A1 1 0 0 0 9.29 15.74zm13.42-9.012-4.002-4a1 1 0 0 0-1.416 0l-3.997 4a1 1 0 0 0 1.414 1.414L17 5.849v14.597a1 1 0 0 0 2 0V5.848l2.295 2.294a1 1 0 1 0 1.414-1.414z" />
+                </svg>
+                <span>인기순</span>
+                <svg viewBox="0 0 24 24" className="h-[11px] w-[11px] fill-current" aria-hidden="true">
+                  <path d="M20.707 8.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-8-8a1 1 0 1 1 1.414-1.414L12 15.586l7.293-7.293a1 1 0 0 1 1.414 0Z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="flex items-center gap-1 text-[14px] text-gray-500 transition-opacity hover:opacity-70 dark:text-gray-400"
+              >
+                <span>활동 보기</span>
+                <svg viewBox="0 0 24 24" className="h-[11px] w-[11px] fill-current" aria-hidden="true">
+                  <path d="M9.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L15.586 12 9.293 5.707a1 1 0 0 1 0-1.414Z" />
+                </svg>
+              </button>
             </div>
-          )}
 
-          {/* ── 구분선 ── */}
-          <div className="mx-4 border-gray-100 border-t dark:border-gray-800" />
+            {/* 구분선 */}
+            <div className="border-gray-200 border-t dark:border-gray-700" />
 
-          {/* ── 정렬 바 ── */}
-          <div className="flex items-center justify-between px-4 py-2.5">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 font-medium text-[14px] text-gray-700 transition-opacity hover:opacity-70 dark:text-gray-300"
-            >
-              <svg viewBox="0 0 24 24" className="h-[14px] w-[14px] fill-current" aria-hidden="true">
-                <path d="M9.29 15.74 7 18.03V3.436a1 1 0 0 0-2 0v14.599l-2.296-2.295a1 1 0 0 0-1.414 1.414l4.002 4a1.001 1.001 0 0 0 1.416 0l3.996-4A1 1 0 0 0 9.29 15.74zm13.42-9.012-4.002-4a1 1 0 0 0-1.416 0l-3.997 4a1 1 0 0 0 1.414 1.414L17 5.849v14.597a1 1 0 0 0 2 0V5.848l2.295 2.294a1 1 0 1 0 1.414-1.414z" />
-              </svg>
-              <span>인기순</span>
-              <svg viewBox="0 0 24 24" className="h-[11px] w-[11px] fill-current" aria-hidden="true">
-                <path d="M20.707 8.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-8-8a1 1 0 1 1 1.414-1.414L12 15.586l7.293-7.293a1 1 0 0 1 1.414 0Z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="flex items-center gap-1 text-[14px] text-gray-500 transition-opacity hover:opacity-70 dark:text-gray-400"
-            >
-              <span>활동 보기</span>
-              <svg viewBox="0 0 24 24" className="h-[11px] w-[11px] fill-current" aria-hidden="true">
-                <path d="M9.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L15.586 12 9.293 5.707a1 1 0 0 1 0-1.414Z" />
-              </svg>
-            </button>
+            {/* 댓글 목록 */}
+            {replySegments.length > 0 ? (
+              <div className="px-4 pt-3 pb-4">
+                {replySegments.map((seg, idx) => (
+                  <ReplySegment
+                    key={seg.id}
+                    segment={seg}
+                    index={idx}
+                    total={replySegments.length}
+                    isPublished={isPublished}
+                    onChange={updateSegment}
+                    relativeTime={relativeTime}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 py-10">
+                <MessageCircle className="h-7 w-7 text-gray-200 dark:text-gray-700" />
+                <p className="text-gray-400 text-sm">아직 댓글이 없습니다</p>
+              </div>
+            )}
           </div>
-
-          {/* ── 댓글 목록 ── */}
-          {replySegments.length > 0 ? (
-            <div className="px-4 pt-1 pb-4">
-              {replySegments.map((seg, idx) => (
-                <ReplySegment
-                  key={seg.id}
-                  segment={seg}
-                  index={idx}
-                  total={replySegments.length}
-                  isPublished={isPublished}
-                  onChange={updateSegment}
-                  relativeTime={relativeTime}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2 py-12">
-              <MessageCircle className="h-8 w-8 text-gray-200 dark:text-gray-700" />
-              <p className="text-gray-400 text-sm">아직 댓글이 없습니다</p>
-            </div>
-          )}
+          {/* end 전체 래퍼 */}
         </div>
       </div>
 
