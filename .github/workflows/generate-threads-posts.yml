@@ -8,44 +8,41 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read system prompt
-        id: system_prompt
-        run: |
-          {
-            echo 'content<<__PROMPT_EOF__'
-            cat .github/prompts/threads-system.md
-            echo '__PROMPT_EOF__'
-          } >> "$GITHUB_OUTPUT"
-
       - name: Generate 2 Threads posts and save to Supabase
         uses: anthropics/claude-code-action@v1
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowedTools Bash'
-          system_prompt: ${{ steps.system_prompt.outputs.content }}
           show_full_output: true
           prompt: |
-            오늘의 Threads 바이럴 게시글 **2개**를 생성하고 Supabase에 저장하세요.
-            발행은 하지 않습니다 — 관리자 화면에서 검토 후 발행합니다.
+            당신은 Threads에서 바이럴되는 콘텐츠를 작성하는 전문가입니다.
 
             ## 작업 순서
 
-            ### 1. 전략 문서 읽기
+            ### 1. 전략 문서 읽기 (필수)
             ```bash
             cat CONTENT_STRATEGY.md
             ```
+            이 문서의 모든 규칙을 반드시 따르세요.
 
-            ### 2. 글 2개 생성 후 /tmp/posts_batch.json으로 저장
-            서로 다른 주제·훅 패턴·템플릿으로 2개를 생성합니다.
-            **N/N 페이지 표시 절대 금지** (1/6 같은 표기 포함하지 말 것)
+            ### 2. 오늘의 Threads 게시글 2개 생성
+            - 서로 다른 주제·훅 패턴·템플릿으로 2개 생성
+            - **N/N 페이지 표시 절대 금지** (1/6 같은 표기 포함하지 말 것)
+            - AI 티 금지: 실제 현장 전문가가 쓴 것처럼 자연스럽게
+            - 다양성 최우선: 매번 같은 구조·길이·톤·훅 패턴 금지
+            - 생성 후 CONTENT_STRATEGY.md 체크리스트 자가 검증 및 수정
 
+            /tmp/posts_batch.json 형식:
             ```json
             [
               {
@@ -69,6 +66,8 @@ jobs:
             ```
 
             ### 3. Supabase에 저장 — /tmp/save_to_supabase.py 작성 후 실행
+            발행은 하지 않습니다 — 관리자 화면에서 검토 후 발행합니다.
+
             ```python
             import os, json, urllib.request
 
