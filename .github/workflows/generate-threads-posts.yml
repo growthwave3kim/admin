@@ -15,11 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate 2 Threads posts and save to Supabase
+      - name: "✍️ 게시글 생성 (Claude)"
         uses: anthropics/claude-code-action@v1
-        env:
-          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--allowedTools Bash'
@@ -27,87 +24,98 @@ jobs:
           prompt: |
             당신은 Threads에서 바이럴되는 콘텐츠를 작성하는 전문가입니다.
 
-            ## 작업 순서
+            ## 작업
 
-            ### 1. 전략 문서 읽기 (필수)
+            1. CONTENT_STRATEGY.md를 읽고 모든 규칙을 숙지하세요:
             ```bash
             cat CONTENT_STRATEGY.md
             ```
-            이 문서의 모든 규칙을 반드시 따르세요.
 
-            ### 2. 오늘의 Threads 게시글 2개 생성
-            - 서로 다른 주제·훅 패턴·템플릿으로 2개 생성
-            - **N/N 페이지 표시 절대 금지** (1/6 같은 표기 포함하지 말 것)
-            - AI 티 금지: 실제 현장 전문가가 쓴 것처럼 자연스럽게
-            - 다양성 최우선: 매번 같은 구조·길이·톤·훅 패턴 금지
-            - 생성 후 CONTENT_STRATEGY.md 체크리스트 자가 검증 및 수정
+            2. 오늘의 Threads 게시글 **2개**를 생성하세요:
+               - 서로 다른 주제·훅 패턴·템플릿 사용
+               - **N/N 페이지 표시 절대 금지** (1/6 같은 표기)
+               - AI 티 금지, 실제 현장 전문가처럼 자연스럽게
+               - 생성 후 체크리스트 자가 검증 및 수정
 
-            /tmp/posts_batch.json 형식:
+            3. 완성된 게시글을 `/tmp/posts_batch.json`에 저장하세요:
             ```json
             [
               {
-                "topic": "첫 번째 주제",
+                "topic": "주제",
                 "hook_pattern": 3,
                 "segments": [
-                  {"order_index": 0, "content": "본문 내용"},
-                  {"order_index": 1, "content": "첫 번째 댓글"},
-                  {"order_index": 2, "content": "두 번째 댓글"}
-                ]
-              },
-              {
-                "topic": "두 번째 주제",
-                "hook_pattern": 1,
-                "segments": [
-                  {"order_index": 0, "content": "본문 내용"},
-                  {"order_index": 1, "content": "첫 번째 댓글"}
+                  {"order_index": 0, "content": "본문"},
+                  {"order_index": 1, "content": "댓글1"}
                 ]
               }
             ]
             ```
 
-            ### 3. Supabase에 저장 — /tmp/save_to_supabase.py 작성 후 실행
-            발행은 하지 않습니다 — 관리자 화면에서 검토 후 발행합니다.
+            **Supabase 저장은 하지 마세요. 파일 저장만 합니다.**
 
-            ```python
-            import os, json, urllib.request
+      - name: "💾 Supabase 저장"
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request
 
-            SUPABASE_URL = os.environ["SUPABASE_URL"]
-            SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+          SUPABASE_URL = os.environ["SUPABASE_URL"]
+          SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
 
-            headers = {
-                "apikey": SERVICE_KEY,
-                "Authorization": f"Bearer {SERVICE_KEY}",
-                "Content-Type": "application/json",
-                "Prefer": "return=representation",
-            }
+          headers = {
+              "apikey": SERVICE_KEY,
+              "Authorization": f"Bearer {SERVICE_KEY}",
+              "Content-Type": "application/json",
+              "Prefer": "return=representation",
+          }
 
-            def supabase_post(path, body):
-                url = f"{SUPABASE_URL}/rest/v1/{path}"
-                data = json.dumps(body).encode()
-                req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-                with urllib.request.urlopen(req) as r:
-                    return json.loads(r.read())
+          def supabase_post(path, body):
+              url = f"{SUPABASE_URL}/rest/v1/{path}"
+              data = json.dumps(body).encode()
+              req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+              with urllib.request.urlopen(req) as r:
+                  return json.loads(r.read())
 
-            with open("/tmp/posts_batch.json") as f:
-                posts = json.load(f)
+          with open("/tmp/posts_batch.json") as f:
+              posts = json.load(f)
 
-            for post in posts:
-                post_record = supabase_post("threads_posts", {
-                    "topic": post["topic"],
-                    "hook_pattern": post.get("hook_pattern"),
-                    "status": "draft",
-                })
-                post_id = post_record[0]["id"]
-                print(f"Created post: {post_id} ({post['topic']})")
+          for post in posts:
+              post_record = supabase_post("threads_posts", {
+                  "topic": post["topic"],
+                  "hook_pattern": post.get("hook_pattern"),
+                  "status": "draft",
+              })
+              post_id = post_record[0]["id"]
+              print(f"✅ 저장됨: {post_id}")
 
-                segments = [
-                    {"post_id": post_id, "order_index": s["order_index"], "content": s["content"]}
-                    for s in post["segments"]
-                ]
-                supabase_post("threads_post_segments", segments)
-                print(f"  Saved {len(segments)} segments")
+              segments = [
+                  {"post_id": post_id, "order_index": s["order_index"], "content": s["content"]}
+                  for s in post["segments"]
+              ]
+              supabase_post("threads_post_segments", segments)
+              print(f"   세그먼트 {len(segments)}개 저장")
 
-            print("Done — 2 posts saved to Supabase as drafts")
-            ```
+          print("\n✅ 완료 — 드래프트 2개 저장됨")
+          EOF
 
-            **중요:** 저장에 실패하면 즉시 오류를 출력하고 종료하세요.
+      - name: "📋 생성된 게시글 미리보기"
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open("/tmp/posts_batch.json") as f:
+              posts = json.load(f)
+
+          for i, post in enumerate(posts, 1):
+              print(f"\n{'='*60}")
+              print(f"  게시글 {i}: {post['topic']}")
+              print(f"  훅 패턴: {post.get('hook_pattern', '-')}")
+              print(f"{'='*60}")
+              for seg in sorted(post["segments"], key=lambda s: s["order_index"]):
+                  label = "📌 본문" if seg["order_index"] == 0 else f"💬 댓글{seg['order_index']}"
+                  print(f"\n[{label}]")
+                  print(seg["content"])
+          print(f"\n{'='*60}")
+          EOF
