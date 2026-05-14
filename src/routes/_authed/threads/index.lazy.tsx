@@ -49,7 +49,7 @@ function ThreadsListPage() {
               <col className="w-24" />
               <col className="w-28" />
               <col className="w-28" />
-              <col className="w-10" />
+              <col className="w-28" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
               <tr className="border-gray-200 border-b dark:border-gray-800">
@@ -65,7 +65,9 @@ function ThreadsListPage() {
                 <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   발행일
                 </th>
-                <th className="w-10 px-4 py-3" />
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
+                  링크
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -115,19 +117,21 @@ function ThreadsListPage() {
                     <td className="px-4 py-3 text-gray-500 text-xs tabular-nums dark:text-gray-400">
                       {post.published_at ? format(new Date(post.published_at), 'MM/dd HH:mm') : '-'}
                     </td>
-                    <td className="px-4 py-3">
-                      {post.thread_post_url && (
+                    <td className="px-4 py-3 text-xs">
+                      {post.thread_post_url ? (
                         <a
                           href={post.thread_post_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          title="Threads에서 보기"
+                          className="flex items-center gap-1 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => e.stopPropagation()}
                         >
-                          <ExternalLink className="h-3.5 w-3.5" />
+                          <ExternalLink className="h-3 w-3 shrink-0" />
+                          보기
                         </a>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">-</span>
                       )}
                     </td>
                   </tr>
