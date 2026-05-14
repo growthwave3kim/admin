@@ -1,10 +1,10 @@
+import { useRouter } from '@tanstack/react-router'
+import { LogOut, Menu, Moon, Sun } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { signOut } from '@/features/auth/queries'
 import { clearCurrentMember } from '@/features/auth/useCurrentMember'
 import { useTheme } from '@/hooks/useTheme'
-import { useRouter } from '@tanstack/react-router'
-import { LogOut, Menu, Moon, Sun } from 'lucide-react'
-import { toast } from 'sonner'
 
 type HeaderProps = {
   onMenuToggle: () => void
@@ -26,35 +26,31 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
   }
 
   return (
-    <header className="h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center px-4 md:px-6 gap-1">
+    <header className="flex h-14 items-center gap-1 border-gray-200 border-b bg-white px-4 md:px-6 dark:border-gray-800 dark:bg-gray-900">
       <button
         type="button"
-        className="md:hidden flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md transition-colors"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:text-gray-600 md:hidden dark:hover:text-gray-300"
         onClick={onMenuToggle}
         aria-label="메뉴"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="h-5 w-5" />
       </button>
-      <div className="flex items-center gap-1 ml-auto">
+      <div className="ml-auto flex items-center gap-1">
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="w-8 h-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+          className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
         >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleLogout}
-          className="gap-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 text-xs"
+          className="gap-1.5 text-gray-400 text-xs hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
         >
-          <LogOut className="w-3.5 h-3.5" />
+          <LogOut className="h-3.5 w-3.5" />
           로그아웃
         </Button>
       </div>

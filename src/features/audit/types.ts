@@ -1,9 +1,5 @@
 export type AuditAction = 'insert' | 'update' | 'delete'
-export type AuditTable =
-  | 'tasks'
-  | 'expenses'
-  | 'clients'
-  | 'expense_attachments'
+export type AuditTable = 'tasks' | 'expenses' | 'clients' | 'expense_attachments'
 
 export type AuditLog = {
   id: string

@@ -1,57 +1,27 @@
+import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createLazyFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { format, parseISO } from 'date-fns'
+import { AlertTriangle, Clock, Columns, List, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCurrentMember } from '@/features/auth/useCurrentMember'
 import { useMembers } from '@/features/members/useMembers'
-import {
-  StatusChangeDialog,
-  requiresNote,
-} from '@/features/tasks/StatusChangeDialog'
-import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
 import { KanbanColumn } from '@/features/tasks/components/KanbanColumn'
 import { SkeletonRow } from '@/features/tasks/components/SkeletonRow'
 import { SortIcon } from '@/features/tasks/components/SortIcon'
 import { useTaskSearchState } from '@/features/tasks/hooks/useTaskSearchState'
-import {
-  fetchTasks,
-  softDeleteTask,
-  updateTaskStatus,
-} from '@/features/tasks/queries'
-import {
-  PAGE_SIZE,
-  STATUS_ORDER,
-  type SortBy,
-  type Task,
-  type TaskStatus,
-} from '@/features/tasks/types'
+import { fetchTasks, softDeleteTask, updateTaskStatus } from '@/features/tasks/queries'
+import { requiresNote, StatusChangeDialog } from '@/features/tasks/StatusChangeDialog'
+import { TaskStatusBadge } from '@/features/tasks/TaskStatusBadge'
+import { PAGE_SIZE, type SortBy, STATUS_ORDER, type Task, type TaskStatus } from '@/features/tasks/types'
 import { formatMarketingSummary, getDeadlineDays } from '@/features/tasks/utils'
-import { cn } from '@/lib/utils'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
-import { DragDropContext, type DropResult } from '@hello-pangea/dnd'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { format, parseISO } from 'date-fns'
-import {
-  AlertTriangle,
-  Clock,
-  Columns,
-  List,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { cn, formatCurrency, formatDateTime } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_authed/tasks/')({
   component: TasksPage,
@@ -68,7 +38,7 @@ type TaskEndDateCellProps = {
 
 const TaskEndDateCell = ({ endDate, status }: TaskEndDateCellProps) => {
   if (!endDate) {
-    return <span className="text-xs text-gray-400">-</span>
+    return <span className="text-gray-400 text-xs">-</span>
   }
 
   const formatted = format(parseISO(endDate), 'yy-MM-dd')
@@ -80,15 +50,15 @@ const TaskEndDateCell = ({ endDate, status }: TaskEndDateCellProps) => {
       if (days <= 3) {
         const label = days < 0 ? `D+${Math.abs(days)}` : `D-${days}`
         indicator = (
-          <span className="flex items-center gap-0.5 text-red-500 dark:text-red-400 font-semibold text-[10px]">
-            <AlertTriangle className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 font-semibold text-[10px] text-red-500 dark:text-red-400">
+            <AlertTriangle className="h-3 w-3" />
             {label}
           </span>
         )
       } else if (days <= 7) {
         indicator = (
-          <span className="flex items-center gap-0.5 text-orange-500 dark:text-orange-400 font-semibold text-[10px]">
-            <Clock className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 font-semibold text-[10px] text-orange-500 dark:text-orange-400">
+            <Clock className="h-3 w-3" />
             {`D-${days}`}
           </span>
         )
@@ -98,9 +68,7 @@ const TaskEndDateCell = ({ endDate, status }: TaskEndDateCellProps) => {
 
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="tabular-nums text-xs text-gray-700 dark:text-gray-300">
-        {formatted}
-      </span>
+      <span className="text-gray-700 text-xs tabular-nums dark:text-gray-300">{formatted}</span>
       {indicator}
     </div>
   )
@@ -125,9 +93,7 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
     }
   }
 
-  const startFmt = task.start_date
-    ? format(parseISO(task.start_date), 'MM-dd')
-    : '-'
+  const startFmt = task.start_date ? format(parseISO(task.start_date), 'MM-dd') : '-'
   const endFmt = task.end_date ? format(parseISO(task.end_date), 'MM-dd') : '-'
 
   let deadlineIndicator: React.ReactNode = null
@@ -137,15 +103,15 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
       if (days <= 3) {
         const label = days < 0 ? `D+${Math.abs(days)}` : `D-${days}`
         deadlineIndicator = (
-          <span className="flex items-center gap-0.5 text-red-500 dark:text-red-400 font-semibold text-xs">
-            <AlertTriangle className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 font-semibold text-red-500 text-xs dark:text-red-400">
+            <AlertTriangle className="h-3 w-3" />
             {label}
           </span>
         )
       } else if (days <= 7) {
         deadlineIndicator = (
-          <span className="flex items-center gap-0.5 text-orange-500 dark:text-orange-400 font-semibold text-xs">
-            <Clock className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 font-semibold text-orange-500 text-xs dark:text-orange-400">
+            <Clock className="h-3 w-3" />
             {`D-${days}`}
           </span>
         )
@@ -157,53 +123,47 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
     <button
       type="button"
       className={cn(
-        'w-full text-left rounded-lg border bg-white dark:bg-gray-900 p-3 cursor-pointer relative border-l-4',
+        'relative w-full cursor-pointer rounded-lg border border-l-4 bg-white p-3 text-left dark:bg-gray-900',
         borderColor,
-        'hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors',
+        'transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
       )}
       onClick={() => onClick(task.id)}
     >
       {/* Top row: company name + status badge */}
-      <div className="flex items-center justify-between gap-2 mb-1">
-        <span className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
-          {task.company_name}
-        </span>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="truncate font-medium text-gray-900 text-sm dark:text-gray-100">{task.company_name}</span>
         <TaskStatusBadge status={task.status} />
       </div>
 
       {/* Marketing summary */}
       {marketingSummary !== '-' && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate mb-2">
-          {marketingSummary}
-        </p>
+        <p className="mb-2 truncate text-gray-400 text-xs dark:text-gray-500">{marketingSummary}</p>
       )}
 
-      <hr className="border-gray-100 dark:border-gray-800 mb-2" />
+      <hr className="mb-2 border-gray-100 dark:border-gray-800" />
 
       {/* Profit */}
-      <div className="flex items-baseline gap-1 mb-1">
+      <div className="mb-1 flex items-baseline gap-1">
         <span
           className={cn(
-            'text-sm font-semibold tabular-nums',
-            profit >= 0
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-red-500 dark:text-red-400',
+            'font-semibold text-sm tabular-nums',
+            profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400',
           )}
         >
           {formatCurrency(profit)}
         </span>
-        <span className="text-xs text-gray-400 dark:text-gray-500">수익</span>
+        <span className="text-gray-400 text-xs dark:text-gray-500">수익</span>
       </div>
 
       {/* Received + execution costs */}
-      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 tabular-nums mb-2">
+      <div className="mb-2 flex items-center gap-2 text-gray-400 text-xs tabular-nums dark:text-gray-500">
         <span>받은금액 {formatCurrency(task.received_amount)}</span>
         <span>·</span>
         <span>실행비 {formatCurrency(task.execution_cost)}</span>
       </div>
 
       {/* Date range + D-N indicator */}
-      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+      <div className="mb-2 flex items-center gap-2 text-gray-500 text-xs dark:text-gray-400">
         <span className="tabular-nums">
           {startFmt} ~ {endFmt}
         </span>
@@ -211,26 +171,21 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
       </div>
 
       {/* Bottom row: member + actions */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation from actions inside kanban card */}
       <div
         className="flex items-center justify-between"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {task.members?.name ?? '-'}
-        </span>
+        <span className="text-gray-500 text-xs dark:text-gray-400">{task.members?.name ?? '-'}</span>
         <div className="flex items-center gap-0.5">
-          <Link
-            to="/tasks/$taskId/edit"
-            params={{ taskId: task.id }}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <Link to="/tasks/$taskId/edit" params={{ taskId: task.id }} onClick={(e) => e.stopPropagation()}>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
           </Link>
           <Button
@@ -239,7 +194,7 @@ const TaskCard = ({ task, onDelete, onClick }: TaskCardProps) => {
             className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
             onClick={() => onDelete(task.id)}
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
@@ -293,18 +248,12 @@ function TasksPage() {
   } | null>(null)
 
   const statusMutation = useMutation({
-    mutationFn: ({
-      id,
-      status,
-      note,
-    }: { id: string; status: TaskStatus; note?: string }) =>
+    mutationFn: ({ id, status, note }: { id: string; status: TaskStatus; note?: string }) =>
       updateTaskStatus(id, status, note),
     onMutate: async ({ id, status }) => {
       await qc.cancelQueries({ queryKey: ['tasks'] })
       const prev = qc.getQueryData<Task[]>(['tasks'])
-      qc.setQueryData<Task[]>(['tasks'], (old) =>
-        old ? old.map((t) => (t.id === id ? { ...t, status } : t)) : old,
-      )
+      qc.setQueryData<Task[]>(['tasks'], (old) => (old ? old.map((t) => (t.id === id ? { ...t, status } : t)) : old))
       return { prev }
     },
     onError: (_err, _vars, ctx) => {
@@ -319,9 +268,7 @@ function TasksPage() {
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState(search ?? '')
-  const [boardColumnOrder, setBoardColumnOrder] = useState<
-    Record<TaskStatus, string[]>
-  >({
+  const [boardColumnOrder, setBoardColumnOrder] = useState<Record<TaskStatus, string[]>>({
     proposal: [],
     not_started: [],
     in_progress: [],
@@ -337,15 +284,9 @@ function TasksPage() {
   const filteredTasks = useMemo(
     () =>
       tasks.filter((t) => {
-        const matchSearch = search
-          ? t.company_name.toLowerCase().includes(search.toLowerCase())
-          : true
-        const matchStatus =
-          filterStatus && filterStatus !== 'all'
-            ? t.status === filterStatus
-            : true
-        const matchMember =
-          memberId && memberId !== 'all' ? t.members?.id === memberId : true
+        const matchSearch = search ? t.company_name.toLowerCase().includes(search.toLowerCase()) : true
+        const matchStatus = filterStatus && filterStatus !== 'all' ? t.status === filterStatus : true
+        const matchMember = memberId && memberId !== 'all' ? t.members?.id === memberId : true
         return matchSearch && matchStatus && matchMember
       }),
     [tasks, search, filterStatus, memberId],
@@ -380,10 +321,7 @@ function TasksPage() {
   }, [filteredTasks, sortBy, sortDir])
 
   const totalPages = Math.ceil(sortedTasks.length / PAGE_SIZE)
-  const paginatedTasks = sortedTasks.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  )
+  const paginatedTasks = sortedTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const tasksByStatus = useMemo(
     () =>
@@ -392,12 +330,8 @@ function TasksPage() {
           const statusTasks = tasks.filter((t) => t.status === s)
           const orderIds = boardColumnOrder[s]
           if (orderIds.length > 0) {
-            const ordered = orderIds.flatMap((id) =>
-              statusTasks.filter((t) => t.id === id),
-            )
-            const unordered = statusTasks.filter(
-              (t) => !orderIds.includes(t.id),
-            )
+            const ordered = orderIds.flatMap((id) => statusTasks.filter((t) => t.id === id))
+            const unordered = statusTasks.filter((t) => !orderIds.includes(t.id))
             acc[s] = [...ordered, ...unordered]
           } else {
             acc[s] = statusTasks
@@ -416,10 +350,7 @@ function TasksPage() {
     if (source.droppableId === destination.droppableId) {
       const colStatus = source.droppableId as TaskStatus
       setBoardColumnOrder((prev) => {
-        const currentIds =
-          prev[colStatus].length > 0
-            ? prev[colStatus]
-            : tasksByStatus[colStatus].map((t) => t.id)
+        const currentIds = prev[colStatus].length > 0 ? prev[colStatus] : tasksByStatus[colStatus].map((t) => t.id)
         const next = [...currentIds]
         const [moved] = next.splice(source.index, 1)
         next.splice(destination.index, 0, moved)
@@ -432,14 +363,8 @@ function TasksPage() {
 
     setBoardColumnOrder((prev) => {
       const srcStatus = source.droppableId as TaskStatus
-      const srcIds =
-        prev[srcStatus].length > 0
-          ? prev[srcStatus]
-          : tasksByStatus[srcStatus].map((t) => t.id)
-      const dstIds =
-        prev[targetStatus].length > 0
-          ? prev[targetStatus]
-          : tasksByStatus[targetStatus].map((t) => t.id)
+      const srcIds = prev[srcStatus].length > 0 ? prev[srcStatus] : tasksByStatus[srcStatus].map((t) => t.id)
+      const dstIds = prev[targetStatus].length > 0 ? prev[targetStatus] : tasksByStatus[targetStatus].map((t) => t.id)
       const nextSrc = srcIds.filter((id) => id !== draggableId)
       const nextDst = [...dstIds]
       nextDst.splice(destination.index, 0, draggableId)
@@ -455,14 +380,10 @@ function TasksPage() {
   const getDeadlineRowClass = (task: Task): string => {
     if (!task.end_date) return ''
     if (DONE_STATUSES.includes(task.status)) return ''
-    const diffDays = Math.ceil(
-      (new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-    )
+    const diffDays = Math.ceil((new Date(task.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     if (diffDays < 0) return ''
-    if (diffDays <= 3)
-      return 'bg-red-100 dark:bg-red-900/40 hover:bg-red-200/80 dark:hover:bg-red-900/60'
-    if (diffDays <= 7)
-      return 'bg-orange-100 dark:bg-orange-900/40 hover:bg-orange-200/80 dark:hover:bg-orange-900/60'
+    if (diffDays <= 3) return 'bg-red-100 dark:bg-red-900/40 hover:bg-red-200/80 dark:hover:bg-red-900/60'
+    if (diffDays <= 7) return 'bg-orange-100 dark:bg-orange-900/40 hover:bg-orange-200/80 dark:hover:bg-orange-900/60'
     return ''
   }
 
@@ -481,22 +402,20 @@ function TasksPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
+    <div className="flex h-full flex-col gap-4 p-4 md:p-6">
       {/* Header */}
       <div className="shrink-0 space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              업무 목록
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-400">
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">업무 목록</span>
+            <span className="text-gray-400 text-xs dark:text-gray-400">
               {filteredTasks.length !== tasks.length
                 ? `${filteredTasks.length} / ${tasks.length}건`
                 : `총 ${tasks.length}건`}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 gap-0.5">
+            <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
               <button
                 type="button"
                 onClick={() => {
@@ -504,13 +423,13 @@ function TasksPage() {
                   update({ mode: 'list', page: 1 })
                 }}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-all',
                   mode === 'list'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
+                    ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100',
                 )}
               >
-                <List className="w-3.5 h-3.5" />
+                <List className="h-3.5 w-3.5" />
                 목록
               </button>
               <button
@@ -520,19 +439,19 @@ function TasksPage() {
                   update({ mode: 'board', page: 1 })
                 }}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all',
+                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-all',
                   mode === 'board'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100',
+                    ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100',
                 )}
               >
-                <Columns className="w-3.5 h-3.5" />
+                <Columns className="h-3.5 w-3.5" />
                 칸반
               </button>
             </div>
             <Link to="/tasks/new">
-              <Button size="sm" className="gap-1.5 h-8 text-xs">
-                <Plus className="w-3.5 h-3.5" />새 업무
+              <Button size="sm" className="h-8 gap-1.5 text-xs">
+                <Plus className="h-3.5 w-3.5" />새 업무
               </Button>
             </Link>
           </div>
@@ -542,13 +461,13 @@ function TasksPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5">
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-400 pointer-events-none" />
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-gray-400" />
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="업체명 검색"
-                className="h-8 pl-8 pr-7 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:ring-gray-400/40 focus-visible:border-gray-500"
+                className="h-8 rounded-lg border-gray-300 bg-white pr-7 pl-8 text-gray-900 text-xs placeholder:text-gray-400 focus-visible:border-gray-500 focus-visible:ring-gray-400/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
               />
               {searchInput && (
                 <button
@@ -557,16 +476,16 @@ function TasksPage() {
                     setSearchInput('')
                     update({ page: 1, search: undefined })
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="h-8 px-3 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="h-8 border-gray-200 px-3 text-gray-600 text-xs hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               onClick={handleSearch}
             >
               검색
@@ -578,12 +497,11 @@ function TasksPage() {
               val &&
               update({
                 page: 1,
-                filterStatus:
-                  val === 'all' ? undefined : (val as typeof filterStatusParam),
+                filterStatus: val === 'all' ? undefined : (val as typeof filterStatusParam),
               })
             }
           >
-            <SelectTrigger className="h-8 w-32 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+            <SelectTrigger className="h-8 w-32 border-gray-300 bg-white text-gray-800 text-xs dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
               <SelectValue>
                 {(
                   {
@@ -618,19 +536,14 @@ function TasksPage() {
               })
             }
           >
-            <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100">
+            <SelectTrigger className="h-8 w-28 border-gray-300 bg-white text-gray-800 text-xs dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
               <SelectValue>
-                {memberId === 'all'
-                  ? '담당자 전체'
-                  : (members.find((m) => m.id === memberId)?.name ??
-                    '담당자 전체')}
+                {memberId === 'all' ? '담당자 전체' : (members.find((m) => m.id === memberId)?.name ?? '담당자 전체')}
               </SelectValue>
             </SelectTrigger>
             <SelectContent side="bottom" sideOffset={4}>
               <SelectItem value="all">담당자 전체</SelectItem>
-              {currentMember && (
-                <SelectItem value={currentMember.id}>내 업무만</SelectItem>
-              )}
+              {currentMember && <SelectItem value={currentMember.id}>내 업무만</SelectItem>}
               {members
                 .filter((m) => m.id !== currentMember?.id)
                 .map((m) => (
@@ -645,11 +558,11 @@ function TasksPage() {
 
       {/* List Mode */}
       {mode === 'list' && (
-        <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {/* Desktop table */}
-          <div className="hidden lg:flex flex-1 min-h-0 flex-col overflow-hidden">
+          <div className="hidden min-h-0 flex-1 flex-col overflow-hidden lg:flex">
             <div className="flex-1 overflow-auto">
-              <table className="w-full table-fixed text-sm min-w-[1200px]">
+              <table className="w-full min-w-[1200px] table-fixed text-sm">
                 <colgroup>
                   <col className="w-44" />
                   <col className="w-36" />
@@ -665,103 +578,73 @@ function TasksPage() {
                   <col className="w-16" />
                 </colgroup>
                 <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-                  <tr className="border-b border-gray-200 dark:border-gray-800">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <tr className="border-gray-200 border-b dark:border-gray-800">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       업체명
                     </th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       상태
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       마케팅
                     </th>
                     <th
-                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      className="cursor-pointer select-none px-4 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300"
                       onClick={() => handleSort('received_amount')}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && handleSort('received_amount')
-                      }
+                      onKeyDown={(e) => e.key === 'Enter' && handleSort('received_amount')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         받은금액
-                        <SortIcon
-                          col="received_amount"
-                          sortBy={sortBy}
-                          sortDir={sortDir}
-                        />
+                        <SortIcon col="received_amount" sortBy={sortBy} sortDir={sortDir} />
                       </div>
                     </th>
                     <th
-                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      className="cursor-pointer select-none px-4 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300"
                       onClick={() => handleSort('execution_cost')}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && handleSort('execution_cost')
-                      }
+                      onKeyDown={(e) => e.key === 'Enter' && handleSort('execution_cost')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         실행비
-                        <SortIcon
-                          col="execution_cost"
-                          sortBy={sortBy}
-                          sortDir={sortDir}
-                        />
+                        <SortIcon col="execution_cost" sortBy={sortBy} sortDir={sortDir} />
                       </div>
                     </th>
                     <th
-                      className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      className="cursor-pointer select-none px-4 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300"
                       onClick={() => handleSort('profit')}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && handleSort('profit')
-                      }
+                      onKeyDown={(e) => e.key === 'Enter' && handleSort('profit')}
                     >
                       <div className="flex items-center justify-end gap-1">
                         수익
-                        <SortIcon
-                          col="profit"
-                          sortBy={sortBy}
-                          sortDir={sortDir}
-                        />
+                        <SortIcon col="profit" sortBy={sortBy} sortDir={sortDir} />
                       </div>
                     </th>
                     <th
-                      className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      className="cursor-pointer select-none px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300"
                       onClick={() => handleSort('start_date')}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && handleSort('start_date')
-                      }
+                      onKeyDown={(e) => e.key === 'Enter' && handleSort('start_date')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         시작일
-                        <SortIcon
-                          col="start_date"
-                          sortBy={sortBy}
-                          sortDir={sortDir}
-                        />
+                        <SortIcon col="start_date" sortBy={sortBy} sortDir={sortDir} />
                       </div>
                     </th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       종료일
                     </th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       담당자
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                       비고
                     </th>
                     <th
-                      className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-300"
+                      className="cursor-pointer select-none px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-300"
                       onClick={() => handleSort('created_at')}
-                      onKeyDown={(e) =>
-                        e.key === 'Enter' && handleSort('created_at')
-                      }
+                      onKeyDown={(e) => e.key === 'Enter' && handleSort('created_at')}
                     >
                       <div className="flex items-center justify-center gap-1">
                         등록일
-                        <SortIcon
-                          col="created_at"
-                          sortBy={sortBy}
-                          sortDir={sortDir}
-                        />
+                        <SortIcon col="created_at" sortBy={sortBy} sortDir={sortDir} />
                       </div>
                     </th>
                     <th className="px-4 py-3" />
@@ -769,15 +652,10 @@ function TasksPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
                   {isLoading ? (
-                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((k) => (
-                      <SkeletonRow key={k} />
-                    ))
+                    ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((k) => <SkeletonRow key={k} />)
                   ) : paginatedTasks.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={12}
-                        className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
-                      >
+                      <td colSpan={12} className="py-20 text-center text-gray-400 text-xs dark:text-gray-400">
                         등록된 업무가 없습니다
                       </td>
                     </tr>
@@ -789,32 +667,29 @@ function TasksPage() {
                         tabIndex={0}
                         className={cn(
                           'cursor-pointer transition-colors',
-                          getDeadlineRowClass(task) ||
-                            'hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
+                          getDeadlineRowClass(task) || 'hover:bg-gray-50/80 dark:hover:bg-gray-800/40',
                         )}
                         onClick={() => handleNavigateToTask(task.id)}
-                        onKeyDown={(e) =>
-                          e.key === 'Enter' && handleNavigateToTask(task.id)
-                        }
+                        onKeyDown={(e) => e.key === 'Enter' && handleNavigateToTask(task.id)}
                       >
-                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                        <td className="truncate px-4 py-3 font-medium text-gray-900 text-sm dark:text-gray-100">
                           {task.company_name}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <TaskStatusBadge status={task.status} />
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
+                        <td className="truncate px-4 py-3 text-gray-700 text-xs dark:text-gray-300">
                           {formatMarketingSummary(task)}
                         </td>
-                        <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
+                        <td className="truncate px-4 py-3 text-right text-gray-600 text-xs tabular-nums dark:text-slate-300">
                           {formatCurrency(task.received_amount)}
                         </td>
-                        <td className="px-4 py-3 text-right text-xs text-gray-600 dark:text-slate-300 tabular-nums truncate">
+                        <td className="truncate px-4 py-3 text-right text-gray-600 text-xs tabular-nums dark:text-slate-300">
                           {formatCurrency(task.execution_cost)}
                         </td>
                         <td
                           className={cn(
-                            'px-4 py-3 text-right text-xs font-semibold tabular-nums truncate',
+                            'truncate px-4 py-3 text-right font-semibold text-xs tabular-nums',
                             (task.profit || 0) >= 0
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-red-500 dark:text-red-400',
@@ -822,42 +697,35 @@ function TasksPage() {
                         >
                           {formatCurrency(task.profit || 0)}
                         </td>
-                        <td className="px-4 py-3 text-center text-xs text-gray-700 dark:text-gray-300 tabular-nums whitespace-nowrap">
-                          {task.start_date
-                            ? format(parseISO(task.start_date), 'yy-MM-dd')
-                            : '-'}
+                        <td className="whitespace-nowrap px-4 py-3 text-center text-gray-700 text-xs tabular-nums dark:text-gray-300">
+                          {task.start_date ? format(parseISO(task.start_date), 'yy-MM-dd') : '-'}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <TaskEndDateCell
-                            endDate={task.end_date}
-                            status={task.status}
-                          />
+                          <TaskEndDateCell endDate={task.end_date} status={task.status} />
                         </td>
-                        <td className="px-4 py-3 text-center text-xs text-gray-600 dark:text-gray-300 truncate">
+                        <td className="truncate px-4 py-3 text-center text-gray-600 text-xs dark:text-gray-300">
                           {task.members?.name ?? '-'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-700 dark:text-gray-300 truncate">
+                        <td className="truncate px-4 py-3 text-gray-700 text-xs dark:text-gray-300">
                           {task.note || '-'}
                         </td>
-                        <td className="px-4 py-3 text-center text-xs text-gray-400 dark:text-gray-400 tabular-nums truncate">
+                        <td className="truncate px-4 py-3 text-center text-gray-400 text-xs tabular-nums dark:text-gray-400">
                           {formatDateTime(task.created_at)}
                         </td>
                         <td className="px-4 py-3">
+                          {/* biome-ignore lint/a11y/noStaticElementInteractions: stops click propagation from action buttons in table row */}
                           <div
                             className="flex items-center justify-center gap-0.5"
                             onClick={(e) => e.stopPropagation()}
                             onKeyDown={(e) => e.stopPropagation()}
                           >
-                            <Link
-                              to="/tasks/$taskId/edit"
-                              params={{ taskId: task.id }}
-                            >
+                            <Link to="/tasks/$taskId/edit" params={{ taskId: task.id }}>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                               >
-                                <Pencil className="w-3.5 h-3.5" />
+                                <Pencil className="h-3.5 w-3.5" />
                               </Button>
                             </Link>
                             <Button
@@ -866,7 +734,7 @@ function TasksPage() {
                               className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                               onClick={() => setDeleteId(task.id)}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </td>
@@ -878,22 +746,17 @@ function TasksPage() {
           </div>
 
           {/* Mobile card list */}
-          <div className="lg:hidden flex-1 overflow-auto p-3 space-y-2">
+          <div className="flex-1 space-y-2 overflow-auto p-3 lg:hidden">
             {isLoading ? (
               ['a', 'b', 'c', 'd', 'e'].map((k) => (
-                <div
-                  key={k}
-                  className="rounded-lg border bg-white dark:bg-gray-900 p-3 animate-pulse space-y-2"
-                >
-                  <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-3/4" />
-                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2" />
-                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+                <div key={k} className="animate-pulse space-y-2 rounded-lg border bg-white p-3 dark:bg-gray-900">
+                  <div className="h-4 w-3/4 rounded bg-gray-100 dark:bg-gray-800" />
+                  <div className="h-3 w-1/2 rounded bg-gray-100 dark:bg-gray-800" />
+                  <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-gray-800" />
                 </div>
               ))
             ) : paginatedTasks.length === 0 ? (
-              <div className="text-center py-20 text-xs text-gray-400 dark:text-gray-400">
-                등록된 업무가 없습니다
-              </div>
+              <div className="py-20 text-center text-gray-400 text-xs dark:text-gray-400">등록된 업무가 없습니다</div>
             ) : (
               paginatedTasks.map((task) => (
                 <TaskCard
@@ -907,35 +770,31 @@ function TasksPage() {
           </div>
 
           {/* Pagination */}
-          <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={(p) => update({ page: p })}
-            />
+          <div className="shrink-0 border-gray-100 border-t bg-white py-3 dark:border-gray-800 dark:bg-gray-900">
+            <Pagination page={page} totalPages={totalPages} onPageChange={(p) => update({ page: p })} />
           </div>
         </div>
       )}
 
       {/* Board Mode */}
       {mode === 'board' && (
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div className="min-h-0 flex-1 overflow-auto">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 min-h-[500px]">
+            <div className="grid min-h-[500px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {STATUS_ORDER.map((status) => (
                 <div
                   key={status}
-                  className="flex flex-col rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/40 p-2.5 gap-2"
+                  className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-gray-50/80 p-2.5 dark:border-gray-800 dark:bg-gray-900/40"
                 >
-                  <div className="h-8 mx-1 mb-1 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                  <div className="mx-1 mb-1 h-8 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
                   {['x', 'y', 'z'].map((k) => (
                     <div
                       key={k}
-                      className="bg-white dark:bg-gray-800/80 rounded-xl border border-gray-100 dark:border-gray-700/60 p-3.5 animate-pulse space-y-2"
+                      className="animate-pulse space-y-2 rounded-xl border border-gray-100 bg-white p-3.5 dark:border-gray-700/60 dark:bg-gray-800/80"
                     >
-                      <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded w-3/4" />
-                      <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded w-1/2" />
-                      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded w-2/3" />
+                      <div className="h-3 w-3/4 rounded bg-gray-100 dark:bg-gray-700" />
+                      <div className="h-2.5 w-1/2 rounded bg-gray-100 dark:bg-gray-700" />
+                      <div className="h-2 w-2/3 rounded bg-gray-100 dark:bg-gray-700" />
                     </div>
                   ))}
                 </div>
@@ -943,7 +802,7 @@ function TasksPage() {
             </div>
           ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 h-full min-h-[500px]">
+              <div className="grid h-full min-h-[500px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {STATUS_ORDER.map((status) => (
                   <KanbanColumn
                     key={status}

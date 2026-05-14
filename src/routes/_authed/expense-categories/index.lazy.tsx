@@ -1,3 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createLazyFileRoute } from '@tanstack/react-router'
+import { Check, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { inputClassSm } from '@/components/common/FieldLabel'
 import { Button } from '@/components/ui/button'
@@ -12,14 +20,6 @@ import {
 import type { ExpenseCategory } from '@/features/expense-categories/types'
 import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createLazyFileRoute } from '@tanstack/react-router'
-import { Check, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
 
 export const Route = createLazyFileRoute('/_authed/expense-categories/')({
   component: ExpenseCategoriesPage,
@@ -62,8 +62,7 @@ function CategoryRow({
   })
 
   const editMutation = useMutation({
-    mutationFn: (data: NameForm) =>
-      updateExpenseCategory(category.id, { name: data.name }),
+    mutationFn: (data: NameForm) => updateExpenseCategory(category.id, { name: data.name }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expense-categories'] })
       toast.success('수정되었습니다')
@@ -81,7 +80,7 @@ function CategoryRow({
     >
       <span
         className={cn(
-          'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0',
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-semibold text-xs',
           ACCENT_COLORS[index % ACCENT_COLORS.length],
         )}
       >
@@ -92,19 +91,14 @@ function CategoryRow({
         <Form {...editForm}>
           <form
             onSubmit={editForm.handleSubmit((d) => editMutation.mutate(d))}
-            className="flex items-start gap-2 flex-1"
+            className="flex flex-1 items-start gap-2"
           >
             <FormField
               control={editForm.control as never}
               name="name"
               render={({ field }) => (
                 <FormItem className="flex-1">
-                  <Input
-                    className={inputClassSm}
-                    placeholder="카테고리명"
-                    autoFocus
-                    {...field}
-                  />
+                  <Input className={inputClassSm} placeholder="카테고리명" autoFocus {...field} />
                   <FormMessage className="text-xs" />
                 </FormItem>
               )}
@@ -113,28 +107,26 @@ function CategoryRow({
               type="submit"
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 shrink-0"
+              className="h-8 w-8 shrink-0 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-900/20"
               disabled={editMutation.isPending}
             >
-              <Check className="w-3.5 h-3.5" />
+              <Check className="h-3.5 w-3.5" />
             </Button>
             <Button
               type="button"
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400 shrink-0"
+              className="h-8 w-8 shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-400"
               onClick={onEditDone}
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
             </Button>
           </form>
         </Form>
       ) : (
         <>
-          <span className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-            {category.name}
-          </span>
-          <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+          <span className="flex-1 font-medium text-gray-800 text-sm dark:text-gray-200">{category.name}</span>
+          <div className="flex items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             <Button
               type="button"
               variant="ghost"
@@ -142,7 +134,7 @@ function CategoryRow({
               className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               onClick={() => onEdit(category.id)}
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
             <Button
               type="button"
@@ -151,7 +143,7 @@ function CategoryRow({
               className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
               onClick={() => onDelete(category)}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </>
@@ -179,10 +171,7 @@ function ExpenseCategoriesPage() {
 
   const addMutation = useMutation({
     mutationFn: (data: NameForm) => {
-      const nextOrder =
-        categories.length > 0
-          ? Math.max(...categories.map((c) => c.sort_order)) + 1
-          : 1
+      const nextOrder = categories.length > 0 ? Math.max(...categories.map((c) => c.sort_order)) + 1 : 1
       return createExpenseCategory(data.name, nextOrder)
     },
     onSuccess: () => {
@@ -206,16 +195,12 @@ function ExpenseCategoriesPage() {
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-xl mx-auto space-y-5">
+      <div className="mx-auto max-w-xl space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              지출 카테고리
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-400">
-              {categories.length}개
-            </span>
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">지출 카테고리</span>
+            <span className="text-gray-400 text-xs dark:text-gray-400">{categories.length}개</span>
           </div>
           {!isAdding && (
             <Button
@@ -225,9 +210,9 @@ function ExpenseCategoriesPage() {
                 setIsAdding(true)
                 setEditId(null)
               }}
-              className="h-8 px-3 text-xs gap-1.5"
+              className="h-8 gap-1.5 px-3 text-xs"
             >
-              <Plus className="w-3.5 h-3.5" />새 카테고리
+              <Plus className="h-3.5 w-3.5" />새 카테고리
             </Button>
           )}
         </div>
@@ -235,57 +220,45 @@ function ExpenseCategoriesPage() {
         {/* Add form */}
         {isAdding && (
           <Form {...addForm}>
-            <form
-              onSubmit={addForm.handleSubmit((d) => addMutation.mutate(d))}
-              className="flex gap-2 items-start"
-            >
+            <form onSubmit={addForm.handleSubmit((d) => addMutation.mutate(d))} className="flex items-start gap-2">
               <FormField
                 control={addForm.control as never}
                 name="name"
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <Input
-                      className={cn(inputClassSm, 'h-9')}
-                      placeholder="새 카테고리명 입력"
-                      autoFocus
-                      {...field}
-                    />
+                    <Input className={cn(inputClassSm, 'h-9')} placeholder="새 카테고리명 입력" autoFocus {...field} />
                     <FormMessage className="text-xs" />
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                disabled={addMutation.isPending}
-                className="h-9 px-4 text-xs shrink-0"
-              >
+              <Button type="submit" disabled={addMutation.isPending} className="h-9 shrink-0 px-4 text-xs">
                 {addMutation.isPending ? '추가 중...' : '추가'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-gray-600 dark:text-gray-400 shrink-0"
+                className="h-9 w-9 shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 onClick={() => {
                   setIsAdding(false)
                   addForm.reset()
                 }}
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </Button>
             </form>
           </Form>
         )}
 
         {/* List */}
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {isLoading ? (
-            <div className="py-12 flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800 dark:border-gray-700 dark:border-t-gray-200" />
             </div>
           ) : categories.length === 0 ? (
-            <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-gray-500">
-              <Tag className="w-8 h-8" />
+            <div className="flex flex-col items-center gap-3 py-14 text-gray-300 dark:text-gray-500">
+              <Tag className="h-8 w-8" />
               <p className="text-sm">등록된 카테고리가 없습니다</p>
             </div>
           ) : (
@@ -316,9 +289,7 @@ function ExpenseCategoriesPage() {
           confirmLabel="삭제"
           tone="destructive"
           isPending={deleteMutation.isPending}
-          onConfirm={() =>
-            deleteTarget && deleteMutation.mutate(deleteTarget.id)
-          }
+          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         />
       </div>
     </div>

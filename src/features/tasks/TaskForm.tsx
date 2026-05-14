@@ -1,41 +1,24 @@
-import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
-import { ClientCombobox } from '@/features/clients/components/ClientCombobox'
-import { clearDraft, useFormDraft } from '@/features/tasks/useFormDraft'
-import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import {
-  CalendarIcon,
-  Check,
-  Plus,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-} from 'lucide-react'
+import { CalendarIcon, Check, Plus, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
+import { ClientCombobox } from '@/features/clients/components/ClientCombobox'
+import { clearDraft, useFormDraft } from '@/features/tasks/useFormDraft'
+import { cn } from '@/lib/utils'
 import type { MarketingType, Member } from '../tasks/types'
 import { TASK_STATUS_LABELS } from './types'
 
@@ -45,14 +28,7 @@ const taskFormSchema = z.object({
   member_id: z.string().optional().nullable(),
   received_amount: z.coerce.number().min(0),
   execution_cost: z.coerce.number().min(0),
-  status: z.enum([
-    'proposal',
-    'not_started',
-    'in_progress',
-    'done_settled',
-    'done_unsettled',
-    'lost',
-  ] as const),
+  status: z.enum(['proposal', 'not_started', 'in_progress', 'done_settled', 'done_unsettled', 'lost'] as const),
   vat_included: z.boolean(),
   start_date: z.date(),
   end_date: z.date().optional().nullable(),
@@ -92,7 +68,7 @@ const DatePicker = ({
       <PopoverTrigger
         className={cn(
           inputClass,
-          'w-full flex items-center text-left px-3',
+          'flex w-full items-center px-3 text-left',
           !value && 'text-gray-300 dark:text-gray-400',
         )}
       >
@@ -117,9 +93,9 @@ const DatePicker = ({
 
 const SectionHeader = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <span className="w-0.5 h-3.5 bg-gray-800 dark:bg-gray-200 rounded-full" />
-      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+    <div className="mb-4 flex items-center gap-2">
+      <span className="h-3.5 w-0.5 rounded-full bg-gray-800 dark:bg-gray-200" />
+      <span className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">
         {children}
       </span>
     </div>
@@ -155,10 +131,7 @@ export const TaskForm = ({
     },
   })
 
-  const { hasDraft, restoreDraft, dismissDraft } = useFormDraft(
-    form,
-    enableDraft,
-  )
+  const { hasDraft, restoreDraft, dismissDraft } = useFormDraft(form, enableDraft)
 
   useEffect(() => {
     if (!hasDraft) return
@@ -187,10 +160,7 @@ export const TaskForm = ({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSubmit as never)}
-        className="space-y-7"
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit as never)} className="space-y-7">
         {/* 기본 정보 */}
         <section>
           <SectionHeader>기본 정보</SectionHeader>
@@ -199,24 +169,22 @@ export const TaskForm = ({
             name="client_id"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="mb-1.5 flex items-center justify-between">
                   <FieldLabel required>업체명</FieldLabel>
                   <button
                     type="button"
                     onClick={() => setAddClientOpen(true)}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+                    className="flex items-center gap-1 text-gray-400 text-xs transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
                   >
-                    <Plus className="w-3 h-3" />새 거래처
+                    <Plus className="h-3 w-3" />새 거래처
                   </button>
                 </div>
                 <ClientCombobox
                   value={field.value as string | null}
                   onChange={field.onChange}
-                  onSelectClient={(client) =>
-                    form.setValue('company_name', client?.name ?? '')
-                  }
+                  onSelectClient={(client) => form.setValue('company_name', client?.name ?? '')}
                 />
-                <FormMessage className="text-xs mt-1" />
+                <FormMessage className="mt-1 text-xs" />
               </FormItem>
             )}
           />
@@ -228,30 +196,21 @@ export const TaskForm = ({
               render={({ field }) => (
                 <FormItem>
                   <FieldLabel required>진행 상태</FieldLabel>
-                  <Select
-                    value={field.value as string}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value as string} onValueChange={field.onChange}>
                     <SelectTrigger className={cn(inputClass, 'w-full')}>
                       <SelectValue placeholder="상태 선택">
-                        {
-                          TASK_STATUS_LABELS[
-                            field.value as keyof typeof TASK_STATUS_LABELS
-                          ]
-                        }
+                        {TASK_STATUS_LABELS[field.value as keyof typeof TASK_STATUS_LABELS]}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent alignItemWithTrigger={false}>
-                      {Object.entries(TASK_STATUS_LABELS).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ),
-                      )}
+                      {Object.entries(TASK_STATUS_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-xs mt-1" />
+                  <FormMessage className="mt-1 text-xs" />
                 </FormItem>
               )}
             />
@@ -264,9 +223,7 @@ export const TaskForm = ({
                   <Select
                     value={(field.value as string | null) || null}
                     onValueChange={(v) => field.onChange(v || null)}
-                    items={Object.fromEntries(
-                      members.map((m) => [m.id, m.name]),
-                    )}
+                    items={Object.fromEntries(members.map((m) => [m.id, m.name]))}
                   >
                     <SelectTrigger className={cn(inputClass, 'w-full')}>
                       <SelectValue placeholder="담당자 선택" />
@@ -279,7 +236,7 @@ export const TaskForm = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-xs mt-1" />
+                  <FormMessage className="mt-1 text-xs" />
                 </FormItem>
               )}
             />
@@ -291,23 +248,15 @@ export const TaskForm = ({
         {/* 날짜 */}
         <section>
           <SectionHeader>날짜</SectionHeader>
-          <div
-            className={cn(
-              'grid gap-4',
-              showEndDate ? 'grid-cols-2' : 'grid-cols-1 max-w-[200px]',
-            )}
-          >
+          <div className={cn('grid gap-4', showEndDate ? 'grid-cols-2' : 'max-w-[200px] grid-cols-1')}>
             <FormField
               control={form.control as never}
               name="start_date"
               render={({ field }) => (
                 <FormItem>
                   <FieldLabel required>시작일</FieldLabel>
-                  <DatePicker
-                    value={field.value as Date}
-                    onChange={field.onChange}
-                  />
-                  <FormMessage className="text-xs mt-1" />
+                  <DatePicker value={field.value as Date} onChange={field.onChange} />
+                  <FormMessage className="mt-1 text-xs" />
                 </FormItem>
               )}
             />
@@ -318,11 +267,8 @@ export const TaskForm = ({
                 render={({ field }) => (
                   <FormItem>
                     <FieldLabel>종료일</FieldLabel>
-                    <DatePicker
-                      value={(field.value as Date | null) ?? undefined}
-                      onChange={field.onChange}
-                    />
-                    <FormMessage className="text-xs mt-1" />
+                    <DatePicker value={(field.value as Date | null) ?? undefined} onChange={field.onChange} />
+                    <FormMessage className="mt-1 text-xs" />
                   </FormItem>
                 )}
               />
@@ -334,7 +280,7 @@ export const TaskForm = ({
 
         {/* 금액 */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <SectionHeader>금액</SectionHeader>
             <FormField
               control={form.control as never}
@@ -344,23 +290,19 @@ export const TaskForm = ({
                   type="button"
                   onClick={() => field.onChange(!(field.value as boolean))}
                   className={cn(
-                    'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all -mt-4',
+                    '-mt-4 flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium text-xs transition-all',
                     field.value
-                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
-                      : 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600',
+                      ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                      : 'border-gray-200 text-gray-400 hover:border-gray-300 dark:border-gray-700 dark:text-gray-500 dark:hover:border-gray-600',
                   )}
                 >
                   <span
                     className={cn(
-                      'w-3.5 h-3.5 rounded-sm border flex items-center justify-center',
-                      field.value
-                        ? 'bg-blue-500 border-blue-500'
-                        : 'border-gray-300 dark:border-gray-600',
+                      'flex h-3.5 w-3.5 items-center justify-center rounded-sm border',
+                      field.value ? 'border-blue-500 bg-blue-500' : 'border-gray-300 dark:border-gray-600',
                     )}
                   >
-                    {field.value && (
-                      <Check className="w-2.5 h-2.5 text-white" />
-                    )}
+                    {field.value && <Check className="h-2.5 w-2.5 text-white" />}
                   </span>
                   VAT 포함
                 </button>
@@ -373,25 +315,21 @@ export const TaskForm = ({
               name="received_amount"
               render={({ field }) => (
                 <FormItem>
-                  <FieldLabel>
-                    받은 금액{vatIncluded ? ' (VAT 포함)' : ''}
-                  </FieldLabel>
+                  <FieldLabel>받은 금액{vatIncluded ? ' (VAT 포함)' : ''}</FieldLabel>
                   <NumericFormat
                     customInput={Input}
                     thousandSeparator=","
                     suffix="원"
                     className={cn(inputClass, 'text-right tabular-nums')}
                     value={field.value as number}
-                    onValueChange={({ floatValue }) =>
-                      field.onChange(floatValue ?? 0)
-                    }
+                    onValueChange={({ floatValue }) => field.onChange(floatValue ?? 0)}
                   />
                   {vatIncluded && vatAmount > 0 && (
-                    <p className="text-xs text-blue-500 dark:text-blue-400 mt-1 tabular-nums">
+                    <p className="mt-1 text-blue-500 text-xs tabular-nums dark:text-blue-400">
                       VAT {new Intl.NumberFormat('ko-KR').format(vatAmount)}원
                     </p>
                   )}
-                  <FormMessage className="text-xs mt-1" />
+                  <FormMessage className="mt-1 text-xs" />
                 </FormItem>
               )}
             />
@@ -407,11 +345,9 @@ export const TaskForm = ({
                     suffix="원"
                     className={cn(inputClass, 'text-right tabular-nums')}
                     value={field.value as number}
-                    onValueChange={({ floatValue }) =>
-                      field.onChange(floatValue ?? 0)
-                    }
+                    onValueChange={({ floatValue }) => field.onChange(floatValue ?? 0)}
                   />
-                  <FormMessage className="text-xs mt-1" />
+                  <FormMessage className="mt-1 text-xs" />
                 </FormItem>
               )}
             />
@@ -419,19 +355,17 @@ export const TaskForm = ({
               <FieldLabel>수익 (자동계산)</FieldLabel>
               <div
                 className={cn(
-                  'h-9 px-3 flex items-center justify-between rounded-md border text-sm font-semibold tabular-nums',
+                  'flex h-9 items-center justify-between rounded-md border px-3 font-semibold text-sm tabular-nums',
                   profit >= 0
-                    ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800',
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300'
+                    : 'border-red-200 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400',
                 )}
               >
-                <span className="text-xs">
-                  {new Intl.NumberFormat('ko-KR').format(profit)}원
-                </span>
+                <span className="text-xs">{new Intl.NumberFormat('ko-KR').format(profit)}원</span>
                 {profit >= 0 ? (
-                  <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                  <TrendingUp className="h-3.5 w-3.5 shrink-0" />
                 ) : (
-                  <TrendingDown className="w-3.5 h-3.5 shrink-0" />
+                  <TrendingDown className="h-3.5 w-3.5 shrink-0" />
                 )}
               </div>
             </div>
@@ -442,38 +376,31 @@ export const TaskForm = ({
 
         {/* 마케팅 */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <SectionHeader>마케팅 항목</SectionHeader>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => append({ marketing_type_id: '', count: 1 })}
-              className="h-7 px-2 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 gap-1 -mt-4"
+              className="-mt-4 h-7 gap-1 px-2 text-gray-600 text-xs hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="h-3 w-3" />
               추가
             </Button>
           </div>
           <div className="space-y-2">
             {fields.map((field, index) => (
-              <div key={field.id} className="flex gap-2 items-start">
+              <div key={field.id} className="flex items-start gap-2">
                 <FormField
                   control={form.control as never}
                   name={`marketings.${index}.marketing_type_id` as never}
                   render={({ field: f }) => (
                     <FormItem className="flex-1">
-                      <Select
-                        value={f.value as string}
-                        onValueChange={f.onChange}
-                      >
-                        <SelectTrigger
-                          className={cn(inputClass, 'w-full h-9!')}
-                        >
+                      <Select value={f.value as string} onValueChange={f.onChange}>
+                        <SelectTrigger className={cn(inputClass, 'h-9! w-full')}>
                           <SelectValue placeholder="마케팅 유형 선택">
-                            {marketingTypes.find(
-                              (t) => t.id === (f.value as string),
-                            )?.name ?? ''}
+                            {marketingTypes.find((t) => t.id === (f.value as string))?.name ?? ''}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent alignItemWithTrigger={false}>
@@ -484,7 +411,7 @@ export const TaskForm = ({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs mt-1" />
+                      <FormMessage className="mt-1 text-xs" />
                     </FormItem>
                   )}
                 />
@@ -501,11 +428,9 @@ export const TaskForm = ({
                         suffix="건"
                         placeholder="0건"
                         value={f.value as number}
-                        onValueChange={({ floatValue }) =>
-                          f.onChange(floatValue ?? 1)
-                        }
+                        onValueChange={({ floatValue }) => f.onChange(floatValue ?? 1)}
                       />
-                      <FormMessage className="text-xs mt-1" />
+                      <FormMessage className="mt-1 text-xs" />
                     </FormItem>
                   )}
                 />
@@ -515,9 +440,9 @@ export const TaskForm = ({
                   size="icon"
                   disabled={fields.length === 1}
                   onClick={() => remove(index)}
-                  className="h-9 w-9 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-30"
+                  className="h-9 w-9 text-red-400 hover:text-red-600 disabled:opacity-30 dark:text-red-400 dark:hover:text-red-300"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
             ))}
@@ -536,11 +461,11 @@ export const TaskForm = ({
               <FormItem>
                 <Textarea
                   placeholder="메모를 입력하세요"
-                  className="resize-none text-sm rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-slate-500 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition"
+                  className="resize-none rounded-md border-gray-200 bg-white text-gray-900 text-sm transition placeholder:text-gray-300 focus-visible:border-gray-400 focus-visible:ring-gray-400/30 dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-100 dark:placeholder:text-slate-500"
                   rows={3}
                   {...field}
                 />
-                <FormMessage className="text-xs mt-1" />
+                <FormMessage className="mt-1 text-xs" />
               </FormItem>
             )}
           />
@@ -556,23 +481,19 @@ export const TaskForm = ({
         />
 
         {/* Actions */}
-        <div className="flex gap-2 justify-end pt-1 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex justify-end gap-2 border-gray-100 border-t pt-1 dark:border-gray-800">
           <Button
             type="button"
             variant="ghost"
             onClick={onCancel}
-            className="h-8 px-4 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+            className="h-8 px-4 text-gray-500 text-xs hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             취소
           </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="h-8 px-5 text-xs"
-          >
+          <Button type="submit" disabled={isLoading} className="h-8 px-5 text-xs">
             {isLoading ? (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 저장 중...
               </span>
             ) : (

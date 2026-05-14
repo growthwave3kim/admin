@@ -1,8 +1,8 @@
-import { KanbanCard } from '@/features/tasks/components/KanbanCard'
-import { TASK_STATUS_LABELS } from '@/features/tasks/types'
-import type { Task, TaskStatus } from '@/features/tasks/types'
-import { cn } from '@/lib/utils'
 import { Droppable } from '@hello-pangea/dnd'
+import { KanbanCard } from '@/features/tasks/components/KanbanCard'
+import type { Task, TaskStatus } from '@/features/tasks/types'
+import { TASK_STATUS_LABELS } from '@/features/tasks/types'
+import { cn } from '@/lib/utils'
 
 const COLUMN_STYLES: Record<TaskStatus, { dot: string; header: string }> = {
   proposal: {
@@ -45,15 +45,13 @@ export const KanbanColumn = ({
   const style = COLUMN_STYLES[status]
 
   return (
-    <div className="flex flex-col rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/40 min-h-[400px]">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+    <div className="flex min-h-[400px] flex-col rounded-lg border border-gray-200 bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40">
+      <div className="flex items-center justify-between border-gray-200 border-b px-4 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <span className={cn('w-2 h-2 rounded-full', style.dot)} />
-          <span className={cn('text-xs font-semibold', style.header)}>
-            {TASK_STATUS_LABELS[status]}
-          </span>
+          <span className={cn('h-2 w-2 rounded-full', style.dot)} />
+          <span className={cn('font-semibold text-xs', style.header)}>{TASK_STATUS_LABELS[status]}</span>
         </div>
-        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-sm px-2 py-0.5 min-w-[22px] text-center">
+        <span className="min-w-[22px] rounded-sm border border-gray-200 bg-white px-2 py-0.5 text-center font-semibold text-[11px] text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
           {tasks.length}
         </span>
       </div>
@@ -63,10 +61,8 @@ export const KanbanColumn = ({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={cn(
-              'flex-1 p-3 space-y-2.5 overflow-y-auto transition-colors rounded-b-lg',
-              snapshot.isDraggingOver
-                ? 'bg-gray-200/50 dark:bg-gray-700/30'
-                : '',
+              'flex-1 space-y-2.5 overflow-y-auto rounded-b-lg p-3 transition-colors',
+              snapshot.isDraggingOver ? 'bg-gray-200/50 dark:bg-gray-700/30' : '',
             )}
           >
             {tasks.map((task, index) => (
@@ -80,9 +76,7 @@ export const KanbanColumn = ({
             ))}
             {provided.placeholder}
             {tasks.length === 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-10">
-                업무 없음
-              </p>
+              <p className="py-10 text-center text-gray-500 text-xs dark:text-gray-400">업무 없음</p>
             )}
           </div>
         )}

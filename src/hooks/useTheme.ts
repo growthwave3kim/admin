@@ -5,13 +5,10 @@ type Theme = 'light' | 'dark'
 const getStoredTheme = (): Theme => {
   const saved = localStorage.getItem('theme') as Theme | null
   if (saved === 'dark' || saved === 'light') return saved
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-const getCurrentTheme = (): Theme =>
-  document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+const getCurrentTheme = (): Theme => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
 
 const applyTheme = (theme: Theme) => {
   document.documentElement.classList.toggle('dark', theme === 'dark')

@@ -1,10 +1,7 @@
-export const FieldLabel = ({
-  children,
-  required,
-}: { children: React.ReactNode; required?: boolean }) => (
-  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+export const FieldLabel = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
+  <p className="mb-1.5 font-medium text-gray-500 text-xs dark:text-gray-400">
     {children}
-    {required && <span className="text-gray-400 ml-0.5">*</span>}
+    {required && <span className="ml-0.5 text-gray-400">*</span>}
   </p>
 )
 

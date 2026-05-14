@@ -1,14 +1,3 @@
-import {
-  LEGEND_ORDER,
-  STATUS_BAR_STYLES,
-  STATUS_DOT,
-  STATUS_LEGEND_LABELS,
-  computeWeekLayout,
-  getCalendarWeeks,
-} from '@/features/calendar/calendarUtils'
-import type { CalendarTask, WeekEvent } from '@/features/calendar/calendarUtils'
-import { fetchTasksForCalendar } from '@/features/tasks/queries'
-import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { createLazyFileRoute, useNavigate } from '@tanstack/react-router'
 import {
@@ -25,6 +14,17 @@ import {
 } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import type { CalendarTask, WeekEvent } from '@/features/calendar/calendarUtils'
+import {
+  computeWeekLayout,
+  getCalendarWeeks,
+  LEGEND_ORDER,
+  STATUS_BAR_STYLES,
+  STATUS_DOT,
+  STATUS_LEGEND_LABELS,
+} from '@/features/calendar/calendarUtils'
+import { fetchTasksForCalendar } from '@/features/tasks/queries'
+import { cn } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_authed/calendar/')({
   component: CalendarPage,
@@ -61,36 +61,29 @@ const WeekRow = ({
   }
 
   return (
-    <div className="flex-1 relative border-b border-gray-200 dark:border-gray-800 overflow-hidden min-h-[80px]">
+    <div className="relative min-h-[80px] flex-1 overflow-hidden border-gray-200 border-b dark:border-gray-800">
       {/* Column backgrounds */}
-      <div className="absolute inset-0 grid grid-cols-7 pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 grid grid-cols-7">
         {week.map((day) => (
           <div
             key={format(day, 'yyyy-MM-dd')}
             className={cn(
-              'h-full border-r border-gray-100 dark:border-gray-800/60',
-              !isSameMonth(day, currentMonth) &&
-                'bg-gray-50/60 dark:bg-gray-900/40',
+              'h-full border-gray-100 border-r dark:border-gray-800/60',
+              !isSameMonth(day, currentMonth) && 'bg-gray-50/60 dark:bg-gray-900/40',
             )}
           />
         ))}
       </div>
 
       {/* Day numbers */}
-      <div
-        className="absolute top-0 inset-x-0 grid grid-cols-7"
-        style={{ height: DAY_H }}
-      >
+      <div className="absolute inset-x-0 top-0 grid grid-cols-7" style={{ height: DAY_H }}>
         {week.map((day, col) => (
-          <div
-            key={format(day, 'yyyy-MM-dd')}
-            className="flex items-start justify-center pt-1.5"
-          >
+          <div key={format(day, 'yyyy-MM-dd')} className="flex items-start justify-center pt-1.5">
             <span
               className={cn(
-                'text-xs w-6 h-6 flex items-center justify-center rounded-full tabular-nums',
+                'flex h-6 w-6 items-center justify-center rounded-full text-xs tabular-nums',
                 isSameDay(day, today)
-                  ? 'bg-blue-500 text-white font-bold'
+                  ? 'bg-blue-500 font-bold text-white'
                   : !isSameMonth(day, currentMonth)
                     ? 'text-gray-300 dark:text-gray-600'
                     : col === 0
@@ -109,9 +102,7 @@ const WeekRow = ({
       {/* Event bars */}
       {visible.map((event: WeekEvent) => {
         const taskStart = startOfDay(parseISO(event.task.start_date))
-        const taskEnd = startOfDay(
-          event.task.end_date ? parseISO(event.task.end_date) : taskStart,
-        )
+        const taskEnd = startOfDay(event.task.end_date ? parseISO(event.task.end_date) : taskStart)
         const weekStartDay = startOfDay(week[0])
         const weekEndDay = startOfDay(week[6])
 
@@ -128,11 +119,9 @@ const WeekRow = ({
             type="button"
             onClick={() => onEventClick(event.task.id)}
             className={cn(
-              'absolute flex items-center text-[11px] font-medium cursor-pointer hover:opacity-75 transition-opacity truncate select-none',
+              'absolute flex cursor-pointer select-none items-center truncate font-medium text-[11px] transition-opacity hover:opacity-75',
               STATUS_BAR_STYLES[event.task.status],
-              startsThisWeek
-                ? 'border-l-2 rounded-l-[3px] pl-1.5'
-                : 'border-l-0 pl-1',
+              startsThisWeek ? 'rounded-l-[3px] border-l-2 pl-1.5' : 'border-l-0 pl-1',
               endsThisWeek ? 'rounded-r-[3px] pr-1.5' : 'pr-0',
             )}
             style={{
@@ -153,7 +142,7 @@ const WeekRow = ({
         count > 0 ? (
           <div
             key={DAY_NAMES[col]}
-            className="absolute text-[10px] font-medium text-gray-400 dark:text-gray-500 pointer-events-none"
+            className="pointer-events-none absolute font-medium text-[10px] text-gray-400 dark:text-gray-500"
             style={{
               left: `calc(${(col / 7) * 100}% + 6px)`,
               top: DAY_H + MAX_LANES * EVENT_SLOT + 2,
@@ -185,14 +174,14 @@ function CalendarPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-950">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-950">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex shrink-0 items-center justify-between border-gray-200 border-b px-5 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-            className="px-2.5 py-1 text-xs font-medium rounded-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="rounded-md border border-gray-200 px-2.5 py-1 font-medium text-gray-600 text-xs transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
           >
             오늘
           </button>
@@ -200,53 +189,42 @@ function CalendarPage() {
             <button
               type="button"
               onClick={() => setCurrentMonth((prev) => subMonths(prev, 1))}
-              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => setCurrentMonth((prev) => addMonths(prev, 1))}
-              className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+          <h2 className="font-semibold text-gray-800 text-sm dark:text-gray-100">
             {format(currentMonth, "yyyy'년' M'월'")}
           </h2>
         </div>
 
         {/* Legend */}
-        <div className="hidden sm:flex items-center gap-4 flex-wrap">
+        <div className="hidden flex-wrap items-center gap-4 sm:flex">
           {LEGEND_ORDER.map((status) => (
             <div key={status} className="flex items-center gap-1.5">
-              <span
-                className={cn(
-                  'w-2 h-2 rounded-full shrink-0',
-                  STATUS_DOT[status],
-                )}
-              />
-              <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                {STATUS_LEGEND_LABELS[status]}
-              </span>
+              <span className={cn('h-2 w-2 shrink-0 rounded-full', STATUS_DOT[status])} />
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">{STATUS_LEGEND_LABELS[status]}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Day-of-week header */}
-      <div className="shrink-0 grid grid-cols-7 border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/40">
+      <div className="grid shrink-0 grid-cols-7 border-gray-200 border-b bg-gray-50/60 dark:border-gray-800 dark:bg-gray-900/40">
         {DAY_NAMES.map((name, i) => (
           <div
             key={name}
             className={cn(
-              'py-2 text-center text-[11px] font-semibold tracking-widest uppercase border-r border-gray-100 dark:border-gray-800/60 last:border-r-0',
-              i === 0
-                ? 'text-red-400'
-                : i === 6
-                  ? 'text-blue-400'
-                  : 'text-gray-400 dark:text-gray-500',
+              'border-gray-100 border-r py-2 text-center font-semibold text-[11px] uppercase tracking-widest last:border-r-0 dark:border-gray-800/60',
+              i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400 dark:text-gray-500',
             )}
           >
             {name}
@@ -255,10 +233,10 @@ function CalendarPage() {
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 flex flex-col overflow-hidden border-l border-gray-200 dark:border-gray-800">
+      <div className="flex flex-1 flex-col overflow-hidden border-gray-200 border-l dark:border-gray-800">
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <span className="inline-block w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-500 dark:border-t-gray-400 rounded-full animate-spin" />
+          <div className="flex flex-1 items-center justify-center">
+            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500 dark:border-gray-700 dark:border-t-gray-400" />
           </div>
         ) : (
           weeks.map((week) => (

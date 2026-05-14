@@ -27,11 +27,7 @@ type UseExpenseFiltersResult = {
   }
 }
 
-export const useExpenseFilters = (
-  expenses: Expense[],
-  tasks: Task[],
-  filters: Filters,
-): UseExpenseFiltersResult => {
+export const useExpenseFilters = (expenses: Expense[], tasks: Task[], filters: Filters): UseExpenseFiltersResult => {
   const { searchText, spenderFilter, dateFrom, dateTo } = filters
 
   const allRows: ExpenseRow[] = useMemo(() => {
@@ -94,9 +90,7 @@ export const useExpenseFilters = (
 
   const filteredRows = useMemo(() => {
     return allRows.filter((row) => {
-      const matchSearch = searchText
-        ? row.description.toLowerCase().includes(searchText.toLowerCase())
-        : true
+      const matchSearch = searchText ? row.description.toLowerCase().includes(searchText.toLowerCase()) : true
       const matchSpender =
         spenderFilter && spenderFilter !== 'all'
           ? row.source === 'manual' && row.spender_member_id === spenderFilter
@@ -108,20 +102,13 @@ export const useExpenseFilters = (
   }, [allRows, searchText, spenderFilter, dateFrom, dateTo])
 
   const sortedRows = useMemo(
-    () =>
-      [...filteredRows].sort((a, b) =>
-        a.date < b.date ? 1 : a.date > b.date ? -1 : 0,
-      ),
+    () => [...filteredRows].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)),
     [filteredRows],
   )
 
   const summary = useMemo(() => {
-    const totalIncome = filteredRows
-      .filter((r) => r.type === 'income')
-      .reduce((sum, r) => sum + r.amount, 0)
-    const totalExpense = filteredRows
-      .filter((r) => r.type === 'expense')
-      .reduce((sum, r) => sum + r.amount, 0)
+    const totalIncome = filteredRows.filter((r) => r.type === 'income').reduce((sum, r) => sum + r.amount, 0)
+    const totalExpense = filteredRows.filter((r) => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0)
     return { totalIncome, totalExpense, netProfit: totalIncome - totalExpense }
   }, [filteredRows])
 

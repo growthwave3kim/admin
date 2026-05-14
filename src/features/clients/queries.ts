@@ -29,12 +29,7 @@ export const fetchContacts = async () => {
 }
 
 export const fetchClient = async (id: string) => {
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('id', id)
-    .is('deleted_at', null)
-    .single()
+  const { data, error } = await supabase.from('clients').select('*').eq('id', id).is('deleted_at', null).single()
   if (error) throw error
   return data as Client
 }
@@ -50,11 +45,7 @@ export const fetchTrashedClients = async () => {
 }
 
 export const createClient = async (formData: ClientFormData) => {
-  const { data, error } = await supabase
-    .from('clients')
-    .insert(formData)
-    .select()
-    .single()
+  const { data, error } = await supabase.from('clients').insert(formData).select().single()
   if (error) throw error
   void logAudit({
     tableName: 'clients',
@@ -65,16 +56,8 @@ export const createClient = async (formData: ClientFormData) => {
   return data as Client
 }
 
-export const updateClient = async (
-  id: string,
-  formData: Partial<ClientFormData>,
-) => {
-  const { data, error } = await supabase
-    .from('clients')
-    .update(formData)
-    .eq('id', id)
-    .select()
-    .single()
+export const updateClient = async (id: string, formData: Partial<ClientFormData>) => {
+  const { data, error } = await supabase.from('clients').update(formData).eq('id', id).select().single()
   if (error) throw error
   void logAudit({
     tableName: 'clients',
@@ -86,62 +69,38 @@ export const updateClient = async (
 }
 
 export const softDeleteClient = async (id: string) => {
-  const { error } = await supabase
-    .from('clients')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
+  const { error } = await supabase.from('clients').update({ deleted_at: new Date().toISOString() }).eq('id', id)
   if (error) throw error
-  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(
-    () => {},
-  )
+  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(() => {})
 }
 
 export const restoreClient = async (id: string) => {
-  const { error } = await supabase
-    .from('clients')
-    .update({ deleted_at: null })
-    .eq('id', id)
+  const { error } = await supabase.from('clients').update({ deleted_at: null }).eq('id', id)
   if (error) throw error
 }
 
 export const permanentDeleteClient = async (id: string) => {
   const { error } = await supabase.from('clients').delete().eq('id', id)
   if (error) throw error
-  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(
-    () => {},
-  )
+  void logAudit({ tableName: 'clients', recordId: id, action: 'delete' }).catch(() => {})
 }
 
-export const importClients = async (
-  rows: Pick<ClientFormData, 'name' | 'contact_phone' | 'email'>[],
-) => {
+export const importClients = async (rows: Pick<ClientFormData, 'name' | 'contact_phone' | 'email'>[]) => {
   const withFlag = rows.map((r) => ({ ...r, is_contact: true }))
-  const { data, error } = await supabase
-    .from('clients')
-    .insert(withFlag)
-    .select()
+  const { data, error } = await supabase.from('clients').insert(withFlag).select()
   if (error) throw error
   return data as Client[]
 }
 
 export const convertToClient = async (id: string) => {
-  const { error } = await supabase
-    .from('clients')
-    .update({ is_contact: false })
-    .eq('id', id)
+  const { error } = await supabase.from('clients').update({ is_contact: false }).eq('id', id)
   if (error) throw error
 }
 
 const PAGE_SIZE = 100
 
 // 거래처 목록 (거래처 관리 페이지)
-export const fetchClientsPage = async ({
-  search = '',
-  pageParam = 0,
-}: {
-  search?: string
-  pageParam?: number
-}) => {
+export const fetchClientsPage = async ({ search = '', pageParam = 0 }: { search?: string; pageParam?: number }) => {
   let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
@@ -167,21 +126,14 @@ const formatPhoneDigits = (digits: string): string => {
   if (digits.length === 11 && digits.startsWith('0'))
     return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`
   if (digits.length === 10) {
-    if (digits.startsWith('02'))
-      return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`
+    if (digits.startsWith('02')) return `${digits.slice(0, 2)}-${digits.slice(2, 6)}-${digits.slice(6)}`
     return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
   }
   return digits
 }
 
 // 고객 DB 목록 (고객 DB 페이지)
-export const fetchContactsPage = async ({
-  pageParam = 0,
-  search = '',
-}: {
-  pageParam?: number
-  search?: string
-}) => {
+export const fetchContactsPage = async ({ pageParam = 0, search = '' }: { pageParam?: number; search?: string }) => {
   let query = supabase
     .from('clients')
     .select('*', { count: 'exact' })
@@ -193,10 +145,7 @@ export const fetchContactsPage = async ({
     const digits = search.replace(/\D/g, '')
     if (digits.length >= 4) {
       const escapedDigits = digits.replace(/[%_\\]/g, (c) => `\\${c}`)
-      const escapedFormatted = formatPhoneDigits(digits).replace(
-        /[%_\\]/g,
-        (c) => `\\${c}`,
-      )
+      const escapedFormatted = formatPhoneDigits(digits).replace(/[%_\\]/g, (c) => `\\${c}`)
       query = query.or(
         `name.ilike.%${escaped}%,contact_phone.ilike.%${escapedDigits}%,contact_phone.ilike.%${escapedFormatted}%`,
       )

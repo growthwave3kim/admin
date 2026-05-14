@@ -1,33 +1,15 @@
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { Button } from '@/components/ui/button'
-import {
-  fetchTrashedClients,
-  permanentDeleteClient,
-  restoreClient,
-} from '@/features/clients/queries'
-import {
-  fetchTrashedExpenses,
-  permanentDeleteExpense,
-  restoreExpense,
-} from '@/features/expenses/queries'
-import {
-  fetchTrashedTasks,
-  permanentDeleteTask,
-  restoreTask,
-} from '@/features/tasks/queries'
-import { TASK_STATUS_LABELS } from '@/features/tasks/types'
-import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute } from '@tanstack/react-router'
-import {
-  Building2,
-  ClipboardList,
-  Receipt,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react'
+import { Building2, ClipboardList, Receipt, RotateCcw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { fetchTrashedClients, permanentDeleteClient, restoreClient } from '@/features/clients/queries'
+import { fetchTrashedExpenses, permanentDeleteExpense, restoreExpense } from '@/features/expenses/queries'
+import { fetchTrashedTasks, permanentDeleteTask, restoreTask } from '@/features/tasks/queries'
+import { TASK_STATUS_LABELS } from '@/features/tasks/types'
+import { cn, formatCurrency, formatDate } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_authed/trash/')({
   component: TrashPage,
@@ -98,12 +80,9 @@ function TrashPage() {
       return permanentDeleteExpense(id)
     },
     onSuccess: (_, { type }) => {
-      if (type === 'tasks')
-        qc.invalidateQueries({ queryKey: ['trashed-tasks'] })
-      if (type === 'clients')
-        qc.invalidateQueries({ queryKey: ['trashed-clients'] })
-      if (type === 'expenses')
-        qc.invalidateQueries({ queryKey: ['trashed-expenses'] })
+      if (type === 'tasks') qc.invalidateQueries({ queryKey: ['trashed-tasks'] })
+      if (type === 'clients') qc.invalidateQueries({ queryKey: ['trashed-clients'] })
+      if (type === 'expenses') qc.invalidateQueries({ queryKey: ['trashed-expenses'] })
       toast.success('영구 삭제되었습니다')
       setPermanentTarget(null)
     },
@@ -140,40 +119,38 @@ function TrashPage() {
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="mx-auto max-w-3xl space-y-5">
         {/* Header */}
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            휴지통
-          </span>
-          <span className="text-xs text-gray-400 dark:text-gray-400">
+          <span className="font-semibold text-base text-gray-800 dark:text-gray-200">휴지통</span>
+          <span className="text-gray-400 text-xs dark:text-gray-400">
             삭제된 항목은 이곳에서 복원하거나 영구 삭제할 수 있습니다
           </span>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md p-0.5 gap-0.5 w-fit">
+        <div className="flex w-fit items-center gap-0.5 rounded-md bg-gray-100 p-0.5 dark:bg-gray-800">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-all',
+                'flex items-center gap-1.5 rounded px-3 py-1.5 font-medium text-xs transition-all',
                 activeTab === tab.key
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
               )}
             >
-              <tab.icon className="w-3.5 h-3.5" />
+              <tab.icon className="h-3.5 w-3.5" />
               {tab.label}
               {tab.count > 0 && (
                 <span
                   className={cn(
-                    'px-1.5 py-0.5 rounded-sm text-[10px] font-semibold',
+                    'rounded-sm px-1.5 py-0.5 font-semibold text-[10px]',
                     activeTab === tab.key
-                      ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400',
+                      ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                      : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
                   )}
                 >
                   {tab.count}
@@ -184,10 +161,10 @@ function TrashPage() {
         </div>
 
         {/* Content */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {isLoading ? (
-            <div className="py-12 flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800 dark:border-gray-700 dark:border-t-gray-200" />
             </div>
           ) : activeTab === 'tasks' ? (
             trashedTasks.length === 0 ? (
@@ -195,15 +172,10 @@ function TrashPage() {
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {trashedTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-start justify-between gap-2 px-4 md:px-5 py-3.5"
-                  >
+                  <div key={task.id} className="flex items-start justify-between gap-2 px-4 py-3.5 md:px-5">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                        {task.company_name}
-                      </span>
-                      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-400">
+                      <span className="font-medium text-gray-800 text-sm dark:text-gray-200">{task.company_name}</span>
+                      <div className="flex items-center gap-2 text-gray-400 text-xs dark:text-gray-400">
                         <span>{TASK_STATUS_LABELS[task.status]}</span>
                         <span>·</span>
                         <span>{formatDate(task.start_date)}</span>
@@ -213,21 +185,21 @@ function TrashPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                        className="h-7 gap-1 px-2 text-emerald-600 text-xs hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
                         onClick={() => restoreTaskMutation.mutate(task.id)}
                         disabled={restoreTaskMutation.isPending}
                       >
-                        <RotateCcw className="w-3 h-3" />
+                        <RotateCcw className="h-3 w-3" />
                         복원
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs gap-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-7 gap-1 px-2 text-red-400 text-xs hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                         onClick={() =>
                           setPermanentTarget({
                             id: task.id,
@@ -236,7 +208,7 @@ function TrashPage() {
                           })
                         }
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3 w-3" />
                         영구삭제
                       </Button>
                     </div>
@@ -250,39 +222,32 @@ function TrashPage() {
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {trashedClients.map((client) => (
-                  <div
-                    key={client.id}
-                    className="flex items-start justify-between gap-2 px-4 md:px-5 py-3.5"
-                  >
+                  <div key={client.id} className="flex items-start justify-between gap-2 px-4 py-3.5 md:px-5">
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                        {client.name}
-                      </span>
-                      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-400">
-                        {client.contact_name && (
-                          <span>{client.contact_name}</span>
-                        )}
+                      <span className="font-medium text-gray-800 text-sm dark:text-gray-200">{client.name}</span>
+                      <div className="flex items-center gap-2 text-gray-400 text-xs dark:text-gray-400">
+                        {client.contact_name && <span>{client.contact_name}</span>}
                         {client.contact_name && <span>·</span>}
                         <span className="text-red-400 dark:text-red-400">
                           삭제일 {formatDate(client.deleted_at ?? '')}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex shrink-0 items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                        className="h-7 gap-1 px-2 text-emerald-600 text-xs hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
                         onClick={() => restoreClientMutation.mutate(client.id)}
                         disabled={restoreClientMutation.isPending}
                       >
-                        <RotateCcw className="w-3 h-3" />
+                        <RotateCcw className="h-3 w-3" />
                         복원
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs gap-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="h-7 gap-1 px-2 text-red-400 text-xs hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                         onClick={() =>
                           setPermanentTarget({
                             id: client.id,
@@ -291,7 +256,7 @@ function TrashPage() {
                           })
                         }
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="h-3 w-3" />
                         영구삭제
                       </Button>
                     </div>
@@ -304,15 +269,10 @@ function TrashPage() {
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-gray-800">
               {trashedExpenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between px-5 py-3.5"
-                >
+                <div key={expense.id} className="flex items-center justify-between px-5 py-3.5">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                      {expense.description}
-                    </span>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-400">
+                    <span className="font-medium text-gray-800 text-sm dark:text-gray-200">{expense.description}</span>
+                    <div className="flex items-center gap-2 text-gray-400 text-xs dark:text-gray-400">
                       <span
                         className={
                           expense.entry_type === 'income'
@@ -335,17 +295,17 @@ function TrashPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-xs gap-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                      className="h-7 gap-1 px-2 text-emerald-600 text-xs hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
                       onClick={() => restoreExpenseMutation.mutate(expense.id)}
                       disabled={restoreExpenseMutation.isPending}
                     >
-                      <RotateCcw className="w-3 h-3" />
+                      <RotateCcw className="h-3 w-3" />
                       복원
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-xs gap-1 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="h-7 gap-1 px-2 text-red-400 text-xs hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
                       onClick={() =>
                         setPermanentTarget({
                           id: expense.id,
@@ -354,7 +314,7 @@ function TrashPage() {
                         })
                       }
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="h-3 w-3" />
                       영구삭제
                     </Button>
                   </div>
@@ -386,8 +346,8 @@ function TrashPage() {
 }
 
 const EmptyState = ({ label }: { label: string }) => (
-  <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-gray-600">
-    <Trash2 className="w-8 h-8" />
+  <div className="flex flex-col items-center gap-3 py-14 text-gray-300 dark:text-gray-600">
+    <Trash2 className="h-8 w-8" />
     <p className="text-sm">{label}</p>
   </div>
 )

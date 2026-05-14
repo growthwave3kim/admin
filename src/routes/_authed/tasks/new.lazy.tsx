@@ -1,17 +1,17 @@
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { Button } from '@/components/ui/button'
-import { fetchMarketingTypes } from '@/features/marketing-types/queries'
-import { fetchMembers } from '@/features/members/queries'
-import { TaskForm } from '@/features/tasks/TaskForm'
-import type { TaskFormValues } from '@/features/tasks/TaskForm'
-import { createTask } from '@/features/tasks/queries'
-import { clearDraft } from '@/features/tasks/useFormDraft'
-import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { fetchMarketingTypes } from '@/features/marketing-types/queries'
+import { fetchMembers } from '@/features/members/queries'
+import { createTask } from '@/features/tasks/queries'
+import type { TaskFormValues } from '@/features/tasks/TaskForm'
+import { TaskForm } from '@/features/tasks/TaskForm'
+import { clearDraft } from '@/features/tasks/useFormDraft'
+import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 
 export const Route = createLazyFileRoute('/_authed/tasks/new')({
   component: NewTaskPage,
@@ -62,7 +62,7 @@ function NewTaskPage() {
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="mx-auto max-w-2xl space-y-5">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Button
@@ -71,16 +71,14 @@ function NewTaskPage() {
             className="h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={() => router.navigate({ to: '/tasks' })}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              새 업무 등록
-            </span>
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">새 업무 등록</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <TaskForm
             marketingTypes={marketingTypes}
             members={members}

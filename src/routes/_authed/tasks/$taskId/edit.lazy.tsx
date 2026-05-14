@@ -1,20 +1,16 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createLazyFileRoute, getRouteApi, useRouter } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { fetchMarketingTypes } from '@/features/marketing-types/queries'
 import { fetchMembers } from '@/features/members/queries'
-import { TaskForm } from '@/features/tasks/TaskForm'
-import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { fetchTask, updateTask } from '@/features/tasks/queries'
+import type { TaskFormValues } from '@/features/tasks/TaskForm'
+import { TaskForm } from '@/features/tasks/TaskForm'
 import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  createLazyFileRoute,
-  getRouteApi,
-  useRouter,
-} from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 
 export const Route = createLazyFileRoute('/_authed/tasks/$taskId/edit')({
   component: EditTaskPage,
@@ -59,8 +55,8 @@ function EditTaskPage() {
 
   if (taskLoading || !task) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
+      <div className="flex h-full items-center justify-center">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800 dark:border-gray-700 dark:border-t-gray-200" />
       </div>
     )
   }
@@ -94,38 +90,30 @@ function EditTaskPage() {
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="mx-auto max-w-2xl space-y-5">
         {/* Header */}
         <div className="flex items-center gap-2.5">
           <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            onClick={() =>
-              router.navigate({ to: '/tasks/$taskId', params: { taskId } })
-            }
+            onClick={() => router.navigate({ to: '/tasks/$taskId', params: { taskId } })}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              업무 수정
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-400">
-              {task.company_name}
-            </span>
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">업무 수정</span>
+            <span className="text-gray-400 text-xs dark:text-gray-400">{task.company_name}</span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <TaskForm
             defaultValues={defaultValues}
             marketingTypes={marketingTypes}
             members={members}
             onSubmit={handleSubmit}
-            onCancel={() =>
-              router.navigate({ to: '/tasks/$taskId', params: { taskId } })
-            }
+            onCancel={() => router.navigate({ to: '/tasks/$taskId', params: { taskId } })}
             showEndDate={true}
             isLoading={mutation.isPending}
             submitLabel="저장"

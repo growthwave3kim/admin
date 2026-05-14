@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1776318125676,
+  "lastScanned": 1777194048009,
   "projectRoot": "/Users/minishtech/workspace/dohyun/growthwave-admin",
   "techStack": {
     "languages": [
@@ -8,17 +8,13 @@
         "name": "JavaScript/TypeScript",
         "version": null,
         "confidence": "high",
-        "markers": [
-          "package.json"
-        ]
+        "markers": ["package.json"]
       },
       {
         "name": "TypeScript",
         "version": null,
         "confidence": "high",
-        "markers": [
-          "tsconfig.json"
-        ]
+        "markers": ["tsconfig.json"]
       }
     ],
     "frameworks": [
@@ -64,10 +60,7 @@
   "structure": {
     "isMonorepo": false,
     "workspaces": [],
-    "mainDirectories": [
-      "public",
-      "src"
-    ],
+    "mainDirectories": ["public", "src"],
     "gitBranches": null
   },
   "customNotes": [],
@@ -76,407 +69,372 @@
       "path": "dist",
       "purpose": "Distribution/build output",
       "fileCount": 6,
-      "lastAccessed": 1776318125656,
-      "keyFiles": [
-        "favicon.svg",
-        "icons.svg",
-        "index.html",
-        "logo.png",
-        "logo_dark.png"
-      ]
+      "lastAccessed": 1777194047919,
+      "keyFiles": ["favicon.svg", "icons.svg", "index.html", "logo.png", "logo_dark.png"]
     },
     "public": {
       "path": "public",
       "purpose": "Public files",
       "fileCount": 5,
-      "lastAccessed": 1776318125657,
-      "keyFiles": [
-        "favicon.svg",
-        "icons.svg",
-        "logo.png",
-        "logo_dark.png",
-        "robots.txt"
-      ]
+      "lastAccessed": 1777194047926,
+      "keyFiles": ["favicon.svg", "icons.svg", "logo.png", "logo_dark.png", "robots.txt"]
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1776318125658,
-      "keyFiles": [
-        "index.css",
-        "main.tsx",
-        "routeTree.gen.ts"
-      ]
+      "lastAccessed": 1777194047927,
+      "keyFiles": ["index.css", "main.tsx", "routeTree.gen.ts"]
     },
     "supabase": {
       "path": "supabase",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1776318125659,
+      "lastAccessed": 1777194047927,
       "keyFiles": []
     },
     "dist/assets": {
       "path": "dist/assets",
       "purpose": "Static assets",
-      "fileCount": 49,
-      "lastAccessed": 1776318125659,
-      "keyFiles": [
-        "ConfirmDialog-BXxY_aLr.js",
-        "Matches-Dz72-po7.js",
-        "ProfitAmount-C6LNHpBk.js"
-      ]
+      "fileCount": 87,
+      "lastAccessed": 1777194047929,
+      "keyFiles": ["ClientFormDialog-Cc_1udOH.js", "ConfirmDialog-CzgRIQwc.js", "DatePicker-UraMjY1I.js"]
     },
     "src/assets": {
       "path": "src/assets",
       "purpose": "Static assets",
       "fileCount": 3,
-      "lastAccessed": 1776318125659,
-      "keyFiles": [
-        "hero.png",
-        "react.svg",
-        "vite.svg"
-      ]
+      "lastAccessed": 1777194047930,
+      "keyFiles": ["hero.png", "react.svg", "vite.svg"]
     },
     "src/components": {
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 0,
-      "lastAccessed": 1776318125660,
+      "lastAccessed": 1777194047930,
       "keyFiles": []
     },
     "src/lib": {
       "path": "src/lib",
       "purpose": "Library code",
-      "fileCount": 3,
-      "lastAccessed": 1776318125660,
-      "keyFiles": [
-        "queryClient.ts",
-        "supabase.ts",
-        "utils.ts"
-      ]
+      "fileCount": 4,
+      "lastAccessed": 1777194047931,
+      "keyFiles": ["database.types.ts", "queryClient.ts", "supabase.ts"]
     },
     "src/routes": {
       "path": "src/routes",
       "purpose": "Route handlers",
       "fileCount": 6,
-      "lastAccessed": 1776318125660,
-      "keyFiles": [
-        "__root.tsx",
-        "_authed.lazy.tsx",
-        "_authed.tsx"
-      ]
+      "lastAccessed": 1777194047931,
+      "keyFiles": ["__root.tsx", "_authed.lazy.tsx", "_authed.tsx"]
     },
     "supabase/migrations": {
       "path": "supabase/migrations",
       "purpose": "Database migrations",
-      "fileCount": 2,
-      "lastAccessed": 1776318125660,
-      "keyFiles": [
-        "001_initial.sql",
-        "002_expenses.sql"
-      ]
+      "fileCount": 16,
+      "lastAccessed": 1777194047932,
+      "keyFiles": ["001_initial.sql", "002_expenses.sql", "003_clients.sql"]
     }
   },
   "hotPaths": [
     {
-      "path": "src/routes/_authed/tasks/index.tsx",
-      "accessCount": 263,
-      "lastAccessed": 1776394430530,
+      "path": "src/routes/_authed/expenses/index.lazy.tsx",
+      "accessCount": 89,
+      "lastAccessed": 1777197524179,
       "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/index.lazy.tsx",
+      "accessCount": 55,
+      "lastAccessed": 1777196656547,
+      "type": "file"
+    },
+    {
+      "path": "src/features/clients/queries.ts",
+      "accessCount": 25,
+      "lastAccessed": 1777035431615,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/contacts/index.lazy.tsx",
+      "accessCount": 24,
+      "lastAccessed": 1776747917100,
+      "type": "directory"
     },
     {
       "path": "src/features/tasks/TaskForm.tsx",
-      "accessCount": 102,
-      "lastAccessed": 1776325394586,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/dashboard.tsx",
-      "accessCount": 99,
-      "lastAccessed": 1776393503562,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/marketing-types/index.tsx",
-      "accessCount": 56,
-      "lastAccessed": 1776394431070,
+      "accessCount": 20,
+      "lastAccessed": 1777035902360,
       "type": "file"
     },
     {
       "path": "src",
-      "accessCount": 56,
-      "lastAccessed": 1776394445011,
-      "type": "directory"
-    },
-    {
-      "path": "src/routes/_authed/tasks/$taskId/index.tsx",
-      "accessCount": 51,
-      "lastAccessed": 1776318499652,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/login.tsx",
-      "accessCount": 42,
-      "lastAccessed": 1776304639580,
-      "type": "file"
-    },
-    {
-      "path": "src/components/layout/LNB.tsx",
-      "accessCount": 33,
-      "lastAccessed": 1776394423101,
-      "type": "file"
-    },
-    {
-      "path": "src/features/tasks/types.ts",
-      "accessCount": 27,
-      "lastAccessed": 1776325523485,
-      "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 26,
-      "lastAccessed": 1776393544840,
+      "accessCount": 19,
+      "lastAccessed": 1776644460317,
       "type": "directory"
     },
     {
       "path": "src/features/tasks/queries.ts",
-      "accessCount": 22,
-      "lastAccessed": 1776324702574,
+      "accessCount": 19,
+      "lastAccessed": 1777194075003,
+      "type": "file"
+    },
+    {
+      "path": "src/features/expenses/queries.ts",
+      "accessCount": 15,
+      "lastAccessed": 1777194988904,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/tasks/$taskId/index.lazy.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1777009901137,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/login.lazy.tsx",
+      "accessCount": 14,
+      "lastAccessed": 1777035396145,
+      "type": "file"
+    },
+    {
+      "path": "src/features/tasks/types.ts",
+      "accessCount": 14,
+      "lastAccessed": 1777196326236,
+      "type": "file"
+    },
+    {
+      "path": "src/components/layout/LNB.tsx",
+      "accessCount": 11,
+      "lastAccessed": 1777008242516,
       "type": "file"
     },
     {
       "path": "src/routes/_authed.tsx",
-      "accessCount": 18,
-      "lastAccessed": 1776393497209,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/tasks/$taskId/edit.tsx",
-      "accessCount": 17,
-      "lastAccessed": 1776324241254,
-      "type": "file"
-    },
-    {
-      "path": "src/components/layout/Header.tsx",
-      "accessCount": 17,
-      "lastAccessed": 1776394423387,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/tasks/new.tsx",
-      "accessCount": 16,
-      "lastAccessed": 1776304675397,
-      "type": "file"
-    },
-    {
-      "path": "src/lib/utils.ts",
-      "accessCount": 15,
-      "lastAccessed": 1776324236604,
-      "type": "file"
-    },
-    {
-      "path": "src/index.css",
-      "accessCount": 14,
-      "lastAccessed": 1776304327670,
-      "type": "file"
-    },
-    {
-      "path": "src/features/marketing-types/queries.ts",
-      "accessCount": 12,
-      "lastAccessed": 1776324248595,
-      "type": "file"
-    },
-    {
-      "path": "src/components/common/ConfirmDialog.tsx",
       "accessCount": 11,
-      "lastAccessed": 1776324279345,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 10,
-      "lastAccessed": 1776324229781,
-      "type": "file"
-    },
-    {
-      "path": "src/hooks/useTheme.ts",
-      "accessCount": 10,
-      "lastAccessed": 1776324239829,
-      "type": "file"
-    },
-    {
-      "path": "src/routes",
-      "accessCount": 10,
-      "lastAccessed": 1776324265063,
-      "type": "directory"
-    },
-    {
-      "path": "eslint.config.js",
-      "accessCount": 9,
-      "lastAccessed": 1776304314633,
-      "type": "file"
-    },
-    {
-      "path": "src/components/ui/dialog.tsx",
-      "accessCount": 9,
-      "lastAccessed": 1776306336188,
-      "type": "file"
-    },
-    {
-      "path": "supabase/migrations/001_initial.sql",
-      "accessCount": 9,
-      "lastAccessed": 1776324222312,
-      "type": "file"
-    },
-    {
-      "path": "src/lib/supabase.ts",
-      "accessCount": 9,
-      "lastAccessed": 1776324235392,
+      "lastAccessed": 1777035884178,
       "type": "file"
     },
     {
       "path": "src/routes/__root.tsx",
       "accessCount": 9,
-      "lastAccessed": 1776393496991,
-      "type": "file"
-    },
-    {
-      "path": "netlify.toml",
-      "accessCount": 8,
-      "lastAccessed": 1776304316866,
-      "type": "file"
-    },
-    {
-      "path": "src/features/tasks/TaskStatusBadge.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1776318709541,
-      "type": "file"
-    },
-    {
-      "path": "src/components/ui/select.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1776305612563,
+      "lastAccessed": 1777035411716,
       "type": "file"
     },
     {
       "path": "src/features/auth/useAuth.ts",
-      "accessCount": 7,
-      "lastAccessed": 1776324250566,
+      "accessCount": 8,
+      "lastAccessed": 1777035414493,
       "type": "file"
     },
     {
-      "path": "src/components/ui/popover.tsx",
-      "accessCount": 6,
-      "lastAccessed": 1776319909904,
+      "path": "src/components/layout/Header.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1777035868833,
       "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/dashboard.lazy.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1777005420151,
+      "type": "file"
+    },
+    {
+      "path": "src/lib/supabase.ts",
+      "accessCount": 7,
+      "lastAccessed": 1777035396074,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 6,
+      "lastAccessed": 1776578303613,
+      "type": "directory"
     },
     {
       "path": "src/lib/queryClient.ts",
+      "accessCount": 6,
+      "lastAccessed": 1777035885721,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
       "accessCount": 5,
-      "lastAccessed": 1776324236178,
+      "lastAccessed": 1776661031407,
       "type": "file"
     },
     {
-      "path": "src/main.tsx",
+      "path": "src/features/clients/types.ts",
       "accessCount": 5,
-      "lastAccessed": 1776324239341,
+      "lastAccessed": 1776748246235,
       "type": "file"
     },
     {
-      "path": "src/components/ui/form.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776244364373,
+      "path": "src/features/auth/queries.ts",
+      "accessCount": 5,
+      "lastAccessed": 1777035404062,
       "type": "file"
     },
     {
-      "path": "biome.json",
-      "accessCount": 4,
-      "lastAccessed": 1776304713913,
-      "type": "file"
-    },
-    {
-      "path": ".env.local",
-      "accessCount": 4,
-      "lastAccessed": 1776307146302,
-      "type": "file"
-    },
-    {
-      "path": "src/App.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776240488810,
-      "type": "file"
-    },
-    {
-      "path": "src/components/ui/sheet.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776244340228,
+      "path": "src/features/members/queries.ts",
+      "accessCount": 5,
+      "lastAccessed": 1777035404392,
       "type": "file"
     },
     {
       "path": "vite.config.ts",
+      "accessCount": 4,
+      "lastAccessed": 1776584134590,
+      "type": "file"
+    },
+    {
+      "path": "src/features/marketing-types/queries.ts",
+      "accessCount": 4,
+      "lastAccessed": 1776644971998,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed.lazy.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1777035428756,
+      "type": "file"
+    },
+    {
+      "path": "src/features/tasks/components/KanbanColumn.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1777194077905,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/_authed/clients/index.lazy.tsx",
       "accessCount": 3,
-      "lastAccessed": 1776304312649,
+      "lastAccessed": 1776577994029,
       "type": "file"
     },
     {
-      "path": ".claude/CLAUDE.md",
+      "path": "src/features/clients/ClientFormDialog.tsx",
       "accessCount": 3,
-      "lastAccessed": 1776324229269,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/index.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776324238863,
-      "type": "file"
-    },
-    {
-      "path": ".netlify/state.json",
-      "accessCount": 2,
-      "lastAccessed": 1776238346544,
-      "type": "file"
-    },
-    {
-      "path": "tsconfig.app.json",
-      "accessCount": 2,
-      "lastAccessed": 1776304313606,
-      "type": "file"
-    },
-    {
-      "path": "vercel.json",
-      "accessCount": 2,
-      "lastAccessed": 1776304316600,
+      "lastAccessed": 1776747562302,
       "type": "file"
     },
     {
       "path": "src/features",
       "accessCount": 2,
-      "lastAccessed": 1776324263181,
+      "lastAccessed": 1776578010747,
       "type": "directory"
     },
     {
-      "path": "src/features/tasks",
+      "path": "src/routes/_authed",
       "accessCount": 2,
-      "lastAccessed": 1776325534789,
+      "lastAccessed": 1776578011727,
       "type": "directory"
     },
     {
-      "path": ".netlify/netlify.toml",
-      "accessCount": 1,
-      "lastAccessed": 1776238300318,
+      "path": ".env.local",
+      "accessCount": 2,
+      "lastAccessed": 1776578020294,
       "type": "file"
     },
     {
-      "path": "src/components/ui",
+      "path": "src/routes/_authed/dashboard.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776748250530,
+      "type": "file"
+    },
+    {
+      "path": "src/features/dashboard/components/MonthlyChart.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777005420784,
+      "type": "file"
+    },
+    {
+      "path": "src/features/tasks/hooks/useTaskSearchState.ts",
+      "accessCount": 2,
+      "lastAccessed": 1777008676513,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/login.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777035390497,
+      "type": "file"
+    },
+    {
+      "path": "src/main.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1777035414841,
+      "type": "file"
+    },
+    {
+      "path": "supabase/migrations/010_is_contact.sql",
       "accessCount": 1,
-      "lastAccessed": 1776244181012,
+      "lastAccessed": 1776577070019,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.json",
+      "accessCount": 1,
+      "lastAccessed": 1776577963453,
+      "type": "file"
+    },
+    {
+      "path": "tsconfig.app.json",
+      "accessCount": 1,
+      "lastAccessed": 1776577966695,
+      "type": "file"
+    },
+    {
+      "path": "src/routes/index.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776577977446,
+      "type": "file"
+    },
+    {
+      "path": "src/hooks/useTheme.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776577985561,
+      "type": "file"
+    },
+    {
+      "path": "src/features/expense-categories/queries.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776577986484,
+      "type": "file"
+    },
+    {
+      "path": "biome.json",
+      "accessCount": 1,
+      "lastAccessed": 1776577992060,
+      "type": "file"
+    },
+    {
+      "path": "src/features/dashboard/utils.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776577999491,
+      "type": "file"
+    },
+    {
+      "path": "src/routes",
+      "accessCount": 1,
+      "lastAccessed": 1776578002476,
       "type": "directory"
     },
     {
-      "path": "public/_redirects",
+      "path": "src/routes/_authed/expenses",
       "accessCount": 1,
-      "lastAccessed": 1776244744316,
+      "lastAccessed": 1776578010304,
+      "type": "directory"
+    },
+    {
+      "path": "src/features/dashboard/components/TaskTable.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776578018621,
+      "type": "file"
+    },
+    {
+      "path": "src/components/common/ConfirmDialog.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776578022394,
       "type": "file"
     }
   ],

@@ -6,27 +6,11 @@ const VIEW_MODE_KEY = 'tasks_view_mode'
 const searchSchema = z.object({
   mode: z.enum(['list', 'board']).optional(),
   page: z.coerce.number().optional().default(1),
-  sortBy: z
-    .enum([
-      'start_date',
-      'created_at',
-      'received_amount',
-      'execution_cost',
-      'profit',
-    ])
-    .optional(),
+  sortBy: z.enum(['start_date', 'created_at', 'received_amount', 'execution_cost', 'profit']).optional(),
   sortDir: z.enum(['asc', 'desc']).optional(),
   search: z.string().optional(),
   filterStatus: z
-    .enum([
-      'all',
-      'proposal',
-      'not_started',
-      'in_progress',
-      'done_settled',
-      'done_unsettled',
-      'lost',
-    ])
+    .enum(['all', 'proposal', 'not_started', 'in_progress', 'done_settled', 'done_unsettled', 'lost'])
     .optional(),
   memberId: z.string().optional(),
 })
@@ -36,9 +20,7 @@ export const Route = createFileRoute('/_authed/tasks/')({
   beforeLoad: ({ search }) => {
     if (!search.mode) {
       const stored =
-        typeof window !== 'undefined'
-          ? (localStorage.getItem(VIEW_MODE_KEY) as 'list' | 'board' | null)
-          : null
+        typeof window !== 'undefined' ? (localStorage.getItem(VIEW_MODE_KEY) as 'list' | 'board' | null) : null
       if (stored === 'board') {
         throw redirect({
           to: '/tasks',

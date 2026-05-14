@@ -1,13 +1,9 @@
-import {
-  fetchContactsByNames,
-  importClients,
-  updateClient,
-} from '@/features/clients/queries'
-import type { Client } from '@/features/clients/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
+import { fetchContactsByNames, importClients, updateClient } from '@/features/clients/queries'
+import type { Client } from '@/features/clients/types'
 
 export type ImportRow = {
   name: string
@@ -77,9 +73,7 @@ export const useContactImport = () => {
         header: 1,
         defval: '',
       }) as string[][]
-      const headerRowIdx = rawRows.findIndex((row) =>
-        row.some((cell) => String(cell).trim() === '업체명'),
-      )
+      const headerRowIdx = rawRows.findIndex((row) => row.some((cell) => String(cell).trim() === '업체명'))
       if (headerRowIdx === -1) {
         toast.error('가져올 데이터가 없습니다. 업체명 컬럼을 확인해주세요')
         return
@@ -113,10 +107,7 @@ export const useContactImport = () => {
         const rowPhone = normalizeForCompare(row.contact_phone)
         const match = existing.find((c) => {
           const dbPhone = normalizeForCompare(c.contact_phone)
-          return (
-            c.name === row.name &&
-            (dbPhone === rowPhone || (!dbPhone && !rowPhone))
-          )
+          return c.name === row.name && (dbPhone === rowPhone || (!dbPhone && !rowPhone))
         })
         if (!isValidPhone(row.contact_phone)) {
           irregular.push(row)
@@ -135,10 +126,7 @@ export const useContactImport = () => {
     }
   }
 
-  const handleImportConfirm = async (
-    overwrite: boolean,
-    filteredNewRows: ImportRow[],
-  ) => {
+  const handleImportConfirm = async (overwrite: boolean, filteredNewRows: ImportRow[]) => {
     if (!importPreview) return
     setIsSubmitting(true)
     try {
@@ -167,14 +155,10 @@ export const useContactImport = () => {
       qc.invalidateQueries({ queryKey: ['clients-total'] })
 
       const parts: string[] = []
-      if (filteredNewRows.length > 0)
-        parts.push(`${filteredNewRows.length}개 추가`)
-      if (overwrite && duplicates.length > 0)
-        parts.push(`${duplicates.length}개 업데이트`)
-      if (!overwrite && duplicates.length > 0)
-        parts.push(`${duplicates.length}개 중복 건너뜀`)
-      if (irregular.length > 0)
-        parts.push(`비표준 번호 ${irregular.length}개 미등록`)
+      if (filteredNewRows.length > 0) parts.push(`${filteredNewRows.length}개 추가`)
+      if (overwrite && duplicates.length > 0) parts.push(`${duplicates.length}개 업데이트`)
+      if (!overwrite && duplicates.length > 0) parts.push(`${duplicates.length}개 중복 건너뜀`)
+      if (irregular.length > 0) parts.push(`비표준 번호 ${irregular.length}개 미등록`)
       toast.success(parts.join(', '))
 
       setImportPreview(null)

@@ -1,3 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
+import { createLazyFileRoute } from '@tanstack/react-router'
+import { endOfMonth, format, isAfter, isBefore, parseISO, startOfMonth, subMonths } from 'date-fns'
+import { useMemo, useState } from 'react'
 import { fetchClients } from '@/features/clients/queries'
 import { ExpenseCategoryChart } from '@/features/dashboard/components/ExpenseCategoryChart'
 import { KpiCard } from '@/features/dashboard/components/KpiCard'
@@ -8,12 +12,12 @@ import { StatusBreakdown } from '@/features/dashboard/components/StatusBreakdown
 import { TaskTable } from '@/features/dashboard/components/TaskTable'
 import { TopClients } from '@/features/dashboard/components/TopClients'
 import {
-  PERIOD_OPTIONS,
-  type Period,
   filterByRange,
   filterExpensesByRange,
   getPeriodRange,
   getPrevPeriodRange,
+  PERIOD_OPTIONS,
+  type Period,
 } from '@/features/dashboard/utils'
 import { fetchExpenseCategories } from '@/features/expense-categories/queries'
 import { fetchExpenses } from '@/features/expenses/queries'
@@ -22,18 +26,6 @@ import { fetchTasks } from '@/features/tasks/queries'
 import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
 import { STALE_30M, STALE_FOREVER } from '@/lib/queryClient'
 import { cn, formatCurrency } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
-import { createLazyFileRoute } from '@tanstack/react-router'
-import {
-  endOfMonth,
-  format,
-  isAfter,
-  isBefore,
-  parseISO,
-  startOfMonth,
-  subMonths,
-} from 'date-fns'
-import { useMemo, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_authed/dashboard')({
   component: DashboardPage,
@@ -80,37 +72,21 @@ function DashboardPage() {
   const { start, end } = getPeriodRange(period)
   const { start: prevStart, end: prevEnd } = getPrevPeriodRange(period)
 
-  const periodTasks = useMemo(
-    () => filterByRange(tasks, start, end),
-    [tasks, start, end],
-  )
-  const prevTasks = useMemo(
-    () => filterByRange(tasks, prevStart, prevEnd),
-    [tasks, prevStart, prevEnd],
-  )
-  const periodExpenses = useMemo(
-    () => filterExpensesByRange(expenses, start, end),
-    [expenses, start, end],
-  )
+  const periodTasks = useMemo(() => filterByRange(tasks, start, end), [tasks, start, end])
+  const prevTasks = useMemo(() => filterByRange(tasks, prevStart, prevEnd), [tasks, prevStart, prevEnd])
+  const periodExpenses = useMemo(() => filterExpensesByRange(expenses, start, end), [expenses, start, end])
   const prevExpenses = useMemo(
     () => filterExpensesByRange(expenses, prevStart, prevEnd),
     [expenses, prevStart, prevEnd],
   )
 
   // KPI calculations
-  const taskRevenue = periodTasks.reduce(
-    (s, t) => s + (t.received_amount || 0),
-    0,
-  )
-  const expenseIncome = periodExpenses
-    .filter((e) => e.entry_type === 'income')
-    .reduce((s, e) => s + e.amount, 0)
+  const taskRevenue = periodTasks.reduce((s, t) => s + (t.received_amount || 0), 0)
+  const expenseIncome = periodExpenses.filter((e) => e.entry_type === 'income').reduce((s, e) => s + e.amount, 0)
   const totalRevenue = taskRevenue + expenseIncome
 
   const taskCost = periodTasks.reduce((s, t) => s + (t.execution_cost || 0), 0)
-  const expenseCost = periodExpenses
-    .filter((e) => e.entry_type === 'expense')
-    .reduce((s, e) => s + e.amount, 0)
+  const expenseCost = periodExpenses.filter((e) => e.entry_type === 'expense').reduce((s, e) => s + e.amount, 0)
   const totalCost = taskCost + expenseCost
 
   const totalProfit = totalRevenue - totalCost
@@ -119,14 +95,10 @@ function DashboardPage() {
   // Prev period for delta
   const prevRevenue =
     prevTasks.reduce((s, t) => s + (t.received_amount || 0), 0) +
-    prevExpenses
-      .filter((e) => e.entry_type === 'income')
-      .reduce((s, e) => s + e.amount, 0)
+    prevExpenses.filter((e) => e.entry_type === 'income').reduce((s, e) => s + e.amount, 0)
   const prevCost =
     prevTasks.reduce((s, t) => s + (t.execution_cost || 0), 0) +
-    prevExpenses
-      .filter((e) => e.entry_type === 'expense')
-      .reduce((s, e) => s + e.amount, 0)
+    prevExpenses.filter((e) => e.entry_type === 'expense').reduce((s, e) => s + e.amount, 0)
   const prevProfit = prevRevenue - prevCost
 
   // 미정산: always ALL tasks, no period filter
@@ -160,20 +132,13 @@ function DashboardPage() {
 
         const revenue =
           monthTasks.reduce((s, t) => s + (t.received_amount || 0), 0) +
-          monthExpenses
-            .filter((e) => e.entry_type === 'income')
-            .reduce((s, e) => s + e.amount, 0)
+          monthExpenses.filter((e) => e.entry_type === 'income').reduce((s, e) => s + e.amount, 0)
         const cost =
           monthTasks.reduce((s, t) => s + (t.execution_cost || 0), 0) +
-          monthExpenses
-            .filter((e) => e.entry_type === 'expense')
-            .reduce((s, e) => s + e.amount, 0)
+          monthExpenses.filter((e) => e.entry_type === 'expense').reduce((s, e) => s + e.amount, 0)
         const profit = revenue - cost
 
-        const highlighted =
-          start && end
-            ? !isAfter(monthStart, end) && !isBefore(monthEnd, start)
-            : false
+        const highlighted = start && end ? !isAfter(monthStart, end) && !isBefore(monthEnd, start) : false
 
         return { label: format(d, "M'월'"), revenue, cost, profit, highlighted }
       }),
@@ -185,19 +150,14 @@ function DashboardPage() {
   const highlightEnd = highlightedMonths[highlightedMonths.length - 1]?.label
 
   // Status breakdown
-  const statusBreakdown = (
-    [
-      'not_started',
-      'in_progress',
-      'done_settled',
-      'done_unsettled',
-    ] as TaskStatus[]
-  ).map((s) => ({
-    status: s,
-    label: TASK_STATUS_LABELS[s],
-    count: periodTasks.filter((t) => t.status === s).length,
-    color: STATUS_COLORS[s],
-  }))
+  const statusBreakdown = (['not_started', 'in_progress', 'done_settled', 'done_unsettled'] as TaskStatus[]).map(
+    (s) => ({
+      status: s,
+      label: TASK_STATUS_LABELS[s],
+      count: periodTasks.filter((t) => t.status === s).length,
+      color: STATUS_COLORS[s],
+    }),
+  )
   const totalTasks = periodTasks.length
 
   // Monthly task count (always 12 months, all tasks)
@@ -211,10 +171,7 @@ function DashboardPage() {
           const td = parseISO(t.start_date)
           return !isBefore(td, monthStart) && !isAfter(td, monthEnd)
         }).length
-        const highlighted =
-          start && end
-            ? !isAfter(monthStart, end) && !isBefore(monthEnd, start)
-            : false
+        const highlighted = start && end ? !isAfter(monthStart, end) && !isBefore(monthEnd, start) : false
         return { label: format(d, "M'월'"), count, highlighted }
       }),
     [tasks, start, end],
@@ -222,15 +179,10 @@ function DashboardPage() {
 
   // Top clients (period filtered tasks) — grouped by client_id for accuracy
   const topClients = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; revenue: number; profit: number }
-    >()
+    const map = new Map<string, { name: string; revenue: number; profit: number }>()
     for (const t of periodTasks) {
       const key = t.client_id ?? `__name__${t.company_name}`
-      const name = t.client_id
-        ? (clients.find((c) => c.id === t.client_id)?.name ?? t.company_name)
-        : t.company_name
+      const name = t.client_id ? (clients.find((c) => c.id === t.client_id)?.name ?? t.company_name) : t.company_name
       const prev = map.get(key) ?? { name, revenue: 0, profit: 0 }
       map.set(key, {
         name,
@@ -253,10 +205,7 @@ function DashboardPage() {
     }
     return [...map.entries()]
       .map(([key, amount]) => ({
-        name:
-          key === '__none__'
-            ? '미분류'
-            : (expenseCategories.find((c) => c.id === key)?.name ?? '미분류'),
+        name: key === '__none__' ? '미분류' : (expenseCategories.find((c) => c.id === key)?.name ?? '미분류'),
         amount,
       }))
       .sort((a, b) => b.amount - a.amount)
@@ -271,22 +220,13 @@ function DashboardPage() {
             t.task_marketings?.some((tm) => tm.marketing_type_id === mt.id),
           )
           const totalCount = tasksWithThis.reduce((sum, t) => {
-            const m = t.task_marketings?.find(
-              (tm) => tm.marketing_type_id === mt.id,
-            )
+            const m = t.task_marketings?.find((tm) => tm.marketing_type_id === mt.id)
             return sum + (m?.count || 0)
           }, 0)
           if (totalCount === 0) return null
-          const revenue = tasksWithThis.reduce(
-            (s, t) => s + (t.received_amount || 0),
-            0,
-          )
-          const cost = tasksWithThis.reduce(
-            (s, t) => s + (t.execution_cost || 0),
-            0,
-          )
-          const profitRate =
-            revenue > 0 ? ((revenue - cost) / revenue) * 100 : 0
+          const revenue = tasksWithThis.reduce((s, t) => s + (t.received_amount || 0), 0)
+          const cost = tasksWithThis.reduce((s, t) => s + (t.execution_cost || 0), 0)
+          const profitRate = revenue > 0 ? ((revenue - cost) / revenue) * 100 : 0
           return {
             name: mt.name,
             taskCount: totalCount,
@@ -304,58 +244,41 @@ function DashboardPage() {
   const currentTasks = useMemo(() => {
     const now = new Date()
     return tasks
-      .filter(
-        (t) =>
-          t.status === 'in_progress' ||
-          t.status === 'not_started' ||
-          t.status === 'done_unsettled',
-      )
+      .filter((t) => t.status === 'in_progress' || t.status === 'not_started' || t.status === 'done_unsettled')
       .sort((a, b) => {
-        const aOverdue =
-          a.status === 'in_progress' &&
-          !!a.end_date &&
-          isBefore(parseISO(a.end_date), now)
-        const bOverdue =
-          b.status === 'in_progress' &&
-          !!b.end_date &&
-          isBefore(parseISO(b.end_date), now)
+        const aOverdue = a.status === 'in_progress' && !!a.end_date && isBefore(parseISO(a.end_date), now)
+        const bOverdue = b.status === 'in_progress' && !!b.end_date && isBefore(parseISO(b.end_date), now)
         const aAttention = aOverdue || a.status === 'done_unsettled'
         const bAttention = bOverdue || b.status === 'done_unsettled'
         if (aAttention && !bAttention) return -1
         if (!aAttention && bAttention) return 1
-        return a.end_date && b.end_date
-          ? a.end_date.localeCompare(b.end_date)
-          : 0
+        return a.end_date && b.end_date ? a.end_date.localeCompare(b.end_date) : 0
       })
       .slice(0, 8)
   }, [tasks])
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="space-y-5 max-w-screen-xl">
+      <div className="max-w-screen-xl space-y-5">
         {/* Header + Period filter */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              대시보드
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-400">
-              {start && end
-                ? `${format(start, 'yy.MM.dd')} ~ ${format(end, 'yy.MM.dd')}`
-                : '전체 기간'}
+            <span className="font-semibold text-base text-gray-900 dark:text-gray-100">대시보드</span>
+            <span className="text-gray-400 text-xs dark:text-gray-400">
+              {start && end ? `${format(start, 'yy.MM.dd')} ~ ${format(end, 'yy.MM.dd')}` : '전체 기간'}
             </span>
           </div>
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md p-0.5 gap-0.5">
+          <div className="flex items-center gap-0.5 rounded-md bg-gray-100 p-0.5 dark:bg-gray-800">
             {PERIOD_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setPeriod(opt.value)}
                 className={cn(
-                  'px-3 py-1.5 text-xs font-medium rounded transition-all',
+                  'rounded px-3 py-1.5 font-medium text-xs transition-all',
                   period === opt.value
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+                    ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
                 )}
               >
                 {opt.label}
@@ -365,7 +288,7 @@ function DashboardPage() {
         </div>
 
         {/* Row 1: 3 large KPI cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <KpiCard
             label="총 수입"
             display={`+${formatCurrency(totalRevenue)}`}
@@ -383,18 +306,14 @@ function DashboardPage() {
           <KpiCard
             label="순수익"
             display={formatCurrency(totalProfit)}
-            color={
-              totalProfit >= 0
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-red-500 dark:text-red-400'
-            }
+            color={totalProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}
             delta={calcDeltaStr(totalProfit, prevProfit)}
             isLoading={anyLoading}
           />
         </div>
 
         {/* Row 2: 2 smaller KPI cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <KpiCard
             label="수익률"
             display={`${profitRate.toFixed(1)}%`}
@@ -411,38 +330,22 @@ function DashboardPage() {
           <KpiCard
             label="미정산 금액 (전체)"
             display={formatCurrency(unsettledAmount)}
-            color={
-              unsettledAmount > 0
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-gray-900 dark:text-gray-100'
-            }
+            color={unsettledAmount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-gray-100'}
             isLoading={isLoading}
             small
           />
         </div>
 
         {/* Row 3: Monthly chart (2/3) + Status breakdown (1/3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <MonthlyChart
-            data={monthlyData}
-            highlightStart={highlightStart}
-            highlightEnd={highlightEnd}
-          />
-          <StatusBreakdown
-            statusBreakdown={statusBreakdown}
-            totalTasks={totalTasks}
-            isLoading={isLoading}
-          />
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <MonthlyChart data={monthlyData} highlightStart={highlightStart} highlightEnd={highlightEnd} />
+          <StatusBreakdown statusBreakdown={statusBreakdown} totalTasks={totalTasks} isLoading={isLoading} />
         </div>
 
         {/* Row 4: Task count (2/4) + Top clients (1/4) + Expense category pie (1/4) */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-          <MonthlyTaskCount
-            data={monthlyTaskData}
-            highlightStart={highlightStart}
-            highlightEnd={highlightEnd}
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-4">
+          <MonthlyTaskCount data={monthlyTaskData} highlightStart={highlightStart} highlightEnd={highlightEnd} />
+          <div className="grid grid-cols-1 gap-3 lg:col-span-2 lg:grid-cols-2">
             <TopClients data={topClients} isLoading={isLoading} />
             <ExpenseCategoryChart data={categoryData} isLoading={anyLoading} />
           </div>

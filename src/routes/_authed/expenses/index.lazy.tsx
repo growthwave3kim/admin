@@ -1,64 +1,32 @@
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { DatePicker } from '@/components/common/DatePicker'
-import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
-import { Pagination } from '@/components/common/Pagination'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { fetchExpenseCategories } from '@/features/expense-categories/queries'
-import { AttachmentThumbStrip } from '@/features/expenses/AttachmentThumbStrip'
-import { AttachmentUploader } from '@/features/expenses/AttachmentUploader'
-import {
-  createExpense,
-  fetchExpenses,
-  softDeleteExpense,
-  updateExpense,
-} from '@/features/expenses/queries'
-import {
-  type EntryType,
-  type Expense,
-  type ExpenseFormData,
-  PAGE_SIZE,
-} from '@/features/expenses/types'
-import { useExpenseFilters } from '@/features/expenses/useExpenseFilters'
-import { useMembers } from '@/features/members/useMembers'
-import { fetchTasks } from '@/features/tasks/queries'
-import { STALE_FOREVER } from '@/lib/queryClient'
-import { cn } from '@/lib/utils'
-import { formatCurrency, formatDate } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { format, parseISO } from 'date-fns'
-import {
-  Check,
-  Paperclip,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  X,
-} from 'lucide-react'
+import { Check, Paperclip, Pencil, Plus, Search, Trash2, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { NumericFormat } from 'react-number-format'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { DatePicker } from '@/components/common/DatePicker'
+import { FieldLabel, inputClass } from '@/components/common/FieldLabel'
+import { Pagination } from '@/components/common/Pagination'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { fetchExpenseCategories } from '@/features/expense-categories/queries'
+import { AttachmentThumbStrip } from '@/features/expenses/AttachmentThumbStrip'
+import { AttachmentUploader } from '@/features/expenses/AttachmentUploader'
+import { createExpense, fetchExpenses, softDeleteExpense, updateExpense } from '@/features/expenses/queries'
+import { type EntryType, type Expense, type ExpenseFormData, PAGE_SIZE } from '@/features/expenses/types'
+import { useExpenseFilters } from '@/features/expenses/useExpenseFilters'
+import { useMembers } from '@/features/members/useMembers'
+import { fetchTasks } from '@/features/tasks/queries'
+import { STALE_FOREVER } from '@/lib/queryClient'
+import { cn, formatCurrency, formatDate } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_authed/expenses/')({
   component: ExpensesPage,
@@ -112,8 +80,7 @@ function ExpenseFormDialog({
 
   const entryType = form.watch('entry_type')
   const selectedCategoryId = form.watch('category_id')
-  const isOtherCategory =
-    categories.find((c) => c.id === selectedCategoryId)?.name === '기타'
+  const isOtherCategory = categories.find((c) => c.id === selectedCategoryId)?.name === '기타'
 
   const qc = useQueryClient()
 
@@ -147,28 +114,17 @@ function ExpenseFormDialog({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {createdExpenseId ? '영수증/증빙 첨부' : '내역 등록'}
-          </DialogTitle>
+          <DialogTitle>{createdExpenseId ? '영수증/증빙 첨부' : '내역 등록'}</DialogTitle>
         </DialogHeader>
 
         {createdExpenseId ? (
-          <div className="space-y-4 mt-2">
+          <div className="mt-2 space-y-4">
             <AttachmentUploader expenseId={createdExpenseId} />
-            <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleClose}
-                className="h-8 px-4 text-xs text-gray-500"
-              >
+            <div className="flex justify-end gap-2 border-gray-100 border-t pt-2 dark:border-gray-800">
+              <Button type="button" variant="ghost" onClick={handleClose} className="h-8 px-4 text-gray-500 text-xs">
                 건너뛰기
               </Button>
-              <Button
-                type="button"
-                onClick={handleClose}
-                className="h-8 px-5 text-xs"
-              >
+              <Button type="button" onClick={handleClose} className="h-8 px-5 text-xs">
                 완료
               </Button>
             </div>
@@ -178,10 +134,8 @@ function ExpenseFormDialog({
         {!createdExpenseId && (
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit((v) =>
-                createMutation.mutate(v as ExpenseFormData),
-              )}
-              className="space-y-4 mt-2"
+              onSubmit={form.handleSubmit((v) => createMutation.mutate(v as ExpenseFormData))}
+              className="mt-2 space-y-4"
             >
               <FormField
                 control={form.control as never}
@@ -210,7 +164,7 @@ function ExpenseFormDialog({
                         <SelectItem value="expense">지출</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage className="text-xs mt-1" />
+                    <FormMessage className="mt-1 text-xs" />
                   </FormItem>
                 )}
               />
@@ -225,10 +179,7 @@ function ExpenseFormDialog({
                         value={(field.value as string) ?? ''}
                         onValueChange={(v) => {
                           field.onChange(v || null)
-                          if (
-                            v &&
-                            categories.find((c) => c.id === v)?.name !== '기타'
-                          ) {
+                          if (v && categories.find((c) => c.id === v)?.name !== '기타') {
                             form.setValue('description', '')
                           }
                         }}
@@ -236,9 +187,7 @@ function ExpenseFormDialog({
                         <SelectTrigger className={cn(inputClass, 'w-full')}>
                           <SelectValue placeholder="카테고리 선택">
                             {selectedCategoryId
-                              ? (categories.find(
-                                  (c) => c.id === selectedCategoryId,
-                                )?.name ?? '')
+                              ? (categories.find((c) => c.id === selectedCategoryId)?.name ?? '')
                               : undefined}
                           </SelectValue>
                         </SelectTrigger>
@@ -250,7 +199,7 @@ function ExpenseFormDialog({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs mt-1" />
+                      <FormMessage className="mt-1 text-xs" />
                     </FormItem>
                   )}
                 />
@@ -263,14 +212,10 @@ function ExpenseFormDialog({
                     <FieldLabel required>내용</FieldLabel>
                     <Input
                       className={inputClass}
-                      placeholder={
-                        isOtherCategory
-                          ? '어떤 항목인지 입력해주세요'
-                          : '내용 입력'
-                      }
+                      placeholder={isOtherCategory ? '어떤 항목인지 입력해주세요' : '내용 입력'}
                       {...field}
                     />
-                    <FormMessage className="text-xs mt-1" />
+                    <FormMessage className="mt-1 text-xs" />
                   </FormItem>
                 )}
               />
@@ -286,11 +231,9 @@ function ExpenseFormDialog({
                       suffix="원"
                       className={cn(inputClass, 'text-right tabular-nums')}
                       value={field.value as number}
-                      onValueChange={({ floatValue }) =>
-                        field.onChange(floatValue ?? 0)
-                      }
+                      onValueChange={({ floatValue }) => field.onChange(floatValue ?? 0)}
                     />
-                    <FormMessage className="text-xs mt-1" />
+                    <FormMessage className="mt-1 text-xs" />
                   </FormItem>
                 )}
               />
@@ -301,12 +244,8 @@ function ExpenseFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FieldLabel required>날짜</FieldLabel>
-                      <DatePicker
-                        variant="form"
-                        value={field.value as Date}
-                        onChange={field.onChange}
-                      />
-                      <FormMessage className="text-xs mt-1" />
+                      <DatePicker variant="form" value={field.value as Date} onChange={field.onChange} />
+                      <FormMessage className="mt-1 text-xs" />
                     </FormItem>
                   )}
                 />
@@ -316,10 +255,7 @@ function ExpenseFormDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FieldLabel required>담당자</FieldLabel>
-                      <Select
-                        value={field.value as string}
-                        onValueChange={field.onChange}
-                      >
+                      <Select value={field.value as string} onValueChange={field.onChange}>
                         <SelectTrigger className={cn(inputClass, 'w-full')}>
                           <SelectValue placeholder="선택">
                             {members.find((m) => m.id === field.value)?.name}
@@ -333,28 +269,24 @@ function ExpenseFormDialog({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="text-xs mt-1" />
+                      <FormMessage className="mt-1 text-xs" />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex justify-end gap-2 border-gray-100 border-t pt-2 dark:border-gray-800">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => onOpenChange(false)}
-                  className="h-8 px-4 text-xs text-gray-500 dark:text-gray-400"
+                  className="h-8 px-4 text-gray-500 text-xs dark:text-gray-400"
                 >
                   취소
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="h-8 px-5 text-xs"
-                >
+                <Button type="submit" disabled={createMutation.isPending} className="h-8 px-5 text-xs">
                   {createMutation.isPending ? (
                     <span className="flex items-center gap-1.5">
-                      <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       저장 중...
                     </span>
                   ) : (
@@ -389,33 +321,22 @@ type ExpenseCardProps = {
   onOpenAttachment: () => void
 }
 
-const ExpenseCard = ({
-  row,
-  expenseCategories,
-  onEdit,
-  onDelete,
-  onOpenAttachment,
-}: ExpenseCardProps) => {
+const ExpenseCard = ({ row, expenseCategories, onEdit, onDelete, onOpenAttachment }: ExpenseCardProps) => {
   const categoryName =
-    row.type === 'income'
-      ? '수입'
-      : (expenseCategories.find((c) => c.id === row.category_id)?.name ??
-        '지출')
+    row.type === 'income' ? '수입' : (expenseCategories.find((c) => c.id === row.category_id)?.name ?? '지출')
 
   return (
     <div
       className={cn(
-        'p-3 bg-white dark:bg-gray-900',
-        row.type === 'income'
-          ? 'border-l-4 border-emerald-500'
-          : 'border-l-4 border-red-500',
+        'bg-white p-3 dark:bg-gray-900',
+        row.type === 'income' ? 'border-emerald-500 border-l-4' : 'border-red-500 border-l-4',
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
           <span
             className={cn(
-              'shrink-0 inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
+              'inline-flex shrink-0 items-center whitespace-nowrap rounded-sm px-2 py-0.5 font-medium text-xs',
               row.type === 'income'
                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                 : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
@@ -425,36 +346,26 @@ const ExpenseCard = ({
           </span>
           <span
             className={cn(
-              'text-sm font-semibold tabular-nums',
-              row.type === 'income'
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-red-500 dark:text-red-400',
+              'font-semibold text-sm tabular-nums',
+              row.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400',
             )}
           >
             {row.type === 'income' ? '+' : '-'}
             {row.amount.toLocaleString('ko-KR')}원
           </span>
         </div>
-        <span className="shrink-0 text-xs text-gray-400 tabular-nums">
-          {formatDate(row.date)}
-        </span>
+        <span className="shrink-0 text-gray-400 text-xs tabular-nums">{formatDate(row.date)}</span>
       </div>
 
-      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 truncate">
-        {row.description}
-      </p>
+      <p className="mt-1 truncate text-gray-700 text-sm dark:text-gray-300">{row.description}</p>
 
-      <AttachmentThumbStrip
-        attachments={row.attachments}
-        onOpen={onOpenAttachment}
-        size={40}
-      />
+      <AttachmentThumbStrip attachments={row.attachments} onOpen={onOpenAttachment} size={40} />
 
       <div className="mt-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <span
             className={cn(
-              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
+              'inline-flex items-center whitespace-nowrap rounded-sm px-2 py-0.5 text-xs',
               row.source === 'task'
                 ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                 : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -462,11 +373,7 @@ const ExpenseCard = ({
           >
             {row.source === 'task' ? '업무연동' : '직접등록'}
           </span>
-          {row.spender && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {row.spender}
-            </span>
-          )}
+          {row.spender && <span className="text-gray-500 text-xs dark:text-gray-400">{row.spender}</span>}
         </div>
         {row.editable && (
           <div className="flex items-center gap-0.5">
@@ -477,7 +384,7 @@ const ExpenseCard = ({
               onClick={onOpenAttachment}
               title="영수증/증빙"
             >
-              <Paperclip className="w-3.5 h-3.5" />
+              <Paperclip className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost"
@@ -485,7 +392,7 @@ const ExpenseCard = ({
               className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               onClick={onEdit}
             >
-              <Pencil className="w-3.5 h-3.5" />
+              <Pencil className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost"
@@ -493,7 +400,7 @@ const ExpenseCard = ({
               className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
               onClick={onDelete}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         )}
@@ -520,9 +427,7 @@ function ExpensesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [inlineValues, setInlineValues] = useState<InlineValues | null>(null)
   const [isMobileEditOpen, setIsMobileEditOpen] = useState(false)
-  const [attachmentExpenseId, setAttachmentExpenseId] = useState<string | null>(
-    null,
-  )
+  const [attachmentExpenseId, setAttachmentExpenseId] = useState<string | null>(null)
 
   const update = (patch: Partial<typeof search>) => {
     navigate({ search: (prev) => ({ ...prev, ...patch }) })
@@ -548,11 +453,12 @@ function ExpensesPage() {
 
   const isLoading = tasksLoading || expensesLoading
 
-  const { allRows, filteredRows, sortedRows, summary } = useExpenseFilters(
-    expenses,
-    tasks,
-    { searchText, spenderFilter, dateFrom, dateTo },
-  )
+  const { allRows, filteredRows, sortedRows, summary } = useExpenseFilters(expenses, tasks, {
+    searchText,
+    spenderFilter,
+    dateFrom,
+    dateTo,
+  })
 
   const deleteMutation = useMutation({
     mutationFn: softDeleteExpense,
@@ -609,92 +515,74 @@ function ExpensesPage() {
   }
 
   const totalPages = Math.ceil(sortedRows.length / PAGE_SIZE)
-  const paginatedRows = sortedRows.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  )
+  const paginatedRows = sortedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handleSearch = () => {
     update({ page: 1, search: searchInput || undefined })
   }
 
-  const hasActiveFilter =
-    !!searchText ||
-    (!!spenderFilter && spenderFilter !== 'all') ||
-    !!dateFrom ||
-    !!dateTo
+  const hasActiveFilter = !!searchText || (!!spenderFilter && spenderFilter !== 'all') || !!dateFrom || !!dateTo
 
-  const selectedSpenderName =
-    members.find((m) => m.id === spenderFilter)?.name ?? '담당자 전체'
+  const selectedSpenderName = members.find((m) => m.id === spenderFilter)?.name ?? '담당자 전체'
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
+    <div className="flex h-full flex-col gap-4 p-4 md:p-6">
       {/* Header */}
       <div className="shrink-0 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              지출내역서
-            </span>
-            <span className="text-xs text-gray-400">
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">지출내역서</span>
+            <span className="text-gray-400 text-xs">
               {filteredRows.length !== allRows.length
                 ? `${filteredRows.length} / ${allRows.length}건`
                 : `총 ${allRows.length}건`}
             </span>
           </div>
-          <Button
-            size="sm"
-            className="gap-1.5 h-8 text-xs"
-            onClick={() => setDialogOpen(true)}
-          >
-            <Plus className="w-3.5 h-3.5" />
+          <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setDialogOpen(true)}>
+            <Plus className="h-3.5 w-3.5" />
             내역 등록
           </Button>
         </div>
 
         {/* Summary */}
-        <div className="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-x-visible">
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-x-visible sm:px-0">
           <div className="flex gap-2 sm:grid sm:grid-cols-3 sm:gap-3">
-            <div className="shrink-0 w-44 sm:w-auto rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 sm:px-4 sm:py-3">
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1 flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5" />총 수입
+            <div className="w-44 shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 sm:w-auto sm:px-4 sm:py-3 dark:border-emerald-800 dark:bg-emerald-900/20">
+              <p className="mb-1 flex items-center gap-1.5 font-medium text-emerald-600 text-xs dark:text-emerald-400">
+                <TrendingUp className="h-3.5 w-3.5" />총 수입
               </p>
-              <p className="text-base sm:text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
+              <p className="whitespace-nowrap font-bold text-base text-emerald-700 tabular-nums sm:text-lg dark:text-emerald-300">
                 {formatCurrency(summary.totalIncome)}
               </p>
             </div>
-            <div className="shrink-0 w-44 sm:w-auto rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 sm:px-4 sm:py-3">
-              <p className="text-xs text-red-500 dark:text-red-400 font-medium mb-1 flex items-center gap-1.5">
-                <TrendingDown className="w-3.5 h-3.5" />총 지출
+            <div className="w-44 shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-2 sm:w-auto sm:px-4 sm:py-3 dark:border-red-800 dark:bg-red-900/20">
+              <p className="mb-1 flex items-center gap-1.5 font-medium text-red-500 text-xs dark:text-red-400">
+                <TrendingDown className="h-3.5 w-3.5" />총 지출
               </p>
-              <p className="text-base sm:text-lg font-bold tabular-nums text-red-600 dark:text-red-400 whitespace-nowrap">
+              <p className="whitespace-nowrap font-bold text-base text-red-600 tabular-nums sm:text-lg dark:text-red-400">
                 {formatCurrency(summary.totalExpense)}
               </p>
             </div>
             <div
               className={cn(
-                'shrink-0 w-44 sm:w-auto rounded-xl border px-3 py-2 sm:px-4 sm:py-3',
+                'w-44 shrink-0 rounded-xl border px-3 py-2 sm:w-auto sm:px-4 sm:py-3',
                 summary.netProfit >= 0
-                  ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20',
+                  ? 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                  : 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20',
               )}
             >
               <p
                 className={cn(
-                  'text-xs font-medium mb-1',
-                  summary.netProfit >= 0
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-orange-500 dark:text-orange-400',
+                  'mb-1 font-medium text-xs',
+                  summary.netProfit >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-500 dark:text-orange-400',
                 )}
               >
                 순수익
               </p>
               <p
                 className={cn(
-                  'text-base sm:text-lg font-bold tabular-nums whitespace-nowrap',
-                  summary.netProfit >= 0
-                    ? 'text-blue-700 dark:text-blue-300'
-                    : 'text-orange-600 dark:text-orange-400',
+                  'whitespace-nowrap font-bold text-base tabular-nums sm:text-lg',
+                  summary.netProfit >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-orange-600 dark:text-orange-400',
                 )}
               >
                 {formatCurrency(summary.netProfit)}
@@ -704,17 +592,17 @@ function ExpensesPage() {
         </div>
 
         {/* Filters */}
-        <div className="-mx-4 px-4 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-x-visible">
-          <div className="flex items-center gap-2 sm:flex-wrap min-w-max sm:min-w-0">
-            <div className="flex items-center gap-1.5 shrink-0">
+        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-x-visible sm:px-0">
+          <div className="flex min-w-max items-center gap-2 sm:min-w-0 sm:flex-wrap">
+            <div className="flex shrink-0 items-center gap-1.5">
               <div className="relative w-44 sm:w-56">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="내용 검색"
-                  className="h-8 pl-8 pr-7 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+                  className="h-8 rounded-lg border-gray-300 bg-white pr-7 pl-8 text-gray-900 text-xs placeholder:text-gray-400 focus-visible:ring-gray-400/40 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
                 />
                 {searchInput && (
                   <button
@@ -723,30 +611,30 @@ function ExpensesPage() {
                       setSearchInput('')
                       update({ page: 1, search: undefined })
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
               <Button
                 size="sm"
                 variant="outline"
-                className="h-8 px-3 text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="h-8 border-gray-200 px-3 text-gray-600 text-xs hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 onClick={handleSearch}
               >
                 검색
               </Button>
             </div>
 
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex shrink-0 items-center gap-1">
               <DatePicker
                 variant="filter"
                 value={dateFrom}
                 onChange={(v) => update({ page: 1, dateFrom: v })}
                 placeholder="시작일"
               />
-              <span className="text-xs text-gray-400 shrink-0">~</span>
+              <span className="shrink-0 text-gray-400 text-xs">~</span>
               <DatePicker
                 variant="filter"
                 value={dateTo}
@@ -762,10 +650,8 @@ function ExpensesPage() {
                   })
                 }
               >
-                <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 shrink-0">
-                  <SelectValue>
-                    {spenderFilter === 'all' ? '담당자' : selectedSpenderName}
-                  </SelectValue>
+                <SelectTrigger className="h-8 w-28 shrink-0 border-gray-300 bg-white text-gray-800 text-xs dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
+                  <SelectValue>{spenderFilter === 'all' ? '담당자' : selectedSpenderName}</SelectValue>
                 </SelectTrigger>
                 <SelectContent side="bottom" sideOffset={4}>
                   <SelectItem value="all">담당자 전체</SelectItem>
@@ -782,7 +668,7 @@ function ExpensesPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 gap-1 shrink-0"
+                className="h-8 shrink-0 gap-1 px-2 text-gray-400 text-xs hover:text-gray-600 dark:hover:text-gray-300"
                 onClick={() => {
                   setSearchInput('')
                   update({
@@ -794,7 +680,7 @@ function ExpensesPage() {
                   })
                 }}
               >
-                <X className="w-3 h-3" />
+                <X className="h-3 w-3" />
                 초기화
               </Button>
             )}
@@ -803,10 +689,10 @@ function ExpensesPage() {
       </div>
 
       {/* Table — desktop only */}
-      <div className="hidden lg:flex flex-1 min-h-0 flex-col">
-        <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="hidden min-h-0 flex-1 flex-col lg:flex">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           <div className="flex-1 overflow-auto">
-            <table className="w-full table-fixed text-sm min-w-[700px]">
+            <table className="w-full min-w-[700px] table-fixed text-sm">
               <colgroup>
                 <col className="w-20" />
                 <col className="w-24" />
@@ -817,23 +703,23 @@ function ExpensesPage() {
                 <col className="w-28" />
               </colgroup>
               <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-                <tr className="border-b border-gray-200 dark:border-gray-800">
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                <tr className="border-gray-200 border-b dark:border-gray-800">
+                  <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     구분
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     날짜
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     내용
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-right font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     금액
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     담당자
                   </th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-300">
                     출처
                   </th>
                   <th className="px-4 py-3" />
@@ -845,17 +731,14 @@ function ExpensesPage() {
                     <tr key={k} className="h-[45px]">
                       {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                         <td key={i} className="px-4 py-2">
-                          <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                          <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                         </td>
                       ))}
                     </tr>
                   ))
                 ) : paginatedRows.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="text-center py-20 text-xs text-gray-400 dark:text-gray-400"
-                    >
+                    <td colSpan={7} className="py-20 text-center text-gray-400 text-xs dark:text-gray-400">
                       등록된 내역이 없습니다
                     </td>
                   </tr>
@@ -865,10 +748,7 @@ function ExpensesPage() {
 
                     if (isEditing && inlineValues) {
                       return (
-                        <tr
-                          key={row.id}
-                          className="h-[45px] bg-blue-50/40 dark:bg-blue-900/10"
-                        >
+                        <tr key={row.id} className="h-[45px] bg-blue-50/40 dark:bg-blue-900/10">
                           {/* 구분 */}
                           <td className="px-2 py-2">
                             <div className="flex flex-col gap-1">
@@ -877,19 +757,12 @@ function ExpensesPage() {
                                 onValueChange={(v) =>
                                   patchInline({
                                     entry_type: v as EntryType,
-                                    category_id:
-                                      v === 'income'
-                                        ? null
-                                        : inlineValues.category_id,
+                                    category_id: v === 'income' ? null : inlineValues.category_id,
                                   })
                                 }
                               >
-                                <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                                  <SelectValue>
-                                    {inlineValues.entry_type === 'income'
-                                      ? '수입'
-                                      : '지출'}
-                                  </SelectValue>
+                                <SelectTrigger className="h-7 w-full border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-800">
+                                  <SelectValue>{inlineValues.entry_type === 'income' ? '수입' : '지출'}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent alignItemWithTrigger={false}>
                                   <SelectItem value="income">수입</SelectItem>
@@ -899,17 +772,12 @@ function ExpensesPage() {
                               {inlineValues.entry_type === 'expense' && (
                                 <Select
                                   value={inlineValues.category_id ?? ''}
-                                  onValueChange={(v) =>
-                                    patchInline({ category_id: v || null })
-                                  }
+                                  onValueChange={(v) => patchInline({ category_id: v || null })}
                                 >
-                                  <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                                  <SelectTrigger className="h-7 w-full border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-800">
                                     <SelectValue placeholder="카테고리">
                                       {inlineValues.category_id
-                                        ? (expenseCategories.find(
-                                            (c) =>
-                                              c.id === inlineValues.category_id,
-                                          )?.name ?? '')
+                                        ? (expenseCategories.find((c) => c.id === inlineValues.category_id)?.name ?? '')
                                         : undefined}
                                     </SelectValue>
                                   </SelectTrigger>
@@ -937,9 +805,7 @@ function ExpensesPage() {
                             <Input
                               className={smallInputClass}
                               value={inlineValues.description}
-                              onChange={(e) =>
-                                patchInline({ description: e.target.value })
-                              }
+                              onChange={(e) => patchInline({ description: e.target.value })}
                             />
                           </td>
                           {/* 금액 */}
@@ -948,32 +814,20 @@ function ExpensesPage() {
                               customInput={Input}
                               thousandSeparator=","
                               suffix="원"
-                              className={cn(
-                                smallInputClass,
-                                'text-right tabular-nums',
-                              )}
+                              className={cn(smallInputClass, 'text-right tabular-nums')}
                               value={inlineValues.amount}
-                              onValueChange={({ floatValue }) =>
-                                patchInline({ amount: floatValue ?? 0 })
-                              }
+                              onValueChange={({ floatValue }) => patchInline({ amount: floatValue ?? 0 })}
                             />
                           </td>
                           {/* 담당자 */}
                           <td className="px-2 py-2">
                             <Select
                               value={inlineValues.spender_member_id}
-                              onValueChange={(v) =>
-                                v && patchInline({ spender_member_id: v })
-                              }
+                              onValueChange={(v) => v && patchInline({ spender_member_id: v })}
                             >
-                              <SelectTrigger className="h-7 w-full text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                              <SelectTrigger className="h-7 w-full border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-800">
                                 <SelectValue>
-                                  {
-                                    members.find(
-                                      (m) =>
-                                        m.id === inlineValues.spender_member_id,
-                                    )?.name
-                                  }
+                                  {members.find((m) => m.id === inlineValues.spender_member_id)?.name}
                                 </SelectValue>
                               </SelectTrigger>
                               <SelectContent alignItemWithTrigger={false}>
@@ -987,7 +841,7 @@ function ExpensesPage() {
                           </td>
                           {/* 출처 */}
                           <td className="px-2 py-2 text-center">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                            <span className="inline-flex items-center rounded-sm bg-blue-50 px-2 py-0.5 text-blue-600 text-xs dark:bg-blue-900/20 dark:text-blue-400">
                               직접등록
                             </span>
                           </td>
@@ -1001,7 +855,7 @@ function ExpensesPage() {
                                 disabled={inlineSaveMutation.isPending}
                                 onClick={() => inlineSaveMutation.mutate()}
                               >
-                                <Check className="w-3.5 h-3.5" />
+                                <Check className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -1009,7 +863,7 @@ function ExpensesPage() {
                                 className="h-7 w-7 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                                 onClick={handleCancelEdit}
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <X className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </td>
@@ -1018,14 +872,11 @@ function ExpensesPage() {
                     }
 
                     return (
-                      <tr
-                        key={row.id}
-                        className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
-                      >
+                      <tr key={row.id} className="transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40">
                         <td className="px-4 py-2 text-center">
                           <span
                             className={cn(
-                              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium whitespace-nowrap',
+                              'inline-flex items-center whitespace-nowrap rounded-sm px-2 py-0.5 font-medium text-xs',
                               row.type === 'income'
                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                 : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
@@ -1033,31 +884,25 @@ function ExpensesPage() {
                           >
                             {row.type === 'income'
                               ? '수입'
-                              : (expenseCategories.find(
-                                  (c) => c.id === row.category_id,
-                                )?.name ?? '지출')}
+                              : (expenseCategories.find((c) => c.id === row.category_id)?.name ?? '지출')}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300 tabular-nums">
+                        <td className="px-4 py-2 text-center text-gray-500 text-xs tabular-nums dark:text-gray-300">
                           {formatDate(row.date)}
                         </td>
                         <td className="px-4 py-2">
-                          <span className="text-sm text-gray-900 dark:text-gray-100 truncate block">
+                          <span className="block truncate text-gray-900 text-sm dark:text-gray-100">
                             {row.description}
                           </span>
                           <AttachmentThumbStrip
                             attachments={row.attachments}
-                            onOpen={() =>
-                              setAttachmentExpenseId(
-                                row.source === 'manual' ? row.id : '',
-                              )
-                            }
+                            onOpen={() => setAttachmentExpenseId(row.source === 'manual' ? row.id : '')}
                             size={48}
                           />
                         </td>
                         <td
                           className={cn(
-                            'px-4 py-2 text-right text-xs font-semibold tabular-nums truncate',
+                            'truncate px-4 py-2 text-right font-semibold text-xs tabular-nums',
                             row.type === 'income'
                               ? 'text-emerald-600 dark:text-emerald-400'
                               : 'text-red-500 dark:text-red-400',
@@ -1066,13 +911,13 @@ function ExpensesPage() {
                           {row.type === 'income' ? '+' : '-'}
                           {formatCurrency(row.amount)}
                         </td>
-                        <td className="px-4 py-2 text-center text-xs text-gray-500 dark:text-gray-300">
+                        <td className="px-4 py-2 text-center text-gray-500 text-xs dark:text-gray-300">
                           {row.spender ?? '-'}
                         </td>
                         <td className="px-4 py-2 text-center">
                           <span
                             className={cn(
-                              'inline-flex items-center px-2 py-0.5 rounded-sm text-xs whitespace-nowrap',
+                              'inline-flex items-center whitespace-nowrap rounded-sm px-2 py-0.5 text-xs',
                               row.source === 'task'
                                 ? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
                                 : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
@@ -1082,7 +927,7 @@ function ExpensesPage() {
                           </span>
                         </td>
                         <td className="px-4 py-2">
-                          <div className="flex items-center justify-center gap-0.5 h-7">
+                          <div className="flex h-7 items-center justify-center gap-0.5">
                             {row.editable && (
                               <>
                                 <Button
@@ -1092,20 +937,18 @@ function ExpensesPage() {
                                   onClick={() => setAttachmentExpenseId(row.id)}
                                   title="영수증/증빙"
                                 >
-                                  <Paperclip className="w-3.5 h-3.5" />
+                                  <Paperclip className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                   onClick={() => {
-                                    const expense = expenses.find(
-                                      (e) => e.id === row.id,
-                                    )
+                                    const expense = expenses.find((e) => e.id === row.id)
                                     if (expense) handleStartEdit(expense)
                                   }}
                                 >
-                                  <Pencil className="w-3.5 h-3.5" />
+                                  <Pencil className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -1113,7 +956,7 @@ function ExpensesPage() {
                                   className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                                   onClick={() => setDeleteId(row.id)}
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
                               </>
                             )}
@@ -1128,30 +971,24 @@ function ExpensesPage() {
           </div>
 
           {/* Pagination */}
-          <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={(p) => update({ page: p })}
-            />
+          <div className="shrink-0 border-gray-100 border-t bg-white py-3 dark:border-gray-800 dark:bg-gray-900">
+            <Pagination page={page} totalPages={totalPages} onPageChange={(p) => update({ page: p })} />
           </div>
         </div>
       </div>
 
       {/* Mobile / tablet card list */}
-      <div className="lg:hidden flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 overflow-auto divide-y divide-gray-100 dark:divide-gray-800 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+        <div className="flex-1 divide-y divide-gray-100 overflow-auto border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
           {isLoading ? (
             ['a', 'b', 'c', 'd'].map((k) => (
-              <div key={k} className="p-3 space-y-2 animate-pulse">
-                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/3" />
-                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+              <div key={k} className="animate-pulse space-y-2 p-3">
+                <div className="h-3 w-1/3 rounded bg-gray-100 dark:bg-gray-800" />
+                <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-gray-800" />
               </div>
             ))
           ) : paginatedRows.length === 0 ? (
-            <div className="text-center py-20 text-xs text-gray-400">
-              등록된 내역이 없습니다
-            </div>
+            <div className="py-20 text-center text-gray-400 text-xs">등록된 내역이 없습니다</div>
           ) : (
             paginatedRows.map((row) => (
               <ExpenseCard
@@ -1166,38 +1003,25 @@ function ExpensesPage() {
                   }
                 }}
                 onDelete={() => setDeleteId(row.id)}
-                onOpenAttachment={() =>
-                  setAttachmentExpenseId(row.source === 'manual' ? row.id : '')
-                }
+                onOpenAttachment={() => setAttachmentExpenseId(row.source === 'manual' ? row.id : '')}
               />
             ))
           )}
         </div>
-        <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={(p) => update({ page: p })}
-          />
+        <div className="shrink-0 border-gray-100 border-t bg-white py-3 dark:border-gray-800 dark:bg-gray-900">
+          <Pagination page={page} totalPages={totalPages} onPageChange={(p) => update({ page: p })} />
         </div>
       </div>
 
-      <ExpenseFormDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSuccess={() => setDialogOpen(false)}
-      />
+      <ExpenseFormDialog open={dialogOpen} onOpenChange={setDialogOpen} onSuccess={() => setDialogOpen(false)} />
 
-      <Dialog
-        open={isMobileEditOpen}
-        onOpenChange={(o) => !o && handleCancelEdit()}
-      >
+      <Dialog open={isMobileEditOpen} onOpenChange={(o) => !o && handleCancelEdit()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>내역 수정</DialogTitle>
           </DialogHeader>
           {inlineValues && (
-            <div className="space-y-3 mt-2">
+            <div className="mt-2 space-y-3">
               <div>
                 <FieldLabel required>구분</FieldLabel>
                 <Select
@@ -1205,15 +1029,12 @@ function ExpensesPage() {
                   onValueChange={(v) =>
                     patchInline({
                       entry_type: v as EntryType,
-                      category_id:
-                        v === 'income' ? null : inlineValues.category_id,
+                      category_id: v === 'income' ? null : inlineValues.category_id,
                     })
                   }
                 >
                   <SelectTrigger className={cn(inputClass, 'w-full')}>
-                    <SelectValue>
-                      {inlineValues.entry_type === 'income' ? '수입' : '지출'}
-                    </SelectValue>
+                    <SelectValue>{inlineValues.entry_type === 'income' ? '수입' : '지출'}</SelectValue>
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
                     <SelectItem value="income">수입</SelectItem>
@@ -1227,16 +1048,12 @@ function ExpensesPage() {
                   <FieldLabel>카테고리</FieldLabel>
                   <Select
                     value={inlineValues.category_id ?? ''}
-                    onValueChange={(v) =>
-                      patchInline({ category_id: v || null })
-                    }
+                    onValueChange={(v) => patchInline({ category_id: v || null })}
                   >
                     <SelectTrigger className={cn(inputClass, 'w-full')}>
                       <SelectValue placeholder="카테고리">
                         {inlineValues.category_id
-                          ? (expenseCategories.find(
-                              (c) => c.id === inlineValues.category_id,
-                            )?.name ?? '')
+                          ? (expenseCategories.find((c) => c.id === inlineValues.category_id)?.name ?? '')
                           : undefined}
                       </SelectValue>
                     </SelectTrigger>
@@ -1281,9 +1098,7 @@ function ExpensesPage() {
                   suffix="원"
                   className={cn(inputClass, 'text-right tabular-nums')}
                   value={inlineValues.amount}
-                  onValueChange={({ floatValue }) =>
-                    patchInline({ amount: floatValue ?? 0 })
-                  }
+                  onValueChange={({ floatValue }) => patchInline({ amount: floatValue ?? 0 })}
                 />
               </div>
 
@@ -1291,18 +1106,10 @@ function ExpensesPage() {
                 <FieldLabel required>담당자</FieldLabel>
                 <Select
                   value={inlineValues.spender_member_id}
-                  onValueChange={(v) =>
-                    v && patchInline({ spender_member_id: v })
-                  }
+                  onValueChange={(v) => v && patchInline({ spender_member_id: v })}
                 >
                   <SelectTrigger className={cn(inputClass, 'w-full')}>
-                    <SelectValue>
-                      {
-                        members.find(
-                          (m) => m.id === inlineValues.spender_member_id,
-                        )?.name
-                      }
-                    </SelectValue>
+                    <SelectValue>{members.find((m) => m.id === inlineValues.spender_member_id)?.name}</SelectValue>
                   </SelectTrigger>
                   <SelectContent alignItemWithTrigger={false}>
                     {members.map((m) => (
@@ -1314,11 +1121,11 @@ function ExpensesPage() {
                 </Select>
               </div>
 
-              <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex justify-end gap-2 border-gray-100 border-t pt-2 dark:border-gray-800">
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-8 px-4 text-xs text-gray-500"
+                  className="h-8 px-4 text-gray-500 text-xs"
                   onClick={handleCancelEdit}
                 >
                   취소
@@ -1337,10 +1144,7 @@ function ExpensesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={!!attachmentExpenseId}
-        onOpenChange={(o) => !o && setAttachmentExpenseId(null)}
-      >
+      <Dialog open={!!attachmentExpenseId} onOpenChange={(o) => !o && setAttachmentExpenseId(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>영수증/증빙 첨부</DialogTitle>

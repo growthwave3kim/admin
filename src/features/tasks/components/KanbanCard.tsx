@@ -1,10 +1,10 @@
+import { Draggable } from '@hello-pangea/dnd'
+import { useNavigate } from '@tanstack/react-router'
+import { Pencil, Trash2 } from 'lucide-react'
 import { ProfitAmount } from '@/features/tasks/components/ProfitAmount'
 import type { Task } from '@/features/tasks/types'
 import { formatMarketingSummary } from '@/features/tasks/utils'
 import { cn, formatDate } from '@/lib/utils'
-import { Draggable } from '@hello-pangea/dnd'
-import { useNavigate } from '@tanstack/react-router'
-import { Pencil, Trash2 } from 'lucide-react'
 
 export const KanbanCard = ({
   task,
@@ -22,6 +22,8 @@ export const KanbanCard = ({
   return (
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
+        // biome-ignore lint/a11y/noStaticElementInteractions: keyboard events handled by DnD dragHandleProps
+        // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events handled by DnD dragHandleProps
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
@@ -31,55 +33,45 @@ export const KanbanCard = ({
             ...(snapshot.isDropAnimating && { transitionDuration: '0.001s' }),
           }}
           className={cn(
-            'group bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing transition-[box-shadow,border-color]',
+            'group cursor-grab rounded-md border border-gray-200 bg-white transition-[box-shadow,border-color] active:cursor-grabbing dark:border-gray-700 dark:bg-gray-800',
             snapshot.isDragging
-              ? 'shadow-lg border-gray-400 dark:border-gray-400 ring-2 ring-gray-200 dark:ring-gray-600'
-              : 'hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm',
+              ? 'border-gray-400 shadow-lg ring-2 ring-gray-200 dark:border-gray-400 dark:ring-gray-600'
+              : 'hover:border-gray-300 hover:shadow-sm dark:hover:border-gray-600',
           )}
-          onClick={() =>
-            !snapshot.isDragging &&
-            navigate({ to: '/tasks/$taskId', params: { taskId: task.id } })
-          }
+          onClick={() => !snapshot.isDragging && navigate({ to: '/tasks/$taskId', params: { taskId: task.id } })}
         >
-          <div className="p-3.5 space-y-3">
+          <div className="space-y-3 p-3.5">
             <div className="flex items-start justify-between gap-1">
-              <p className="font-semibold text-[13px] text-gray-900 dark:text-gray-50 truncate leading-tight flex-1">
+              <p className="flex-1 truncate font-semibold text-[13px] text-gray-900 leading-tight dark:text-gray-50">
                 {task.company_name}
               </p>
-              <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   type="button"
-                  className="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex h-6 w-6 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                   onClick={(e) => {
                     e.stopPropagation()
                     onEdit()
                   }}
                 >
-                  <Pencil className="w-3 h-3" />
+                  <Pencil className="h-3 w-3" />
                 </button>
                 <button
                   type="button"
-                  className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  className="flex h-6 w-6 items-center justify-center rounded text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                   onClick={(e) => {
                     e.stopPropagation()
                     onDelete()
                   }}
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             </div>
-            <ProfitAmount
-              value={task.profit || 0}
-              className="text-sm font-bold"
-            />
-            <div className="pt-2.5 border-t border-gray-100 dark:border-gray-700/50 space-y-1.5">
-              <p className="text-[11px] text-gray-600 dark:text-gray-300 truncate">
-                {formatMarketingSummary(task)}
-              </p>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
-                {formatDate(task.start_date)}
-              </p>
+            <ProfitAmount value={task.profit || 0} className="font-bold text-sm" />
+            <div className="space-y-1.5 border-gray-100 border-t pt-2.5 dark:border-gray-700/50">
+              <p className="truncate text-[11px] text-gray-600 dark:text-gray-300">{formatMarketingSummary(task)}</p>
+              <p className="text-[11px] text-gray-500 tabular-nums dark:text-gray-400">{formatDate(task.start_date)}</p>
             </div>
           </div>
         </div>

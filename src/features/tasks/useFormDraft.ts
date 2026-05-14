@@ -1,6 +1,6 @@
-import type { TaskFormValues } from '@/features/tasks/TaskForm'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
+import type { TaskFormValues } from '@/features/tasks/TaskForm'
 
 const DRAFT_KEY = 'draft:task:new'
 const DEBOUNCE_MS = 500
@@ -10,10 +10,8 @@ const readDraft = (): Partial<TaskFormValues> | null => {
     const raw = localStorage.getItem(DRAFT_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as Partial<TaskFormValues>
-    if (parsed.start_date)
-      parsed.start_date = new Date(parsed.start_date as unknown as string)
-    if (parsed.end_date)
-      parsed.end_date = new Date(parsed.end_date as unknown as string)
+    if (parsed.start_date) parsed.start_date = new Date(parsed.start_date as unknown as string)
+    if (parsed.end_date) parsed.end_date = new Date(parsed.end_date as unknown as string)
     return parsed
   } catch {
     return null
@@ -30,10 +28,7 @@ export const clearDraft = () => {
   localStorage.removeItem(DRAFT_KEY)
 }
 
-export const useFormDraft = (
-  form: UseFormReturn<TaskFormValues>,
-  enabled = true,
-) => {
+export const useFormDraft = (form: UseFormReturn<TaskFormValues>, enabled = true) => {
   const [hasDraft, setHasDraft] = useState(() => enabled && !!readDraft())
   const [draftRestored, setDraftRestored] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)

@@ -1,3 +1,11 @@
+import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createLazyFileRoute } from '@tanstack/react-router'
+import { Plus, Tag, X } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { inputClassSm } from '@/components/common/FieldLabel'
 import { Button } from '@/components/ui/button'
@@ -10,18 +18,10 @@ import {
   fetchMarketingTypes,
   reorderMarketingTypes,
 } from '@/features/marketing-types/queries'
-import { type NameForm, nameSchema } from '@/features/marketing-types/types'
 import type { MarketingType } from '@/features/marketing-types/types'
+import { type NameForm, nameSchema } from '@/features/marketing-types/types'
 import { STALE_FOREVER } from '@/lib/queryClient'
 import { cn } from '@/lib/utils'
-import { DragDropContext, type DropResult, Droppable } from '@hello-pangea/dnd'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createLazyFileRoute } from '@tanstack/react-router'
-import { Plus, Tag, X } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 
 export const Route = createLazyFileRoute('/_authed/marketing-types/')({
   component: MarketingTypesPage,
@@ -45,8 +45,7 @@ function MarketingTypesPage() {
   })
 
   const addMutation = useMutation({
-    mutationFn: (data: NameForm) =>
-      createMarketingType(data.name, types.length + 1),
+    mutationFn: (data: NameForm) => createMarketingType(data.name, types.length + 1),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['marketing-types'] })
       toast.success('추가되었습니다')
@@ -67,8 +66,7 @@ function MarketingTypesPage() {
   })
 
   const reorderMutation = useMutation({
-    mutationFn: (items: { id: string; sort_order: number }[]) =>
-      reorderMarketingTypes(items),
+    mutationFn: (items: { id: string; sort_order: number }[]) => reorderMarketingTypes(items),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['marketing-types'] })
     },
@@ -76,8 +74,7 @@ function MarketingTypesPage() {
   })
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || result.source.index === result.destination.index)
-      return
+    if (!result.destination || result.source.index === result.destination.index) return
 
     const reordered = Array.from(types)
     const [removed] = reordered.splice(result.source.index, 1)
@@ -85,23 +82,17 @@ function MarketingTypesPage() {
 
     qc.setQueryData(['marketing-types'], reordered)
 
-    reorderMutation.mutate(
-      reordered.map((t, i) => ({ id: t.id, sort_order: i + 1 })),
-    )
+    reorderMutation.mutate(reordered.map((t, i) => ({ id: t.id, sort_order: i + 1 })))
   }
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-xl mx-auto space-y-5">
+      <div className="mx-auto max-w-xl space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-              마케팅 유형
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-400">
-              {types.length}개
-            </span>
+            <span className="font-semibold text-base text-gray-800 dark:text-gray-200">마케팅 유형</span>
+            <span className="text-gray-400 text-xs dark:text-gray-400">{types.length}개</span>
           </div>
           {!isAdding && (
             <Button
@@ -111,9 +102,9 @@ function MarketingTypesPage() {
                 setIsAdding(true)
                 setEditId(null)
               }}
-              className="h-8 px-3 text-xs gap-1.5"
+              className="h-8 gap-1.5 px-3 text-xs"
             >
-              <Plus className="w-3.5 h-3.5" />새 유형
+              <Plus className="h-3.5 w-3.5" />새 유형
             </Button>
           )}
         </div>
@@ -122,10 +113,8 @@ function MarketingTypesPage() {
         {isAdding && (
           <Form {...addForm}>
             <form
-              onSubmit={addForm.handleSubmit((d) =>
-                addMutation.mutate(d as NameForm),
-              )}
-              className="flex gap-2 items-start"
+              onSubmit={addForm.handleSubmit((d) => addMutation.mutate(d as NameForm))}
+              className="flex items-start gap-2"
             >
               <FormField
                 control={addForm.control as never}
@@ -142,38 +131,34 @@ function MarketingTypesPage() {
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                disabled={addMutation.isPending}
-                className="h-9 px-4 text-xs shrink-0"
-              >
+              <Button type="submit" disabled={addMutation.isPending} className="h-9 shrink-0 px-4 text-xs">
                 {addMutation.isPending ? '추가 중...' : '추가'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-gray-600 dark:text-gray-400 shrink-0"
+                className="h-9 w-9 shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 onClick={() => {
                   setIsAdding(false)
                   addForm.reset()
                 }}
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </Button>
             </form>
           </Form>
         )}
 
         {/* List */}
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {isLoading ? (
-            <div className="py-12 flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800 dark:border-gray-700 dark:border-t-gray-200" />
             </div>
           ) : types.length === 0 ? (
-            <div className="py-14 flex flex-col items-center gap-3 text-gray-300 dark:text-gray-500">
-              <Tag className="w-8 h-8" />
+            <div className="flex flex-col items-center gap-3 py-14 text-gray-300 dark:text-gray-500">
+              <Tag className="h-8 w-8" />
               <p className="text-sm">등록된 마케팅 유형이 없습니다</p>
             </div>
           ) : (
@@ -215,9 +200,7 @@ function MarketingTypesPage() {
           confirmLabel="삭제"
           tone="destructive"
           isPending={deleteMutation.isPending}
-          onConfirm={() =>
-            deleteTarget && deleteMutation.mutate(deleteTarget.id)
-          }
+          onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         />
       </div>
     </div>

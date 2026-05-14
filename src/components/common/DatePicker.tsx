@@ -1,14 +1,10 @@
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
 import { format, parseISO } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { CalendarIcon } from 'lucide-react'
 import { useState } from 'react'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 const inputClass =
   'h-9 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/30 focus-visible:border-gray-400 transition'
@@ -62,7 +58,7 @@ export const DatePicker = (props: DatePickerProps) => {
         <PopoverTrigger
           className={cn(
             inputClass,
-            'w-full flex items-center text-left px-3',
+            'flex w-full items-center px-3 text-left',
             !value && 'text-gray-400 dark:text-gray-400',
           )}
         >
@@ -92,7 +88,7 @@ export const DatePicker = (props: DatePickerProps) => {
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           className={cn(
-            'h-8 w-28 px-3 flex items-center gap-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition',
+            'flex h-8 w-28 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 text-gray-700 text-xs transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800',
             !value && 'text-gray-400 dark:text-gray-400',
           )}
         >
@@ -120,11 +116,7 @@ export const DatePicker = (props: DatePickerProps) => {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger
-        className={cn(
-          smallInputClass,
-          'w-full flex items-center gap-1.5 px-2 border',
-          !value && 'text-gray-400',
-        )}
+        className={cn(smallInputClass, 'flex w-full items-center gap-1.5 border px-2', !value && 'text-gray-400')}
       >
         <CalendarIcon className="h-3 w-3 shrink-0 text-gray-400" />
         {value ? format(parseISO(value), 'yy.MM.dd') : '날짜'}

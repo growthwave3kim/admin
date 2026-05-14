@@ -1,7 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAxisStyle, getTooltipStyle } from '@/features/dashboard/chartStyles'
-import { useTheme } from '@/hooks/useTheme'
-import { formatCurrency } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import {
   CartesianGrid,
@@ -14,6 +10,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getAxisStyle, getTooltipStyle } from '@/features/dashboard/chartStyles'
+import { useTheme } from '@/hooks/useTheme'
+import { formatCurrency } from '@/lib/utils'
 
 type MonthlyDataPoint = {
   label: string
@@ -33,9 +33,7 @@ export const MonthlyChart = ({
 }) => {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 768,
-  )
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -52,22 +50,17 @@ export const MonthlyChart = ({
 
   return (
     <Card className="col-span-2 border-border shadow-none">
-      <CardHeader className="pb-2 pt-4 px-4">
+      <CardHeader className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <CardTitle className="font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
             수입 · 지출 · 순수익 추이 · 최근 {isMobile ? '6' : '12'}개월
           </CardTitle>
-          <span className="text-[10px] text-gray-400 dark:text-gray-400">
-            단위: 만원
-          </span>
+          <span className="text-[10px] text-gray-400 dark:text-gray-400">단위: 만원</span>
         </div>
       </CardHeader>
       <CardContent className="px-4 pb-4">
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart
-            data={displayData}
-            margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
-          >
+          <LineChart data={displayData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
             {highlightStart && highlightEnd && (
               <ReferenceArea
                 x1={highlightStart}
@@ -76,17 +69,8 @@ export const MonthlyChart = ({
                 strokeOpacity={0}
               />
             )}
-            <CartesianGrid
-              strokeDasharray="0"
-              stroke={gridColor}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="label"
-              tick={axisStyle}
-              axisLine={false}
-              tickLine={false}
-            />
+            <CartesianGrid strokeDasharray="0" stroke={gridColor} vertical={false} />
+            <XAxis dataKey="label" tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis
               tick={axisStyle}
               axisLine={false}
@@ -94,11 +78,7 @@ export const MonthlyChart = ({
               tickCount={5}
               width={28}
               tickFormatter={(v: number) =>
-                v === 0
-                  ? '0'
-                  : new Intl.NumberFormat('ko-KR').format(
-                      Math.round(v / 10_000),
-                    )
+                v === 0 ? '0' : new Intl.NumberFormat('ko-KR').format(Math.round(v / 10_000))
               }
             />
             <Tooltip

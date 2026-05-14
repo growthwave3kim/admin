@@ -1,12 +1,7 @@
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
 import { AlertTriangle, HelpCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 type ConfirmDialogProps = {
   open: boolean
@@ -34,35 +29,31 @@ export const ConfirmDialog = ({
   const Icon = tone === 'destructive' ? AlertTriangle : HelpCircle
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md p-6 gap-0">
+      <DialogContent showCloseButton={false} className="gap-0 p-6 sm:max-w-md">
         <div className="flex items-start gap-3.5">
           <div
             className={cn(
-              'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-              tone === 'destructive'
-                ? 'bg-red-50 dark:bg-red-900/20'
-                : 'bg-gray-100 dark:bg-gray-800',
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+              tone === 'destructive' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-100 dark:bg-gray-800',
             )}
           >
             <Icon
               className={cn(
-                'w-5 h-5',
-                tone === 'destructive'
-                  ? 'text-red-500 dark:text-red-400'
-                  : 'text-gray-700 dark:text-gray-300',
+                'h-5 w-5',
+                tone === 'destructive' ? 'text-red-500 dark:text-red-400' : 'text-gray-700 dark:text-gray-300',
               )}
             />
           </div>
-          <div className="flex-1 space-y-2 min-w-0">
+          <div className="min-w-0 flex-1 space-y-2">
             <DialogTitle className="leading-tight">{title}</DialogTitle>
             {description && (
-              <DialogDescription className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed">
+              <DialogDescription className="text-[13px] text-gray-600 leading-relaxed dark:text-gray-300">
                 {description}
               </DialogDescription>
             )}
           </div>
         </div>
-        <div className="flex gap-2 justify-end mt-6">
+        <div className="mt-6 flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"

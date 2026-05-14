@@ -17,30 +17,20 @@ export const KpiCard = ({
   small?: boolean
 }) => (
   <Card className="border-border shadow-none">
-    <CardContent className="px-5 flex flex-col py-4">
-      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-        {label}
-      </p>
+    <CardContent className="flex flex-col px-5 py-4">
+      <p className="font-medium text-gray-500 text-xs dark:text-gray-400">{label}</p>
       {isLoading ? (
-        <div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-4" />
+        <div className="mt-4 h-6 w-24 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
       ) : (
-        <div className="flex flex-col gap-1 mt-2">
-          <p
-            className={cn(
-              'font-semibold leading-none tabular-nums truncate',
-              small ? 'text-base' : 'text-lg',
-              color,
-            )}
-          >
+        <div className="mt-2 flex flex-col gap-1">
+          <p className={cn('truncate font-semibold tabular-nums leading-none', small ? 'text-base' : 'text-lg', color)}>
             {display}
           </p>
           {delta && (
             <p
               className={cn(
-                'text-xs font-medium tabular-nums',
-                delta.startsWith('+')
-                  ? 'text-emerald-500 dark:text-emerald-400'
-                  : 'text-red-500 dark:text-red-400',
+                'font-medium text-xs tabular-nums',
+                delta.startsWith('+') ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400',
               )}
             >
               {delta}

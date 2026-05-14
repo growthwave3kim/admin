@@ -1,23 +1,4 @@
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
-import { ImportPreviewModal } from '@/features/clients/ImportPreviewModal'
-import {
-  convertToClient,
-  fetchContacts,
-  fetchContactsPage,
-  fetchContactsTotal,
-  softDeleteClient,
-} from '@/features/clients/queries'
-import type { Client } from '@/features/clients/types'
-import { useContactImport } from '@/features/clients/useContactImport'
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import {
@@ -36,6 +17,20 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
+import { ImportPreviewModal } from '@/features/clients/ImportPreviewModal'
+import {
+  convertToClient,
+  fetchContacts,
+  fetchContactsPage,
+  fetchContactsTotal,
+  softDeleteClient,
+} from '@/features/clients/queries'
+import type { Client } from '@/features/clients/types'
+import { useContactImport } from '@/features/clients/useContactImport'
 
 export const Route = createLazyFileRoute('/_authed/contacts/')({
   component: ContactsPage,
@@ -45,11 +40,9 @@ const routeApi = getRouteApi('/_authed/contacts/')
 
 const formatPhone = (phone: string): string => {
   const d = phone.replace(/\D/g, '')
-  if (d.length === 11 && d.startsWith('0'))
-    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  if (d.length === 11 && d.startsWith('0')) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
   if (d.length === 10) {
-    if (d.startsWith('02'))
-      return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6)}`
+    if (d.startsWith('02')) return `${d.slice(0, 2)}-${d.slice(2, 6)}-${d.slice(6)}`
     return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
   }
   return phone
@@ -88,32 +81,24 @@ function ContactsPage() {
   const sentinelRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  const {
-    fileInputRef,
-    isImporting,
-    importPreview,
-    isSubmitting,
-    handleImport,
-    handleImportConfirm,
-    clearPreview,
-  } = useContactImport()
+  const { fileInputRef, isImporting, importPreview, isSubmitting, handleImport, handleImportConfirm, clearPreview } =
+    useContactImport()
 
   const { data: totalData } = useQuery({
     queryKey: ['clients-total'],
     queryFn: fetchContactsTotal,
   })
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
-    useInfiniteQuery({
-      queryKey: ['clients-infinite', debouncedSearch],
-      queryFn: ({ pageParam }) =>
-        fetchContactsPage({
-          pageParam: pageParam as number,
-          search: debouncedSearch,
-        }),
-      getNextPageParam: (lastPage) => lastPage.nextPage,
-      initialPageParam: 0,
-    })
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } = useInfiniteQuery({
+    queryKey: ['clients-infinite', debouncedSearch],
+    queryFn: ({ pageParam }) =>
+      fetchContactsPage({
+        pageParam: pageParam as number,
+        search: debouncedSearch,
+      }),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
+  })
 
   const convertMutation = useMutation({
     mutationFn: (id: string) => convertToClient(id),
@@ -189,15 +174,14 @@ function ContactsPage() {
     return () => document.removeEventListener('mouseup', onMouseUp)
   }, [])
 
-  const handleRowMouseDown =
-    (idx: number, id: string) => (e: React.MouseEvent) => {
-      if (e.button !== 0) return
-      e.preventDefault()
-      isDragging.current = true
-      hasMoved.current = false
-      mouseDownId.current = id
-      dragStartIdx.current = idx
-    }
+  const handleRowMouseDown = (idx: number, id: string) => (e: React.MouseEvent) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    isDragging.current = true
+    hasMoved.current = false
+    mouseDownId.current = id
+    dragStartIdx.current = idx
+  }
 
   const handleRowMouseEnter = (idx: number) => () => {
     if (!isDragging.current) return
@@ -254,16 +238,12 @@ function ContactsPage() {
   const selectedCount = selectedIds.size
 
   return (
-    <div className="h-full flex flex-col gap-3 p-4 md:p-6">
+    <div className="flex h-full flex-col gap-3 p-4 md:p-6">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            고객 DB
-          </span>
-          {totalData !== undefined && (
-            <span className="text-xs text-gray-400">총 {totalData}개</span>
-          )}
+          <span className="font-semibold text-base text-gray-800 dark:text-gray-200">고객 DB</span>
+          {totalData !== undefined && <span className="text-gray-400 text-xs">총 {totalData}개</span>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -271,103 +251,95 @@ function ContactsPage() {
             <Button
               size="sm"
               variant="outline"
-              className="hidden sm:flex h-8 text-xs gap-1.5 border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              className="hidden h-8 gap-1.5 border-blue-300 text-blue-600 text-xs hover:bg-blue-50 sm:flex dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
               onClick={handleCopySelected}
             >
-              <ClipboardCopy className="w-3.5 h-3.5" />
+              <ClipboardCopy className="h-3.5 w-3.5" />
               선택 연락처 복사 ({selectedCount})
             </Button>
           )}
           <Button
             size="sm"
             variant="outline"
-            className="h-8 text-xs gap-1.5 border-gray-300 dark:border-gray-600"
+            className="h-8 gap-1.5 border-gray-300 text-xs dark:border-gray-600"
             onClick={handleCopyAll}
           >
-            <ClipboardCopy className="w-3.5 h-3.5" />
+            <ClipboardCopy className="h-3.5 w-3.5" />
             전체 연락처 복사
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="h-8 text-xs gap-1.5 border-gray-300 dark:border-gray-600"
+            className="h-8 gap-1.5 border-gray-300 text-xs dark:border-gray-600"
             onClick={handleExport}
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="h-3.5 w-3.5" />
             엑셀 추출
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="h-8 text-xs gap-1.5 border-gray-300 dark:border-gray-600"
+            className="h-8 gap-1.5 border-gray-300 text-xs dark:border-gray-600"
             onClick={() => fileInputRef.current?.click()}
             disabled={isImporting}
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="h-3.5 w-3.5" />
             {isImporting ? '분석 중...' : '엑셀 가져오기'}
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={handleImport}
-          />
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
         </div>
       </div>
 
       {/* Search */}
-      <div className="shrink-0 relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+      <div className="relative shrink-0">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
         <Input
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           placeholder="업체명, 연락처 검색"
-          className="h-8 pl-8 pr-7 text-xs w-full sm:w-64 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+          className="h-8 w-full rounded-lg border-gray-300 bg-white pr-7 pl-8 text-gray-900 text-xs placeholder:text-gray-400 focus-visible:ring-gray-400/40 sm:w-64 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
         />
         {searchText && (
           <button
             type="button"
             onClick={() => setSearchText('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div ref={scrollContainerRef} className="flex-1 overflow-auto">
           {/* Header */}
           <div
-            className="sticky top-0 z-10 grid min-w-[600px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 select-none"
+            className="sticky top-0 z-10 grid min-w-[600px] select-none border-gray-200 border-b bg-white dark:border-gray-800 dark:bg-gray-900"
             style={{ gridTemplateColumns: '36px 1.2fr 170px 1fr 1fr 80px' }}
           >
-            <div className="px-2 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 text-center">
-              #
-            </div>
+            <div className="px-2 py-2 text-center font-semibold text-gray-400 text-xs dark:text-gray-500">#</div>
             <button
               type="button"
-              className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
+              className="flex items-center gap-1 px-4 py-2 font-semibold text-gray-500 text-xs uppercase tracking-wide hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               onClick={handleSort}
             >
               업체명
               {sortDir === 'desc' ? (
-                <ArrowDown className="w-3 h-3" />
+                <ArrowDown className="h-3 w-3" />
               ) : sortDir === 'asc' ? (
-                <ArrowUp className="w-3 h-3" />
+                <ArrowUp className="h-3 w-3" />
               ) : (
-                <ArrowUpDown className="w-3 h-3 opacity-40" />
+                <ArrowUpDown className="h-3 w-3 opacity-40" />
               )}
             </button>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="px-4 py-2 font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
               연락처
             </div>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="px-4 py-2 font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
               이메일
             </div>
-            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="px-4 py-2 font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
               비고
             </div>
             <div className="px-2 py-2" />
@@ -375,24 +347,21 @@ function ContactsPage() {
 
           {/* Rows */}
           {isPending ? (
-            <div className="flex items-center justify-center h-32">
-              <span className="inline-block w-4 h-4 border-2 border-gray-200 dark:border-gray-700 border-t-gray-500 dark:border-t-gray-400 rounded-full animate-spin" />
+            <div className="flex h-32 items-center justify-center">
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500 dark:border-gray-700 dark:border-t-gray-400" />
             </div>
           ) : clients.length === 0 ? (
-            <p className="text-center text-xs text-gray-400 py-16">
-              등록된 거래처가 없습니다
-            </p>
+            <p className="py-16 text-center text-gray-400 text-xs">등록된 거래처가 없습니다</p>
           ) : (
             <>
               {clients.map((client, idx) => {
                 const isSelected = selectedIds.has(client.id)
                 return (
+                  // biome-ignore lint/a11y/noStaticElementInteractions: spreadsheet-style multi-select row
                   <div
                     key={client.id}
-                    className={`grid min-w-[600px] border-b border-gray-100 dark:border-gray-800/60 select-none cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-blue-100 dark:bg-blue-900/30'
-                        : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
+                    className={`grid min-w-[600px] cursor-pointer select-none border-gray-100 border-b transition-colors dark:border-gray-800/60 ${
+                      isSelected ? 'bg-blue-100 dark:bg-blue-900/30' : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
                     }`}
                     style={{
                       height: 35,
@@ -401,57 +370,53 @@ function ContactsPage() {
                     onMouseDown={handleRowMouseDown(idx, client.id)}
                     onMouseEnter={handleRowMouseEnter(idx)}
                   >
-                    <div className="flex items-center justify-center text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                    <div className="flex items-center justify-center text-[11px] text-gray-400 tabular-nums dark:text-gray-500">
                       {idx + 1}
                     </div>
-                    <div className="px-4 flex items-center text-xs text-gray-800 dark:text-gray-200 truncate">
+                    <div className="flex items-center truncate px-4 text-gray-800 text-xs dark:text-gray-200">
                       {client.name}
                     </div>
-                    <div className="px-4 flex items-center text-xs text-gray-600 dark:text-gray-300 tabular-nums">
-                      {client.contact_phone
-                        ? formatPhone(client.contact_phone)
-                        : '-'}
+                    <div className="flex items-center px-4 text-gray-600 text-xs tabular-nums dark:text-gray-300">
+                      {client.contact_phone ? formatPhone(client.contact_phone) : '-'}
                     </div>
-                    <div className="px-4 flex items-center text-xs text-gray-600 dark:text-gray-300 truncate">
+                    <div className="flex items-center truncate px-4 text-gray-600 text-xs dark:text-gray-300">
                       {client.email ?? '-'}
                     </div>
-                    <div className="px-4 flex items-center text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <div className="flex items-center truncate px-4 text-gray-500 text-xs dark:text-gray-400">
                       {client.note ?? '-'}
                     </div>
-                    <div
-                      className="flex items-center justify-center gap-0.5"
-                      onMouseDown={(e) => e.stopPropagation()}
-                    >
+                    {/* biome-ignore lint/a11y/noStaticElementInteractions: stops row selection propagation from action buttons */}
+                    <div className="flex items-center justify-center gap-0.5" onMouseDown={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="p-1 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 rounded transition-colors"
+                        className="rounded p-1 text-blue-400 transition-colors hover:text-blue-600 dark:hover:text-blue-300"
                         onClick={(e) => {
                           e.stopPropagation()
                           convertMutation.mutate(client.id)
                         }}
                         title="거래처로 전환"
                       >
-                        <ArrowRightFromLine className="w-3.5 h-3.5" />
+                        <ArrowRightFromLine className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
-                        className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded transition-colors"
+                        className="rounded p-1 text-gray-400 transition-colors hover:text-gray-700 dark:hover:text-gray-200"
                         onClick={(e) => {
                           e.stopPropagation()
                           setEditTarget(client)
                         }}
                       >
-                        <Pencil className="w-3.5 h-3.5" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
-                        className="p-1 text-red-400 hover:text-red-600 dark:hover:text-red-300 rounded transition-colors"
+                        className="rounded p-1 text-red-400 transition-colors hover:text-red-600 dark:hover:text-red-300"
                         onClick={(e) => {
                           e.stopPropagation()
                           setDeleteTarget(client)
                         }}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -460,7 +425,7 @@ function ContactsPage() {
               <div ref={sentinelRef} className="h-1" />
               {isFetchingNextPage && (
                 <div className="flex justify-center py-3">
-                  <span className="inline-block w-3 h-3 border-2 border-gray-200 dark:border-gray-700 border-t-gray-500 dark:border-t-gray-400 rounded-full animate-spin" />
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500 dark:border-gray-700 dark:border-t-gray-400" />
                 </div>
               )}
             </>
@@ -469,14 +434,12 @@ function ContactsPage() {
       </div>
 
       {selectedCount > 0 && (
-        <div className="shrink-0 flex items-center gap-3">
-          <p className="text-xs text-blue-500 dark:text-blue-400">
-            {selectedCount}개 선택됨
-          </p>
+        <div className="flex shrink-0 items-center gap-3">
+          <p className="text-blue-500 text-xs dark:text-blue-400">{selectedCount}개 선택됨</p>
           <button
             type="button"
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline underline-offset-2"
+            className="text-gray-400 text-xs underline underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300"
           >
             선택 초기화
           </button>

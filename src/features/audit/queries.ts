@@ -1,11 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { AuditLog } from './types'
 
-export const fetchAuditLogsByRecord = async (
-  tableName: string,
-  recordId: string,
-  limit = 50,
-) => {
+export const fetchAuditLogsByRecord = async (tableName: string, recordId: string, limit = 50) => {
   const { data, error } = await supabase
     .from('audit_logs')
     .select('*')
@@ -33,16 +29,10 @@ export const fetchAuditLogs = async ({
   dateTo?: string
   limit?: number
 }) => {
-  let query = supabase
-    .from('audit_logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  let query = supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(limit)
 
-  if (tableName && tableName !== 'all')
-    query = query.eq('table_name', tableName)
-  if (actorMemberId && actorMemberId !== 'all')
-    query = query.eq('actor_member_id', actorMemberId)
+  if (tableName && tableName !== 'all') query = query.eq('table_name', tableName)
+  if (actorMemberId && actorMemberId !== 'all') query = query.eq('actor_member_id', actorMemberId)
   if (action && action !== 'all') query = query.eq('action', action)
   if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00`)
   if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59`)

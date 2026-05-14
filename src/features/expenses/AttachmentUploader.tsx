@@ -1,16 +1,16 @@
-import { Button } from '@/components/ui/button'
-import {
-  type ExpenseAttachment,
-  deleteAttachment,
-  downloadAsDataUrl,
-  getSignedUrl,
-  listAttachments,
-  uploadAttachment,
-} from '@/features/expenses/attachments'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText, Paperclip, Trash2, Upload } from 'lucide-react'
 import { useRef } from 'react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import {
+  deleteAttachment,
+  downloadAsDataUrl,
+  type ExpenseAttachment,
+  getSignedUrl,
+  listAttachments,
+  uploadAttachment,
+} from '@/features/expenses/attachments'
 
 type Props = {
   expenseId: string
@@ -66,19 +66,19 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1">
-          <Paperclip className="w-3.5 h-3.5" />
+        <span className="flex items-center gap-1 font-medium text-gray-500 text-xs dark:text-gray-400">
+          <Paperclip className="h-3.5 w-3.5" />
           영수증/증빙 ({attachments.length}/5)
         </span>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-xs text-gray-500"
+          className="h-7 px-2 text-gray-500 text-xs"
           onClick={() => inputRef.current?.click()}
           disabled={attachments.length >= 5 || uploadMutation.isPending}
         >
-          <Upload className="w-3.5 h-3.5 mr-1" />
+          <Upload className="mr-1 h-3.5 w-3.5" />
           파일 추가
         </Button>
         <input
@@ -96,34 +96,28 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
           {attachments.map((a) => (
             <div
               key={a.id}
-              className="relative group border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800"
+              className="group relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
             >
               {a.mime_type.startsWith('image/') ? (
-                <button
-                  type="button"
-                  className="w-full aspect-square"
-                  onClick={() => handleOpen(a)}
-                >
+                <button type="button" className="aspect-square w-full" onClick={() => handleOpen(a)}>
                   <AttachmentThumb attachment={a} />
                 </button>
               ) : (
                 <button
                   type="button"
-                  className="w-full aspect-square flex flex-col items-center justify-center gap-1 p-2"
+                  className="flex aspect-square w-full flex-col items-center justify-center gap-1 p-2"
                   onClick={() => handleOpen(a)}
                 >
-                  <FileText className="w-6 h-6 text-gray-400" />
-                  <span className="text-[10px] text-gray-500 truncate w-full text-center">
-                    {a.file_name}
-                  </span>
+                  <FileText className="h-6 w-6 text-gray-400" />
+                  <span className="w-full truncate text-center text-[10px] text-gray-500">{a.file_name}</span>
                 </button>
               )}
               <button
                 type="button"
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-900 rounded p-0.5 shadow"
+                className="absolute top-1 right-1 rounded bg-white p-0.5 opacity-0 shadow transition-opacity group-hover:opacity-100 dark:bg-gray-900"
                 onClick={() => deleteMutation.mutate(a)}
               >
-                <Trash2 className="w-3 h-3 text-red-500" />
+                <Trash2 className="h-3 w-3 text-red-500" />
               </button>
             </div>
           ))}
@@ -131,8 +125,8 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
       )}
 
       {uploadMutation.isPending && (
-        <p className="text-xs text-gray-400 flex items-center gap-1">
-          <span className="inline-block w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+        <p className="flex items-center gap-1 text-gray-400 text-xs">
+          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
           업로드 중...
         </p>
       )}
@@ -140,9 +134,7 @@ export const AttachmentUploader = ({ expenseId }: Props) => {
   )
 }
 
-export const AttachmentThumb = ({
-  attachment,
-}: { attachment: ExpenseAttachment }) => {
+export const AttachmentThumb = ({ attachment }: { attachment: ExpenseAttachment }) => {
   const { data: dataUrl, isError } = useQuery({
     queryKey: ['attachment-thumb', attachment.id],
     queryFn: () => downloadAsDataUrl(attachment.storage_path),
@@ -152,24 +144,13 @@ export const AttachmentThumb = ({
 
   if (isError)
     return (
-      <div className="w-full aspect-square flex flex-col items-center justify-center gap-1 p-2 bg-gray-50 dark:bg-gray-800">
-        <FileText className="w-6 h-6 text-gray-400" />
-        <span className="text-[10px] text-gray-500 truncate w-full text-center">
-          {attachment.file_name}
-        </span>
+      <div className="flex aspect-square w-full flex-col items-center justify-center gap-1 bg-gray-50 p-2 dark:bg-gray-800">
+        <FileText className="h-6 w-6 text-gray-400" />
+        <span className="w-full truncate text-center text-[10px] text-gray-500">{attachment.file_name}</span>
       </div>
     )
 
-  if (!dataUrl)
-    return (
-      <div className="w-full aspect-square bg-gray-100 dark:bg-gray-700 animate-pulse" />
-    )
+  if (!dataUrl) return <div className="aspect-square w-full animate-pulse bg-gray-100 dark:bg-gray-700" />
 
-  return (
-    <img
-      src={dataUrl}
-      alt={attachment.file_name}
-      className="w-full h-full object-cover"
-    />
-  )
+  return <img src={dataUrl} alt={attachment.file_name} className="h-full w-full object-cover" />
 }

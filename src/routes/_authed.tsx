@@ -1,15 +1,7 @@
-import {
-  clearCurrentMember,
-  readCurrentMember,
-} from '@/features/auth/useCurrentMember'
-import { supabase } from '@/lib/supabase'
-import {
-  Outlet,
-  createFileRoute,
-  redirect,
-  useRouter,
-} from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { clearCurrentMember, readCurrentMember } from '@/features/auth/useCurrentMember'
+import { supabase } from '@/lib/supabase'
 
 function AuthGuard() {
   const router = useRouter()

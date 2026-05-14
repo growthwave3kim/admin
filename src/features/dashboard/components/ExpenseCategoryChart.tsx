@@ -1,71 +1,39 @@
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getTooltipStyle } from '@/features/dashboard/chartStyles'
 import { useTheme } from '@/hooks/useTheme'
 import { formatCurrency } from '@/lib/utils'
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts'
 
-const COLORS = [
-  '#2563eb',
-  '#16a34a',
-  '#d97706',
-  '#7c3aed',
-  '#dc2626',
-  '#0891b2',
-  '#65a30d',
-  '#9ca3af',
-]
+const COLORS = ['#2563eb', '#16a34a', '#d97706', '#7c3aed', '#dc2626', '#0891b2', '#65a30d', '#9ca3af']
 
 type CategoryDataPoint = {
   name: string
   amount: number
 }
 
-export const ExpenseCategoryChart = ({
-  data,
-  isLoading,
-}: {
-  data: CategoryDataPoint[]
-  isLoading: boolean
-}) => {
+export const ExpenseCategoryChart = ({ data, isLoading }: { data: CategoryDataPoint[]; isLoading: boolean }) => {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const tooltipStyle = getTooltipStyle(isDark)
 
   return (
     <Card className="border-border shadow-none">
-      <CardHeader className="pb-2 pt-4 px-4">
-        <CardTitle className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+      <CardHeader className="px-4 pt-4 pb-2">
+        <CardTitle className="font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
           지출 카테고리
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4">
         {isLoading ? (
-          <div className="h-[180px] flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          <div className="flex h-[180px] items-center justify-center">
+            <div className="h-24 w-24 animate-pulse rounded-full bg-gray-100 dark:bg-gray-800" />
           </div>
         ) : data.length === 0 ? (
-          <p className="text-xs text-gray-400 dark:text-gray-400 text-center py-16">
-            데이터가 없습니다
-          </p>
+          <p className="py-16 text-center text-gray-400 text-xs dark:text-gray-400">데이터가 없습니다</p>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
-              <Pie
-                data={data}
-                dataKey="amount"
-                nameKey="name"
-                cx="50%"
-                cy="45%"
-                outerRadius={60}
-                strokeWidth={0}
-              >
+              <Pie data={data} dataKey="amount" nameKey="name" cx="50%" cy="45%" outerRadius={60} strokeWidth={0}>
                 {data.map((_, i) => (
                   <Cell
                     key={`cell-${

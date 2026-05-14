@@ -1,43 +1,19 @@
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  StatusChangeDialog,
-  requiresNote,
-} from '@/features/tasks/StatusChangeDialog'
-import { ProfitAmount } from '@/features/tasks/components/ProfitAmount'
-import {
-  fetchTask,
-  softDeleteTask,
-  updateTask,
-  updateTaskStatus,
-} from '@/features/tasks/queries'
-import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
-import { cn } from '@/lib/utils'
-import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Link,
-  createLazyFileRoute,
-  getRouteApi,
-  useRouter,
-} from '@tanstack/react-router'
+import { createLazyFileRoute, getRouteApi, Link, useRouter } from '@tanstack/react-router'
 import { ko } from 'date-fns/locale'
 import { ArrowLeft, CalendarIcon, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ProfitAmount } from '@/features/tasks/components/ProfitAmount'
+import { fetchTask, softDeleteTask, updateTask, updateTaskStatus } from '@/features/tasks/queries'
+import { requiresNote, StatusChangeDialog } from '@/features/tasks/StatusChangeDialog'
+import { TASK_STATUS_LABELS, type TaskStatus } from '@/features/tasks/types'
+import { cn, formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 
 export const Route = createLazyFileRoute('/_authed/tasks/$taskId/')({
   component: TaskDetailPage,
@@ -59,8 +35,7 @@ function TaskDetailPage() {
   })
 
   const statusMutation = useMutation({
-    mutationFn: ({ status, note }: { status: TaskStatus; note?: string }) =>
-      updateTaskStatus(taskId, status, note),
+    mutationFn: ({ status, note }: { status: TaskStatus; note?: string }) => updateTaskStatus(taskId, status, note),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
@@ -70,8 +45,7 @@ function TaskDetailPage() {
   })
 
   const endDateMutation = useMutation({
-    mutationFn: (end_date: Date | null) =>
-      updateTask(taskId, { end_date: end_date ?? null }),
+    mutationFn: (end_date: Date | null) => updateTask(taskId, { end_date: end_date ?? null }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['task', taskId] })
       qc.invalidateQueries({ queryKey: ['tasks'] })
@@ -92,18 +66,16 @@ function TaskDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-gray-800 dark:border-t-gray-200 rounded-full animate-spin" />
+      <div className="flex h-full items-center justify-center">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-800 dark:border-gray-700 dark:border-t-gray-200" />
       </div>
     )
   }
 
   if (!task) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-sm text-gray-400 dark:text-gray-400">
-          업무를 찾을 수 없습니다
-        </p>
+      <div className="flex h-full items-center justify-center">
+        <p className="text-gray-400 text-sm dark:text-gray-400">업무를 찾을 수 없습니다</p>
       </div>
     )
   }
@@ -112,7 +84,7 @@ function TaskDetailPage() {
 
   return (
     <div className="h-full overflow-auto p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-5">
+      <div className="mx-auto max-w-2xl space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -122,48 +94,44 @@ function TaskDetailPage() {
               className="h-8 w-8 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               onClick={() => router.navigate({ to: '/tasks' })}
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              {task.company_name}
-            </p>
+            <p className="font-semibold text-base text-gray-900 dark:text-gray-100">{task.company_name}</p>
           </div>
           <div className="flex items-center gap-1.5">
             <Link to="/tasks/$taskId/edit" params={{ taskId }}>
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 h-8 text-xs border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="h-8 gap-1.5 border-gray-300 text-gray-700 text-xs hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
               >
-                <Pencil className="w-3.5 h-3.5" />
+                <Pencil className="h-3.5 w-3.5" />
                 수정
               </Button>
             </Link>
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 h-8 text-xs border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="h-8 gap-1.5 border-red-200 text-red-500 text-xs hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20"
               onClick={() => setIsDeleteOpen(true)}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
               삭제
             </Button>
           </div>
         </div>
 
         {/* Revenue summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3.5">
-            <p className="text-xs text-gray-400 dark:text-gray-400">
-              받은 금액
-            </p>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-1.5 tabular-nums">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+            <p className="text-gray-400 text-xs dark:text-gray-400">받은 금액</p>
+            <p className="mt-1.5 font-semibold text-gray-800 text-sm tabular-nums dark:text-gray-100">
               {formatCurrency(task.received_amount)}
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 px-4 py-3.5">
-            <p className="text-xs text-gray-400 dark:text-gray-400">실행비</p>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-1.5 tabular-nums">
+          <div className="rounded-xl border border-gray-200 bg-white px-4 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+            <p className="text-gray-400 text-xs dark:text-gray-400">실행비</p>
+            <p className="mt-1.5 font-semibold text-gray-800 text-sm tabular-nums dark:text-gray-100">
               {formatCurrency(task.execution_cost)}
             </p>
           </div>
@@ -171,31 +139,27 @@ function TaskDetailPage() {
             className={cn(
               'rounded-xl border px-4 py-3.5',
               profit >= 0
-                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40'
-                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40',
+                ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800/40 dark:bg-emerald-900/20'
+                : 'border-red-200 bg-red-50 dark:border-red-800/40 dark:bg-red-900/20',
             )}
           >
             <p
               className={cn(
                 'text-xs',
-                profit >= 0
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-red-500 dark:text-red-400',
+                profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400',
               )}
             >
               수익
             </p>
-            <ProfitAmount value={profit} className="text-sm mt-1.5 block" />
+            <ProfitAmount value={profit} className="mt-1.5 block text-sm" />
           </div>
         </div>
 
         {/* Detail rows */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {/* Status */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
-              진행 상태
-            </span>
+          <div className="flex items-center justify-between border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+            <span className="w-24 shrink-0 text-gray-400 text-xs dark:text-gray-400">진행 상태</span>
             <Select
               value={task.status}
               onValueChange={(v) => {
@@ -208,7 +172,7 @@ function TaskDetailPage() {
                 }
               }}
             >
-              <SelectTrigger className="w-44 h-8 text-xs border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-gray-100">
+              <SelectTrigger className="h-8 w-44 border-gray-300 bg-transparent text-gray-800 text-xs dark:border-gray-600 dark:text-gray-100">
                 <SelectValue>{TASK_STATUS_LABELS[task.status]}</SelectValue>
               </SelectTrigger>
               <SelectContent side="bottom" sideOffset={4}>
@@ -223,43 +187,33 @@ function TaskDetailPage() {
 
           {/* 담당자 */}
           {task.members && (
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-              <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
-                담당자
-              </span>
-              <span className="text-sm text-gray-700 dark:text-gray-200">
-                {task.members.name}
-              </span>
+            <div className="flex items-center justify-between border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+              <span className="w-24 shrink-0 text-gray-400 text-xs dark:text-gray-400">담당자</span>
+              <span className="text-gray-700 text-sm dark:text-gray-200">{task.members.name}</span>
             </div>
           )}
 
           {/* Start date */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
-              시작일
-            </span>
-            <span className="text-sm text-gray-700 dark:text-gray-200 tabular-nums">
-              {formatDate(task.start_date)}
-            </span>
+          <div className="flex items-center justify-between border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+            <span className="w-24 shrink-0 text-gray-400 text-xs dark:text-gray-400">시작일</span>
+            <span className="text-gray-700 text-sm tabular-nums dark:text-gray-200">{formatDate(task.start_date)}</span>
           </div>
 
           {/* End date */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
-              종료일
-            </span>
+          <div className="flex items-center justify-between border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+            <span className="w-24 shrink-0 text-gray-400 text-xs dark:text-gray-400">종료일</span>
             <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
               <PopoverTrigger>
                 <button
                   type="button"
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors',
+                    'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs transition-colors',
                     task.end_date
-                      ? 'border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      : 'border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                      ? 'border-gray-300 text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800'
+                      : 'border-gray-300 border-dashed text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800',
                   )}
                 >
-                  <CalendarIcon className="w-3 h-3" />
+                  <CalendarIcon className="h-3 w-3" />
                   {task.end_date ? formatDate(task.end_date) : '날짜 선택'}
                 </button>
               </PopoverTrigger>
@@ -279,43 +233,33 @@ function TaskDetailPage() {
           </div>
 
           {/* Marketing */}
-          <div className="flex items-center gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0">
-              마케팅 유형
-            </span>
+          <div className="flex items-center gap-4 border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+            <span className="w-24 shrink-0 text-gray-400 text-xs dark:text-gray-400">마케팅 유형</span>
             <div className="flex flex-wrap gap-1.5">
               {task.task_marketings?.length ? (
                 task.task_marketings.map((m) => (
                   <span
                     key={m.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                    className="inline-flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-1 font-medium text-gray-700 text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                   >
                     {m.marketing_types?.name}
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {m.count}건
-                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">{m.count}건</span>
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-gray-400 dark:text-gray-400">
-                  -
-                </span>
+                <span className="text-gray-400 text-xs dark:text-gray-400">-</span>
               )}
             </div>
           </div>
 
           {/* Note */}
-          <div className="flex items-start gap-4 px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-            <span className="text-xs text-gray-400 dark:text-gray-400 w-24 shrink-0 pt-0.5">
-              비고
-            </span>
-            <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap flex-1">
-              {task.note || '-'}
-            </p>
+          <div className="flex items-start gap-4 border-gray-100 border-b px-5 py-3.5 dark:border-gray-800">
+            <span className="w-24 shrink-0 pt-0.5 text-gray-400 text-xs dark:text-gray-400">비고</span>
+            <p className="flex-1 whitespace-pre-wrap text-gray-700 text-sm dark:text-gray-200">{task.note || '-'}</p>
           </div>
 
           {/* Timestamps */}
-          <div className="flex items-center justify-between px-5 py-3 text-xs text-gray-400 dark:text-gray-400">
+          <div className="flex items-center justify-between px-5 py-3 text-gray-400 text-xs dark:text-gray-400">
             <span>등록 {formatDateTime(task.created_at)}</span>
             <span>수정 {formatDateTime(task.updated_at)}</span>
           </div>
@@ -337,8 +281,7 @@ function TaskDetailPage() {
         open={!!pendingStatus}
         newStatus={pendingStatus}
         onConfirm={(note) => {
-          if (pendingStatus)
-            statusMutation.mutate({ status: pendingStatus, note })
+          if (pendingStatus) statusMutation.mutate({ status: pendingStatus, note })
           setPendingStatus(null)
         }}
         onCancel={() => setPendingStatus(null)}

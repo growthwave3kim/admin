@@ -1,22 +1,12 @@
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { TASK_STATUS_LABELS } from '@/features/tasks/types'
-import type { TaskStatus } from '@/features/tasks/types'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import type { TaskStatus } from '@/features/tasks/types'
+import { TASK_STATUS_LABELS } from '@/features/tasks/types'
 
-const STATUSES_REQUIRING_NOTE: TaskStatus[] = [
-  'done_settled',
-  'done_unsettled',
-  'lost',
-]
+const STATUSES_REQUIRING_NOTE: TaskStatus[] = ['done_settled', 'done_unsettled', 'lost']
 
-export const requiresNote = (status: TaskStatus) =>
-  STATUSES_REQUIRING_NOTE.includes(status)
+export const requiresNote = (status: TaskStatus) => STATUSES_REQUIRING_NOTE.includes(status)
 
 type Props = {
   open: boolean
@@ -25,12 +15,7 @@ type Props = {
   onCancel: () => void
 }
 
-export const StatusChangeDialog = ({
-  open,
-  newStatus,
-  onConfirm,
-  onCancel,
-}: Props) => {
+export const StatusChangeDialog = ({ open, newStatus, onConfirm, onCancel }: Props) => {
   const [note, setNote] = useState('')
 
   const handleConfirm = () => {
@@ -47,36 +32,22 @@ export const StatusChangeDialog = ({
     <Dialog open={open} onOpenChange={(o) => !o && handleCancel()}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>
-            상태 변경 —{' '}
-            {newStatus ? (TASK_STATUS_LABELS[newStatus] ?? newStatus) : ''}
-          </DialogTitle>
+          <DialogTitle>상태 변경 — {newStatus ? (TASK_STATUS_LABELS[newStatus] ?? newStatus) : ''}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3 mt-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            변경 사유를 입력해주세요 (선택)
-          </p>
+        <div className="mt-2 space-y-3">
+          <p className="text-gray-500 text-xs dark:text-gray-400">변경 사유를 입력해주세요 (선택)</p>
           <textarea
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs text-gray-900 dark:text-gray-100 placeholder:text-gray-400 px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"
+            className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 text-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:ring-gray-600"
             rows={3}
             placeholder="예) 계약 완료, 고객 요청으로 취소 등"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
-          <div className="flex gap-2 justify-end pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleCancel}
-              className="h-8 px-4 text-xs text-gray-500"
-            >
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="ghost" onClick={handleCancel} className="h-8 px-4 text-gray-500 text-xs">
               취소
             </Button>
-            <Button
-              type="button"
-              onClick={handleConfirm}
-              className="h-8 px-5 text-xs"
-            >
+            <Button type="button" onClick={handleConfirm} className="h-8 px-5 text-xs">
               확인
             </Button>
           </div>

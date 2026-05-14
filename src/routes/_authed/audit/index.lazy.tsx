@@ -1,19 +1,13 @@
+import { useQuery } from '@tanstack/react-query'
+import { createLazyFileRoute, getRouteApi, Link } from '@tanstack/react-router'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
 import { DatePicker } from '@/components/common/DatePicker'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { fetchAuditLogs } from '@/features/audit/queries'
 import type { AuditLog } from '@/features/audit/types'
 import { useMembers } from '@/features/members/useMembers'
 import { cn } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
-import { Link, createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
 
 export const Route = createLazyFileRoute('/_authed/audit/')({
   component: AuditPage,
@@ -31,13 +25,11 @@ const TABLE_LABELS: Record<string, string> = {
 const ACTION_LABELS: Record<string, { label: string; className: string }> = {
   insert: {
     label: '등록',
-    className:
-      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
   },
   update: {
     label: '수정',
-    className:
-      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   },
   delete: {
     label: '삭제',
@@ -51,18 +43,12 @@ const RECORD_LINKS: Record<string, (id: string) => string> = {
 }
 
 const ChangeSummary = ({ log }: { log: AuditLog }) => {
-  if (log.action === 'insert')
-    return <span className="text-gray-400 text-xs">신규 등록</span>
-  if (log.action === 'delete')
-    return <span className="text-gray-400 text-xs">삭제됨</span>
+  if (log.action === 'insert') return <span className="text-gray-400 text-xs">신규 등록</span>
+  if (log.action === 'delete') return <span className="text-gray-400 text-xs">삭제됨</span>
   if (!log.changed_fields) return null
   const fields = Object.keys(log.changed_fields)
   if (fields.length === 0) return null
-  return (
-    <span className="text-xs text-gray-500 dark:text-gray-400">
-      {fields.join(', ')} 변경
-    </span>
-  )
+  return <span className="text-gray-500 text-xs dark:text-gray-400">{fields.join(', ')} 변경</span>
 }
 
 function AuditPage() {
@@ -81,10 +67,7 @@ function AuditPage() {
   }
 
   const { data: logs = [], isLoading } = useQuery({
-    queryKey: [
-      'audit-logs',
-      { tableName, actorMemberId, action, dateFrom, dateTo },
-    ],
+    queryKey: ['audit-logs', { tableName, actorMemberId, action, dateFrom, dateTo }],
     queryFn: () =>
       fetchAuditLogs({
         tableName: tableName === 'all' ? undefined : tableName,
@@ -96,24 +79,20 @@ function AuditPage() {
   })
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
+    <div className="flex h-full flex-col gap-4 p-4 md:p-6">
       <div className="shrink-0 space-y-3">
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            변경 이력
-          </span>
-          <span className="text-xs text-gray-400">{logs.length}건</span>
+          <span className="font-semibold text-base text-gray-800 dark:text-gray-200">변경 이력</span>
+          <span className="text-gray-400 text-xs">{logs.length}건</span>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={tableName}
-            onValueChange={(v) =>
-              update({ tableName: v === 'all' ? undefined : (v ?? undefined) })
-            }
+            onValueChange={(v) => update({ tableName: v === 'all' ? undefined : (v ?? undefined) })}
           >
-            <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900">
+            <SelectTrigger className="h-8 w-28 border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-900">
               <SelectValue>{TABLE_LABELS[tableName] ?? '전체'}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -134,12 +113,11 @@ function AuditPage() {
               })
             }
           >
-            <SelectTrigger className="h-8 w-28 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900">
+            <SelectTrigger className="h-8 w-28 border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-900">
               <SelectValue>
                 {actorMemberId === 'all'
                   ? '전체 멤버'
-                  : (members.find((m) => m.id === actorMemberId)?.name ??
-                    '전체 멤버')}
+                  : (members.find((m) => m.id === actorMemberId)?.name ?? '전체 멤버')}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -152,16 +130,9 @@ function AuditPage() {
             </SelectContent>
           </Select>
 
-          <Select
-            value={action}
-            onValueChange={(v) =>
-              update({ action: v === 'all' ? undefined : (v ?? undefined) })
-            }
-          >
-            <SelectTrigger className="h-8 w-24 text-xs border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900">
-              <SelectValue>
-                {ACTION_LABELS[action]?.label ?? '전체'}
-              </SelectValue>
+          <Select value={action} onValueChange={(v) => update({ action: v === 'all' ? undefined : (v ?? undefined) })}>
+            <SelectTrigger className="h-8 w-24 border-gray-300 bg-white text-xs dark:border-gray-600 dark:bg-gray-900">
+              <SelectValue>{ACTION_LABELS[action]?.label ?? '전체'}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">전체</SelectItem>
@@ -178,39 +149,34 @@ function AuditPage() {
               onChange={(v) => update({ dateFrom: v })}
               placeholder="시작일"
             />
-            <span className="text-xs text-gray-400">~</span>
-            <DatePicker
-              variant="filter"
-              value={dateTo}
-              onChange={(v) => update({ dateTo: v })}
-              placeholder="종료일"
-            />
+            <span className="text-gray-400 text-xs">~</span>
+            <DatePicker variant="filter" value={dateTo} onChange={(v) => update({ dateTo: v })} placeholder="종료일" />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-              <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-36">
+              <tr className="border-gray-200 border-b dark:border-gray-800">
+                <th className="w-36 px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   시각
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-20">
+                <th className="w-20 px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   멤버
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-20">
+                <th className="w-20 px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   대상
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-16">
+                <th className="w-16 px-4 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   액션
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   변경 내용
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-32">
+                <th className="w-32 px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide">
                   기록 ID
                 </th>
               </tr>
@@ -221,17 +187,14 @@ function AuditPage() {
                   <tr key={k} className="h-[45px]">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
                       <td key={i} className="px-4 py-2">
-                        <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                        <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                       </td>
                     ))}
                   </tr>
                 ))
               ) : logs.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="text-center py-20 text-xs text-gray-400"
-                  >
+                  <td colSpan={6} className="py-20 text-center text-gray-400 text-xs">
                     이력이 없습니다
                   </td>
                 </tr>
@@ -242,24 +205,24 @@ function AuditPage() {
                   return (
                     <tr
                       key={log.id}
-                      className="h-[45px] hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors"
+                      className="h-[45px] transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40"
                     >
-                      <td className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 tabular-nums whitespace-nowrap">
+                      <td className="whitespace-nowrap px-4 py-2 text-gray-500 text-xs tabular-nums dark:text-gray-400">
                         {format(new Date(log.created_at), 'MM.dd HH:mm', {
                           locale: ko,
                         })}
                       </td>
-                      <td className="px-4 py-2 text-xs text-gray-700 dark:text-gray-300 font-medium">
+                      <td className="px-4 py-2 font-medium text-gray-700 text-xs dark:text-gray-300">
                         {log.actor_name ?? '-'}
                       </td>
-                      <td className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
+                      <td className="px-4 py-2 text-gray-500 text-xs dark:text-gray-400">
                         {TABLE_LABELS[log.table_name] ?? log.table_name}
                       </td>
                       <td className="px-4 py-2 text-center">
                         {badge && (
                           <span
                             className={cn(
-                              'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium',
+                              'inline-flex items-center rounded px-1.5 py-0.5 font-medium text-[10px]',
                               badge.className,
                             )}
                           >
@@ -270,25 +233,16 @@ function AuditPage() {
                       <td className="px-4 py-2">
                         <div>
                           <ChangeSummary log={log} />
-                          {log.note && (
-                            <p className="text-xs text-gray-400 italic mt-0.5">
-                              "{log.note}"
-                            </p>
-                          )}
+                          {log.note && <p className="mt-0.5 text-gray-400 text-xs italic">"{log.note}"</p>}
                         </div>
                       </td>
                       <td className="px-4 py-2">
                         {link ? (
-                          <Link
-                            to={link}
-                            className="text-xs text-blue-500 hover:underline font-mono"
-                          >
+                          <Link to={link} className="font-mono text-blue-500 text-xs hover:underline">
                             {log.record_id.slice(0, 8)}…
                           </Link>
                         ) : (
-                          <span className="text-xs text-gray-400 font-mono">
-                            {log.record_id.slice(0, 8)}…
-                          </span>
+                          <span className="font-mono text-gray-400 text-xs">{log.record_id.slice(0, 8)}…</span>
                         )}
                       </td>
                     </tr>

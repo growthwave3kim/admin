@@ -1,5 +1,3 @@
-import type { Expense } from '@/features/expenses/types'
-import type { Task } from '@/features/tasks/types'
 import {
   endOfMonth,
   endOfYear,
@@ -13,13 +11,10 @@ import {
   subMonths,
   subYears,
 } from 'date-fns'
+import type { Expense } from '@/features/expenses/types'
+import type { Task } from '@/features/tasks/types'
 
-export type Period =
-  | 'this_month'
-  | 'last_month'
-  | 'this_quarter'
-  | 'this_year'
-  | 'all'
+export type Period = 'this_month' | 'last_month' | 'this_quarter' | 'this_year' | 'all'
 
 export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: 'this_month', label: '이번달' },
@@ -29,9 +24,7 @@ export const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: 'all', label: '전체' },
 ]
 
-export const getPeriodRange = (
-  period: Period,
-): { start: Date | null; end: Date | null } => {
+export const getPeriodRange = (period: Period): { start: Date | null; end: Date | null } => {
   const now = new Date()
   switch (period) {
     case 'this_month':
@@ -55,9 +48,7 @@ export const getPeriodRange = (
   }
 }
 
-export const getPrevPeriodRange = (
-  period: Period,
-): { start: Date | null; end: Date | null } => {
+export const getPrevPeriodRange = (period: Period): { start: Date | null; end: Date | null } => {
   const now = new Date()
   switch (period) {
     case 'this_month':
@@ -93,11 +84,7 @@ export const getPrevPeriodRange = (
   }
 }
 
-export const filterByRange = (
-  tasks: Task[],
-  start: Date | null,
-  end: Date | null,
-): Task[] => {
+export const filterByRange = (tasks: Task[], start: Date | null, end: Date | null): Task[] => {
   if (!start || !end) return tasks
   return tasks.filter((t) => {
     const d = parseISO(t.start_date)
@@ -105,11 +92,7 @@ export const filterByRange = (
   })
 }
 
-export const filterExpensesByRange = (
-  expenses: Expense[],
-  start: Date | null,
-  end: Date | null,
-): Expense[] => {
+export const filterExpensesByRange = (expenses: Expense[], start: Date | null, end: Date | null): Expense[] => {
   if (!start || !end) return expenses
   return expenses.filter((e) => {
     const d = parseISO(e.expense_date)

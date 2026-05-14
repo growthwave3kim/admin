@@ -1,0 +1,40 @@
+name: PR Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  quality-check:
+    name: Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Commitlint
+        if: github.actor != 'dependabot[bot]'
+        run: pnpm exec commitlint --from ${{ github.event.pull_request.base.sha }} --to HEAD
+
+      - name: Biome check
+        run: pnpm exec biome check .
+
+      - name: Type check
+        run: pnpm check-types
+
+      - name: Test
+        run: pnpm test:run

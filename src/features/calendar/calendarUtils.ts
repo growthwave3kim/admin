@@ -1,13 +1,5 @@
+import { addDays, differenceInCalendarDays, endOfMonth, endOfWeek, parseISO, startOfMonth, startOfWeek } from 'date-fns'
 import type { CalendarTask, TaskStatus } from '@/features/tasks/types'
-import {
-  addDays,
-  differenceInCalendarDays,
-  endOfMonth,
-  endOfWeek,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-} from 'date-fns'
 
 export type { CalendarTask }
 
@@ -21,10 +13,8 @@ export type WeekEvent = {
 export const STATUS_BAR_STYLES: Record<TaskStatus, string> = {
   proposal:
     'border-purple-500 bg-purple-100 text-purple-900 dark:bg-purple-800/50 dark:text-purple-200 dark:border-purple-500',
-  not_started:
-    'border-gray-400 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500',
-  in_progress:
-    'border-blue-500 bg-blue-100 text-blue-900 dark:bg-blue-800/50 dark:text-blue-200 dark:border-blue-500',
+  not_started: 'border-gray-400 bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500',
+  in_progress: 'border-blue-500 bg-blue-100 text-blue-900 dark:bg-blue-800/50 dark:text-blue-200 dark:border-blue-500',
   done_settled:
     'border-emerald-500 bg-emerald-100 text-emerald-900 dark:bg-emerald-800/50 dark:text-emerald-200 dark:border-emerald-500',
   done_unsettled:
@@ -80,10 +70,7 @@ export function getCalendarWeeks(currentMonth: Date): Date[][] {
   return weeks
 }
 
-export function computeWeekLayout(
-  week: Date[],
-  tasks: CalendarTask[],
-): WeekEvent[] {
+export function computeWeekLayout(week: Date[], tasks: CalendarTask[]): WeekEvent[] {
   const weekStart = week[0]
   const weekEnd = week[6]
 
@@ -96,8 +83,7 @@ export function computeWeekLayout(
   overlapping.sort((a, b) => {
     const aStart = parseISO(a.start_date)
     const bStart = parseISO(b.start_date)
-    if (aStart.getTime() !== bStart.getTime())
-      return aStart.getTime() - bStart.getTime()
+    if (aStart.getTime() !== bStart.getTime()) return aStart.getTime() - bStart.getTime()
     const aEnd = a.end_date ? parseISO(a.end_date) : aStart
     const bEnd = b.end_date ? parseISO(b.end_date) : bStart
     return bEnd.getTime() - aEnd.getTime()

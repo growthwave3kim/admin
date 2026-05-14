@@ -1,3 +1,8 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createLazyFileRoute, getRouteApi, Link } from '@tanstack/react-router'
+import { Building2, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
@@ -6,11 +11,6 @@ import { ClientFormDialog } from '@/features/clients/ClientFormDialog'
 import { fetchClients, softDeleteClient } from '@/features/clients/queries'
 import type { Client } from '@/features/clients/types'
 import { cn } from '@/lib/utils'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
-import { Building2, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 
 export const Route = createLazyFileRoute('/_authed/clients/')({
   component: ClientsPage,
@@ -54,10 +54,7 @@ function ClientsPage() {
   )
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const paginatedClients = filtered.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  )
+  const paginatedClients = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handleSearch = () => {
     navigate({
@@ -80,38 +77,30 @@ function ClientsPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4 md:p-6">
+    <div className="flex h-full flex-col gap-4 p-4 md:p-6">
       {/* Header */}
-      <div className="shrink-0 flex items-center justify-between">
+      <div className="flex shrink-0 items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <span className="text-base font-semibold text-gray-800 dark:text-gray-200">
-            거래처
-          </span>
-          <span className="text-xs text-gray-400 dark:text-gray-400">
-            {filtered.length !== clients.length
-              ? `${filtered.length} / ${clients.length}개`
-              : `총 ${clients.length}개`}
+          <span className="font-semibold text-base text-gray-800 dark:text-gray-200">거래처</span>
+          <span className="text-gray-400 text-xs dark:text-gray-400">
+            {filtered.length !== clients.length ? `${filtered.length} / ${clients.length}개` : `총 ${clients.length}개`}
           </span>
         </div>
-        <Button
-          size="sm"
-          className="gap-1.5 h-8 text-xs"
-          onClick={handleOpenAdd}
-        >
-          <Plus className="w-3.5 h-3.5" />새 거래처
+        <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={handleOpenAdd}>
+          <Plus className="h-3.5 w-3.5" />새 거래처
         </Button>
       </div>
 
       {/* Filter bar */}
-      <div className="shrink-0 flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <Input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="거래처명, 담당자명 검색"
-            className="h-8 pl-8 pr-7 w-full sm:w-64 text-xs rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus-visible:ring-gray-400/40"
+            className="h-8 w-full rounded-lg border-gray-300 bg-white pr-7 pl-8 text-gray-900 text-xs placeholder:text-gray-400 focus-visible:ring-gray-400/40 sm:w-64 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
           />
           {searchInput && (
             <button
@@ -122,32 +111,28 @@ function ClientsPage() {
                   search: (prev) => ({ ...prev, search: undefined, page: 1 }),
                 })
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="absolute top-1/2 right-2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
         <Button
           variant="outline"
           size="sm"
-          className="h-8 text-xs gap-1.5 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+          className="h-8 gap-1.5 border-gray-300 text-gray-600 text-xs dark:border-gray-600 dark:text-gray-300"
           onClick={handleSearch}
         >
-          <Search className="w-3.5 h-3.5" />
+          <Search className="h-3.5 w-3.5" />
           검색
         </Button>
-        {searchText && (
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {filtered.length}개 검색됨
-          </span>
-        )}
+        {searchText && <span className="text-gray-400 text-xs dark:text-gray-500">{filtered.length}개 검색됨</span>}
       </div>
 
       {/* Table */}
-      <div className="flex-1 min-h-0 flex flex-col border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-sm min-w-[560px]">
+          <table className="w-full min-w-[560px] text-sm">
             <colgroup>
               <col className="w-56" />
               <col className="w-24" />
@@ -156,20 +141,20 @@ function ClientsPage() {
               <col className="w-20" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
-              <tr className="border-b border-gray-200 dark:border-gray-800">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <tr className="border-gray-200 border-b dark:border-gray-800">
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   거래처명
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   담당자
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   연락처
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   메모
                 </th>
-                <th className="px-4 py-3 w-20" />
+                <th className="w-20 px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -178,7 +163,7 @@ function ClientsPage() {
                   <tr key={k} className="h-[50px]">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <td key={i} className="px-4 py-2">
-                        <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                        <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                       </td>
                     ))}
                   </tr>
@@ -187,12 +172,8 @@ function ClientsPage() {
                 <tr>
                   <td colSpan={5} className="py-20">
                     <div className="flex flex-col items-center gap-3 text-gray-300 dark:text-gray-600">
-                      <Building2 className="w-8 h-8" />
-                      <p className="text-sm">
-                        {searchText
-                          ? '검색 결과가 없습니다'
-                          : '등록된 거래처가 없습니다'}
-                      </p>
+                      <Building2 className="h-8 w-8" />
+                      <p className="text-sm">{searchText ? '검색 결과가 없습니다' : '등록된 거래처가 없습니다'}</p>
                     </div>
                   </td>
                 </tr>
@@ -200,37 +181,33 @@ function ClientsPage() {
                 paginatedClients.map((client) => (
                   <tr
                     key={client.id}
-                    className={cn(
-                      'group h-[50px] hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors',
-                    )}
+                    className={cn('group h-[50px] transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/40')}
                   >
                     <td className="px-4 py-2 font-medium">
                       <Link
                         to="/clients/$clientId"
                         params={{ clientId: client.id }}
-                        className="text-gray-900 dark:text-gray-100 hover:underline"
+                        className="text-gray-900 hover:underline dark:text-gray-100"
                       >
                         {client.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-300 text-xs">
-                      {client.contact_name ?? '-'}
-                    </td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-300 text-xs tabular-nums">
+                    <td className="px-4 py-2 text-gray-600 text-xs dark:text-gray-300">{client.contact_name ?? '-'}</td>
+                    <td className="px-4 py-2 text-gray-600 text-xs tabular-nums dark:text-gray-300">
                       {client.contact_phone ?? '-'}
                     </td>
-                    <td className="px-4 py-2 text-gray-500 dark:text-gray-400 text-xs truncate">
+                    <td className="truncate px-4 py-2 text-gray-500 text-xs dark:text-gray-400">
                       {client.note ?? '-'}
                     </td>
                     <td className="px-4 py-2">
-                      <div className="flex items-center justify-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                           onClick={() => handleOpenEdit(client)}
                         >
-                          <Pencil className="w-3.5 h-3.5" />
+                          <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -238,7 +215,7 @@ function ClientsPage() {
                           className="h-7 w-7 text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
                           onClick={() => setDeleteTarget(client)}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </td>
@@ -248,13 +225,11 @@ function ClientsPage() {
             </tbody>
           </table>
         </div>
-        <div className="shrink-0 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="shrink-0 border-gray-100 border-t bg-white py-3 dark:border-gray-800 dark:bg-gray-900">
           <Pagination
             page={page}
             totalPages={totalPages}
-            onPageChange={(p) =>
-              navigate({ search: (prev) => ({ ...prev, page: p }) })
-            }
+            onPageChange={(p) => navigate({ search: (prev) => ({ ...prev, page: p }) })}
           />
         </div>
       </div>
