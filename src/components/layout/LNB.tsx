@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ClipboardList,
   FolderOpen,
+  Inbox,
   LayoutDashboard,
   MessageSquare,
   Receipt,
@@ -31,6 +32,7 @@ const navGroups = [
     items: [
       { to: '/clients', label: '거래처', icon: Building2 },
       { to: '/contacts', label: '고객 DB', icon: BookUser },
+      { to: '/inquiries', label: '홈페이지 문의', icon: Inbox },
     ],
   },
   {

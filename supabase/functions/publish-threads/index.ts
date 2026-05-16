@@ -117,6 +117,27 @@ Deno.serve(async (req) => {
     await new Promise((r) => setTimeout(r, 500))
   }
 
+  // 블로그 링크는 본문/체인이 아니라 마지막 별도 답글로 부착 (Threads 도달 보호)
+  const BLOG_URL = Deno.env.get('BLOG_URL') || 'https://blog.naver.com/growthwave-'
+  if (BLOG_URL) {
+    try {
+      await new Promise((r) => setTimeout(r, 1500))
+      const linkCreated = await threadsRequest(`${USER_ID}/threads`, {
+        media_type: 'TEXT',
+        text: `이 주제 더 깊이 ↓\n${BLOG_URL}`,
+        reply_to_id: previousPublishedId,
+        access_token: TOKEN,
+      })
+      const linkPublished = await threadsRequest(`${USER_ID}/threads_publish`, {
+        creation_id: linkCreated.id,
+        access_token: TOKEN,
+      })
+      previousPublishedId = linkPublished.id
+    } catch (_e) {
+      // 링크 답글 실패는 발행 전체를 막지 않는다 (본문/체인은 이미 게시됨)
+    }
+  }
+
   // permalink 조회
   let threadPostUrl = `https://www.threads.net/t/${mainPostId}`
   try {

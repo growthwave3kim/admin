@@ -17,6 +17,7 @@ import { Route as AuthedTrashIndexRouteImport } from './routes/_authed/trash/ind
 import { Route as AuthedThreadsIndexRouteImport } from './routes/_authed/threads/index'
 import { Route as AuthedTasksIndexRouteImport } from './routes/_authed/tasks/index'
 import { Route as AuthedMarketingTypesIndexRouteImport } from './routes/_authed/marketing-types/index'
+import { Route as AuthedInquiriesIndexRouteImport } from './routes/_authed/inquiries/index'
 import { Route as AuthedExpensesIndexRouteImport } from './routes/_authed/expenses/index'
 import { Route as AuthedExpenseCategoriesIndexRouteImport } from './routes/_authed/expense-categories/index'
 import { Route as AuthedContactsIndexRouteImport } from './routes/_authed/contacts/index'
@@ -26,6 +27,7 @@ import { Route as AuthedAuditIndexRouteImport } from './routes/_authed/audit/ind
 import { Route as AuthedTasksNewRouteImport } from './routes/_authed/tasks/new'
 import { Route as AuthedThreadsPostIdIndexRouteImport } from './routes/_authed/threads/$postId/index'
 import { Route as AuthedTasksTaskIdIndexRouteImport } from './routes/_authed/tasks/$taskId/index'
+import { Route as AuthedInquiriesSubmissionIdIndexRouteImport } from './routes/_authed/inquiries/$submissionId/index'
 import { Route as AuthedClientsClientIdIndexRouteImport } from './routes/_authed/clients/$clientId/index'
 import { Route as AuthedTasksTaskIdEditRouteImport } from './routes/_authed/tasks/$taskId/edit'
 
@@ -79,6 +81,13 @@ const AuthedMarketingTypesIndexRoute =
   } as any).lazy(() =>
     import('./routes/_authed/marketing-types/index.lazy').then((d) => d.Route),
   )
+const AuthedInquiriesIndexRoute = AuthedInquiriesIndexRouteImport.update({
+  id: '/inquiries/',
+  path: '/inquiries/',
+  getParentRoute: () => AuthedRoute,
+} as any).lazy(() =>
+  import('./routes/_authed/inquiries/index.lazy').then((d) => d.Route),
+)
 const AuthedExpensesIndexRoute = AuthedExpensesIndexRouteImport.update({
   id: '/expenses/',
   path: '/expenses/',
@@ -146,6 +155,16 @@ const AuthedTasksTaskIdIndexRoute = AuthedTasksTaskIdIndexRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authed/tasks/$taskId/index.lazy').then((d) => d.Route),
 )
+const AuthedInquiriesSubmissionIdIndexRoute =
+  AuthedInquiriesSubmissionIdIndexRouteImport.update({
+    id: '/inquiries/$submissionId/',
+    path: '/inquiries/$submissionId/',
+    getParentRoute: () => AuthedRoute,
+  } as any).lazy(() =>
+    import('./routes/_authed/inquiries/$submissionId/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AuthedClientsClientIdIndexRoute =
   AuthedClientsClientIdIndexRouteImport.update({
     id: '/clients/$clientId/',
@@ -175,12 +194,14 @@ export interface FileRoutesByFullPath {
   '/contacts/': typeof AuthedContactsIndexRoute
   '/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses/': typeof AuthedExpensesIndexRoute
+  '/inquiries/': typeof AuthedInquiriesIndexRoute
   '/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/tasks/': typeof AuthedTasksIndexRoute
   '/threads/': typeof AuthedThreadsIndexRoute
   '/trash/': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
+  '/inquiries/$submissionId/': typeof AuthedInquiriesSubmissionIdIndexRoute
   '/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
   '/threads/$postId/': typeof AuthedThreadsPostIdIndexRoute
 }
@@ -195,12 +216,14 @@ export interface FileRoutesByTo {
   '/contacts': typeof AuthedContactsIndexRoute
   '/expense-categories': typeof AuthedExpenseCategoriesIndexRoute
   '/expenses': typeof AuthedExpensesIndexRoute
+  '/inquiries': typeof AuthedInquiriesIndexRoute
   '/marketing-types': typeof AuthedMarketingTypesIndexRoute
   '/tasks': typeof AuthedTasksIndexRoute
   '/threads': typeof AuthedThreadsIndexRoute
   '/trash': typeof AuthedTrashIndexRoute
   '/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/clients/$clientId': typeof AuthedClientsClientIdIndexRoute
+  '/inquiries/$submissionId': typeof AuthedInquiriesSubmissionIdIndexRoute
   '/tasks/$taskId': typeof AuthedTasksTaskIdIndexRoute
   '/threads/$postId': typeof AuthedThreadsPostIdIndexRoute
 }
@@ -217,12 +240,14 @@ export interface FileRoutesById {
   '/_authed/contacts/': typeof AuthedContactsIndexRoute
   '/_authed/expense-categories/': typeof AuthedExpenseCategoriesIndexRoute
   '/_authed/expenses/': typeof AuthedExpensesIndexRoute
+  '/_authed/inquiries/': typeof AuthedInquiriesIndexRoute
   '/_authed/marketing-types/': typeof AuthedMarketingTypesIndexRoute
   '/_authed/tasks/': typeof AuthedTasksIndexRoute
   '/_authed/threads/': typeof AuthedThreadsIndexRoute
   '/_authed/trash/': typeof AuthedTrashIndexRoute
   '/_authed/tasks/$taskId/edit': typeof AuthedTasksTaskIdEditRoute
   '/_authed/clients/$clientId/': typeof AuthedClientsClientIdIndexRoute
+  '/_authed/inquiries/$submissionId/': typeof AuthedInquiriesSubmissionIdIndexRoute
   '/_authed/tasks/$taskId/': typeof AuthedTasksTaskIdIndexRoute
   '/_authed/threads/$postId/': typeof AuthedThreadsPostIdIndexRoute
 }
@@ -239,12 +264,14 @@ export interface FileRouteTypes {
     | '/contacts/'
     | '/expense-categories/'
     | '/expenses/'
+    | '/inquiries/'
     | '/marketing-types/'
     | '/tasks/'
     | '/threads/'
     | '/trash/'
     | '/tasks/$taskId/edit'
     | '/clients/$clientId/'
+    | '/inquiries/$submissionId/'
     | '/tasks/$taskId/'
     | '/threads/$postId/'
   fileRoutesByTo: FileRoutesByTo
@@ -259,12 +286,14 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/expense-categories'
     | '/expenses'
+    | '/inquiries'
     | '/marketing-types'
     | '/tasks'
     | '/threads'
     | '/trash'
     | '/tasks/$taskId/edit'
     | '/clients/$clientId'
+    | '/inquiries/$submissionId'
     | '/tasks/$taskId'
     | '/threads/$postId'
   id:
@@ -280,12 +309,14 @@ export interface FileRouteTypes {
     | '/_authed/contacts/'
     | '/_authed/expense-categories/'
     | '/_authed/expenses/'
+    | '/_authed/inquiries/'
     | '/_authed/marketing-types/'
     | '/_authed/tasks/'
     | '/_authed/threads/'
     | '/_authed/trash/'
     | '/_authed/tasks/$taskId/edit'
     | '/_authed/clients/$clientId/'
+    | '/_authed/inquiries/$submissionId/'
     | '/_authed/tasks/$taskId/'
     | '/_authed/threads/$postId/'
   fileRoutesById: FileRoutesById
@@ -354,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedMarketingTypesIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/inquiries/': {
+      id: '/_authed/inquiries/'
+      path: '/inquiries'
+      fullPath: '/inquiries/'
+      preLoaderRoute: typeof AuthedInquiriesIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/expenses/': {
       id: '/_authed/expenses/'
       path: '/expenses'
@@ -417,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedTasksTaskIdIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/inquiries/$submissionId/': {
+      id: '/_authed/inquiries/$submissionId/'
+      path: '/inquiries/$submissionId'
+      fullPath: '/inquiries/$submissionId/'
+      preLoaderRoute: typeof AuthedInquiriesSubmissionIdIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/clients/$clientId/': {
       id: '/_authed/clients/$clientId/'
       path: '/clients/$clientId'
@@ -443,12 +488,14 @@ interface AuthedRouteChildren {
   AuthedContactsIndexRoute: typeof AuthedContactsIndexRoute
   AuthedExpenseCategoriesIndexRoute: typeof AuthedExpenseCategoriesIndexRoute
   AuthedExpensesIndexRoute: typeof AuthedExpensesIndexRoute
+  AuthedInquiriesIndexRoute: typeof AuthedInquiriesIndexRoute
   AuthedMarketingTypesIndexRoute: typeof AuthedMarketingTypesIndexRoute
   AuthedTasksIndexRoute: typeof AuthedTasksIndexRoute
   AuthedThreadsIndexRoute: typeof AuthedThreadsIndexRoute
   AuthedTrashIndexRoute: typeof AuthedTrashIndexRoute
   AuthedTasksTaskIdEditRoute: typeof AuthedTasksTaskIdEditRoute
   AuthedClientsClientIdIndexRoute: typeof AuthedClientsClientIdIndexRoute
+  AuthedInquiriesSubmissionIdIndexRoute: typeof AuthedInquiriesSubmissionIdIndexRoute
   AuthedTasksTaskIdIndexRoute: typeof AuthedTasksTaskIdIndexRoute
   AuthedThreadsPostIdIndexRoute: typeof AuthedThreadsPostIdIndexRoute
 }
@@ -462,12 +509,14 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedContactsIndexRoute: AuthedContactsIndexRoute,
   AuthedExpenseCategoriesIndexRoute: AuthedExpenseCategoriesIndexRoute,
   AuthedExpensesIndexRoute: AuthedExpensesIndexRoute,
+  AuthedInquiriesIndexRoute: AuthedInquiriesIndexRoute,
   AuthedMarketingTypesIndexRoute: AuthedMarketingTypesIndexRoute,
   AuthedTasksIndexRoute: AuthedTasksIndexRoute,
   AuthedThreadsIndexRoute: AuthedThreadsIndexRoute,
   AuthedTrashIndexRoute: AuthedTrashIndexRoute,
   AuthedTasksTaskIdEditRoute: AuthedTasksTaskIdEditRoute,
   AuthedClientsClientIdIndexRoute: AuthedClientsClientIdIndexRoute,
+  AuthedInquiriesSubmissionIdIndexRoute: AuthedInquiriesSubmissionIdIndexRoute,
   AuthedTasksTaskIdIndexRoute: AuthedTasksTaskIdIndexRoute,
   AuthedThreadsPostIdIndexRoute: AuthedThreadsPostIdIndexRoute,
 }
