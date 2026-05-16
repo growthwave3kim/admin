@@ -120,6 +120,7 @@ function ThreadsPostDetailPage() {
       <div className="flex shrink-0 items-center gap-3 border-gray-200 border-b px-4 py-3 dark:border-gray-800">
         <Link
           to="/threads"
+          search={{ persona: post.persona ?? 'all', page: 1 }}
           className="flex items-center gap-1.5 text-gray-400 text-xs hover:text-gray-600 dark:hover:text-gray-300"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
