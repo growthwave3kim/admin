@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 const searchSchema = z.object({
   page: z.coerce.number().optional().default(1),
+  persona: z.enum(['all', 'growth_hacker', 'strategist', 'field_expert']).optional().default('all'),
 })
 
 export const Route = createFileRoute('/_authed/threads/')({

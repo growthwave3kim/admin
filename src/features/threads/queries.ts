@@ -1,16 +1,23 @@
 import { supabase } from '@/lib/supabase'
-import type { ThreadsPost, ThreadsPostSegment, ThreadsPostWithSegments } from './types'
+import type { ThreadsPersona, ThreadsPost, ThreadsPostSegment, ThreadsPostWithSegments } from './types'
 
 const PAGE_SIZE = 20
 
-export const fetchThreadsPostsPage = async ({ pageParam = 0 }: { pageParam?: number }) => {
+export const fetchThreadsPostsPage = async ({
+  pageParam = 0,
+  persona = 'all',
+}: {
+  pageParam?: number
+  persona?: ThreadsPersona | 'all'
+}) => {
   const from = pageParam * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('threads_posts')
     .select('*, threads_post_segments(content, order_index)', { count: 'exact' })
     .order('created_at', { ascending: false })
-    .range(from, to)
+  if (persona !== 'all') query = query.eq('persona', persona)
+  const { data, error, count } = await query.range(from, to)
   if (error) throw error
   type Raw = ThreadsPost & { threads_post_segments: { content: string; order_index: number }[] }
   return {

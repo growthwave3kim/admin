@@ -441,6 +441,7 @@ export type Database = {
           generated_at: string
           hook_pattern: number | null
           id: string
+          persona: string | null
           published_at: string | null
           status: string
           thread_post_id: string | null
@@ -452,6 +453,7 @@ export type Database = {
           generated_at?: string
           hook_pattern?: number | null
           id?: string
+          persona?: string | null
           published_at?: string | null
           status?: string
           thread_post_id?: string | null
@@ -463,6 +465,7 @@ export type Database = {
           generated_at?: string
           hook_pattern?: number | null
           id?: string
+          persona?: string | null
           published_at?: string | null
           status?: string
           thread_post_id?: string | null

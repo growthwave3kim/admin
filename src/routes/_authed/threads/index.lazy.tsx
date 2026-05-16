@@ -4,9 +4,17 @@ import { format } from 'date-fns'
 import { ExternalLink, MessageSquare } from 'lucide-react'
 import { Pagination } from '@/components/common/Pagination'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { fetchThreadsPostsPage } from '@/features/threads/queries'
-import type { ThreadsPost } from '@/features/threads/types'
+import { THREADS_PERSONA_LABELS, type ThreadsPersona, type ThreadsPost } from '@/features/threads/types'
 import { cn } from '@/lib/utils'
+
+const PERSONA_TABS: { value: ThreadsPersona | 'all'; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'growth_hacker', label: THREADS_PERSONA_LABELS.growth_hacker },
+  { value: 'strategist', label: THREADS_PERSONA_LABELS.strategist },
+  { value: 'field_expert', label: THREADS_PERSONA_LABELS.field_expert },
+]
 
 export const Route = createLazyFileRoute('/_authed/threads/')({
   component: ThreadsListPage,
@@ -19,10 +27,11 @@ function ThreadsListPage() {
   const search = routeApi.useSearch()
   const navigate = routeApi.useNavigate()
   const page = search.page ?? 1
+  const persona = search.persona ?? 'all'
 
   const { data, isLoading } = useInfiniteQuery({
-    queryKey: ['threads-posts'],
-    queryFn: ({ pageParam }) => fetchThreadsPostsPage({ pageParam }),
+    queryKey: ['threads-posts', persona],
+    queryFn: ({ pageParam }) => fetchThreadsPostsPage({ pageParam, persona }),
     initialPageParam: 0,
     getNextPageParam: (last) => last.nextPage,
   })
@@ -41,11 +50,28 @@ function ThreadsListPage() {
         </div>
       </div>
 
+      <Tabs
+        value={persona}
+        onValueChange={(v) =>
+          navigate({ search: (prev) => ({ ...prev, persona: v as ThreadsPersona | 'all', page: 1 }) })
+        }
+        className="shrink-0"
+      >
+        <TabsList variant="line">
+          {PERSONA_TABS.map((t) => (
+            <TabsTrigger key={t.value} value={t.value}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="flex-1 overflow-auto">
           <table className="w-full text-sm">
             <colgroup>
               <col />
+              <col className="w-28" />
               <col className="w-24" />
               <col className="w-28" />
               <col className="w-28" />
@@ -55,6 +81,9 @@ function ThreadsListPage() {
               <tr className="border-gray-200 border-b dark:border-gray-800">
                 <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   본문
+                </th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
+                  페르소나
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   상태
@@ -74,7 +103,7 @@ function ThreadsListPage() {
               {isLoading ? (
                 ['a', 'b', 'c', 'd'].map((k) => (
                   <tr key={k} className="h-[52px]">
-                    {[1, 2, 3, 4, 5].map((i) => (
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
                       <td key={i} className="px-4 py-2">
                         <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                       </td>
@@ -83,7 +112,7 @@ function ThreadsListPage() {
                 ))
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-20">
+                  <td colSpan={6} className="py-20">
                     <div className="flex flex-col items-center gap-3 text-gray-300 dark:text-gray-600">
                       <MessageSquare className="h-8 w-8" />
                       <p className="text-sm">생성된 게시글이 없습니다</p>
@@ -107,6 +136,9 @@ function ThreadsListPage() {
                       <p className="truncate text-gray-900 text-xs dark:text-gray-100">
                         {(post.preview || post.topic || '(내용 없음)').replace(/\n+/g, ' ')}
                       </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <PersonaBadge persona={post.persona} />
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={post.status} />
@@ -162,5 +194,14 @@ function StatusBadge({ status }: { status: 'draft' | 'published' }) {
   }
   return (
     <Badge className="border-0 bg-gray-100 text-gray-500 text-xs dark:bg-gray-800 dark:text-gray-400">임시저장</Badge>
+  )
+}
+
+function PersonaBadge({ persona }: { persona: ThreadsPost['persona'] }) {
+  if (!persona) return <span className="text-gray-300 text-xs dark:text-gray-600">-</span>
+  return (
+    <Badge className="border-0 bg-indigo-50 text-indigo-600 text-xs dark:bg-indigo-900/30 dark:text-indigo-400">
+      {THREADS_PERSONA_LABELS[persona]}
+    </Badge>
   )
 }

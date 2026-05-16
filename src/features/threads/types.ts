@@ -1,5 +1,15 @@
 export type ThreadsPostStatus = 'draft' | 'published'
 
+export type ThreadsPersona = 'growth_hacker' | 'strategist' | 'field_expert'
+
+export const THREADS_PERSONA_LABELS: Record<ThreadsPersona, string> = {
+  growth_hacker: '그로스해커형',
+  strategist: '심리전략가형',
+  field_expert: '필드전문가형',
+}
+
+export const THREADS_PERSONAS = Object.keys(THREADS_PERSONA_LABELS) as ThreadsPersona[]
+
 export type ThreadsPostSegment = {
   id: string
   post_id: string
@@ -14,6 +24,7 @@ export type ThreadsPost = {
   generated_at: string
   published_at: string | null
   status: ThreadsPostStatus
+  persona: ThreadsPersona | null
   topic: string
   hook_pattern: number | null
   thread_post_id: string | null
