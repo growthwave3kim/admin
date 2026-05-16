@@ -15,6 +15,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: "🕘 직전 게시글 조회 (중복 방지)"
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request
+
+          # 조회는 부가 기능 — 어떤 이유로든 실패해도 생성은 계속되어야 한다.
+          # 항상 파일을 먼저 빈 배열로 만들어 두고 best-effort로 채운다.
+          with open("/tmp/recent_posts.json", "w") as f:
+              json.dump([], f)
+
+          recent = []
+          try:
+              SUPABASE_URL = os.environ["SUPABASE_URL"]
+              SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+              headers = {
+                  "apikey": SERVICE_KEY,
+                  "Authorization": f"Bearer {SERVICE_KEY}",
+              }
+              query = (
+                  "threads_posts?select=topic,hook_pattern,created_at,"
+                  "threads_post_segments(content,order_index)"
+                  "&order=created_at.desc&limit=15"
+              )
+              url = f"{SUPABASE_URL}/rest/v1/{query}"
+              req = urllib.request.Request(url, headers=headers, method="GET")
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  rows = json.loads(r.read())
+              for row in rows:
+                  segs = row.get("threads_post_segments") or []
+                  body = next(
+                      (s["content"] for s in segs if s.get("order_index") == 0),
+                      "",
+                  )
+                  recent.append({
+                      "topic": row.get("topic"),
+                      "hook_pattern": row.get("hook_pattern"),
+                      "created_at": row.get("created_at"),
+                      "body_preview": (body or "")[:120],
+                  })
+              with open("/tmp/recent_posts.json", "w") as f:
+                  json.dump(recent, f, ensure_ascii=False, indent=2)
+              print(f"✅ 직전 게시글 {len(recent)}개 조회됨")
+          except Exception as e:
+              print(f"⚠️ 조회 실패 ({type(e).__name__}: {e}) — 빈 목록으로 진행")
+          EOF
+
       - name: "✍️ 게시글 생성 (Claude)"
         uses: anthropics/claude-code-action@v1
         with:
@@ -31,31 +81,38 @@ jobs:
             cat CONTENT_STRATEGY.md
             ```
 
-            2. 오늘의 Threads 게시글 **2개**를 생성하세요:
-               - 서로 다른 주제·훅 패턴·템플릿·클러스터 사용
+            2. 직전 게시글들을 확인하세요:
+            ```bash
+            cat /tmp/recent_posts.json
+            ```
+               - 이 목록의 topic·hook_pattern·body_preview와 겹치는 주제/훅/구조/소제목/케이스 스터디 전개를 반복하지 마세요
+               - 오늘 생성할 3개는 서로 달라야 하고, 동시에 위 직전 글들과도 달라야 합니다
+
+            3. 오늘의 Threads 게시글 **3개**를 생성하세요:
+               - 3개 모두 서로 다른 주제·훅 패턴·템플릿·클러스터 사용
                - **N/N 페이지 표시 절대 금지** (1/6 같은 표기)
                - AI 티 금지, 실제 현장 전문가처럼 자연스럽게
                - 생성 후 체크리스트 자가 검증 및 수정
 
                **본문(order_index: 0) 길이 규칙 — 반드시 지킬 것:**
-               - 2개 게시글의 본문 길이는 서로 달라야 한다
+               - 3개 게시글의 본문 길이는 서로 달라야 한다 (모두 짧음 금지)
                - 짧음(50~150자)은 훅이 매우 강하거나 인간 티 타입(A/B/C/D)일 때만
-               - 2개 중 적어도 1개는 본문이 중간(150~300자) 이상이어야 한다
+               - 3개 중 적어도 1개는 본문이 중간(150~300자) 이상이어야 한다
                - 본문을 짧게 썼다면 스스로 이유를 한 줄로 확인하고 납득되면 유지, 아니면 늘릴 것
 
                **주제 계층 — 반드시 지킬 것:**
                - 마케팅 원론·심리·행동(I클러스터) 주제를 가장 자주 선택
                - 전문직 마케팅 일반(A~F·H클러스터)이 두 번째
-               - 특정 업종 케이스(G클러스터)는 세 번째 — 2개 모두 업종 케이스 금지
+               - 특정 업종 케이스(G클러스터)는 세 번째 — 3개 중 G클러스터는 최대 1개
 
                **포맷·구조 규칙 — 가장 중요:**
-               - 2개 중 케이스 스터디(6-6) 2개 절대 금지. 적어도 1개는 다른 템플릿(6-5 인사이트형, 6-7 안티체크리스트, 6-8 프레임워크, 6-9 시행착오 등)
+               - 3개 중 케이스 스터디(6-6)는 최대 1개. 나머지는 다른 템플릿(6-5 인사이트형, 6-7 안티체크리스트, 6-8 프레임워크, 6-9 시행착오 등)
                - 케이스 스터디를 쓰더라도 "#1. 처음 상황 → #2. 바꾼 것 → #3. 왜 통했나 → #4. 결과" 고정 구조 절대 금지
                - 케이스 스터디 변형 옵션: 결과 먼저(역순), 대화체 서술, 소제목 없는 스토리형, 잘된 케이스 vs 안된 케이스 비교형
                - 소제목도 매번 새로 만들 것. "처음 상황", "바꾼 것", "결과" 반복 금지
-               - 생성 완료 후 두 글의 구조가 비슷하면 하나를 반드시 재작성
+               - 생성 완료 후 3개 중 구조가 비슷한 글이 있으면 반드시 재작성
 
-            3. 게시글 2개가 완성되면 반드시 아래 bash 명령으로 파일을 저장하세요:
+            4. 게시글 3개가 완성되면 반드시 아래 bash 명령으로 파일을 저장하세요:
 
             ```bash
             python3 -c "
@@ -72,6 +129,14 @@ jobs:
               {
                 'topic': '실제 주제2',
                 'hook_pattern': 1,
+                'segments': [
+                  {'order_index': 0, 'content': '본문 내용'},
+                  {'order_index': 1, 'content': '댓글1 내용'},
+                ]
+              },
+              {
+                'topic': '실제 주제3',
+                'hook_pattern': 6,
                 'segments': [
                   {'order_index': 0, 'content': '본문 내용'},
                   {'order_index': 1, 'content': '댓글1 내용'},
@@ -135,7 +200,7 @@ jobs:
               supabase_post("threads_post_segments", segments)
               print(f"   세그먼트 {len(segments)}개 저장")
 
-          print("\n✅ 완료 — 드래프트 2개 저장됨")
+          print(f"\n✅ 완료 — 드래프트 {len(posts)}개 저장됨")
           EOF
 
       - name: "📋 생성된 게시글 미리보기"
