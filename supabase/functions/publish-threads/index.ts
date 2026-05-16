@@ -65,8 +65,22 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Already published' }), { status: 409 })
   }
 
-  const USER_ID = Deno.env.get('THREADS_USER_ID')!
-  const TOKEN = Deno.env.get('THREADS_ACCESS_TOKEN')!
+  // 페르소나별 계정 자격증명 분기.
+  // THREADS_USER_ID_<PERSONA> / THREADS_ACCESS_TOKEN_<PERSONA> 가 있으면 그것을,
+  // 없으면 기존 단일 THREADS_USER_ID / THREADS_ACCESS_TOKEN 로 폴백 (하위 호환).
+  const personaKey = String(post.persona ?? '').toUpperCase()
+  const USER_ID = (personaKey && Deno.env.get(`THREADS_USER_ID_${personaKey}`)) || Deno.env.get('THREADS_USER_ID')
+  const TOKEN =
+    (personaKey && Deno.env.get(`THREADS_ACCESS_TOKEN_${personaKey}`)) || Deno.env.get('THREADS_ACCESS_TOKEN')
+
+  if (!USER_ID || !TOKEN) {
+    return new Response(
+      JSON.stringify({
+        error: `Threads 자격증명 없음 (persona=${post.persona ?? 'null'}). THREADS_USER_ID_${personaKey}/THREADS_ACCESS_TOKEN_${personaKey} 또는 기본 THREADS_USER_ID/THREADS_ACCESS_TOKEN 를 설정하세요.`,
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
+    )
+  }
 
   const segments = (post.threads_post_segments as { id: string; order_index: number; content: string }[]).sort(
     (a, b) => a.order_index - b.order_index,
