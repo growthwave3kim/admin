@@ -74,84 +74,74 @@ jobs:
           prompt: |
             당신은 Threads에서 바이럴되는 콘텐츠를 작성하는 전문가입니다.
 
-            ## 작업
+            ## 준비
 
-            1. CONTENT_STRATEGY.md를 읽고 모든 규칙을 숙지하세요:
+            먼저 전략 문서와 직전 게시글을 읽으세요. 이 두 가지는 3개 글 전체에 계속 적용됩니다.
             ```bash
             cat CONTENT_STRATEGY.md
-            ```
-
-            2. 직전 게시글들을 확인하세요:
-            ```bash
             cat /tmp/recent_posts.json
             ```
-               - 이 목록의 topic·hook_pattern·body_preview와 겹치는 주제/훅/구조/소제목/케이스 스터디 전개를 반복하지 마세요
-               - 오늘 생성할 3개는 서로 달라야 하고, 동시에 위 직전 글들과도 달라야 합니다
+            - `recent_posts.json`의 topic·hook_pattern·body_preview와 겹치는
+              주제/훅/구조/소제목/케이스 스터디 전개를 반복하지 마세요.
 
-            3. 오늘의 Threads 게시글 **3개**를 생성하세요:
-               - 3개 모두 서로 다른 주제·훅 패턴·템플릿·클러스터 사용
-               - **N/N 페이지 표시 절대 금지** (1/6 같은 표기)
-               - AI 티 금지, 실제 현장 전문가처럼 자연스럽게
-               - 생성 후 체크리스트 자가 검증 및 수정
+            ## 작업 — 게시글을 **한 개씩 순차적으로 3번** 생성
 
-               **본문(order_index: 0) 길이 규칙 — 반드시 지킬 것:**
-               - 3개 게시글의 본문 길이는 서로 달라야 한다 (모두 짧음 금지)
-               - 짧음(50~150자)은 훅이 매우 강하거나 인간 티 타입(A/B/C/D)일 때만
-               - 3개 중 적어도 1개는 본문이 중간(150~300자) 이상이어야 한다
-               - 본문을 짧게 썼다면 스스로 이유를 한 줄로 확인하고 납득되면 유지, 아니면 늘릴 것
+            절대 한 번에 3개를 만들지 마세요. 아래 1 → 2 → 3 순서를 그대로 따르고,
+            매 단계에서 **직전에 만든 글 파일을 다시 읽어 주제 중복을 직접 검사**하세요.
 
-               **주제 계층 — 반드시 지킬 것:**
-               - 마케팅 원론·심리·행동(I클러스터) 주제를 가장 자주 선택
-               - 전문직 마케팅 일반(A~F·H클러스터)이 두 번째
-               - 특정 업종 케이스(G클러스터)는 세 번째 — 3개 중 G클러스터는 최대 1개
+            ### 공통 규칙 (매 글마다 적용)
+            - **N/N 페이지 표시 절대 금지** (1/6 같은 표기)
+            - AI 티 금지, 실제 현장 전문가처럼 자연스럽게
+            - 생성 후 CONTENT_STRATEGY.md 체크리스트로 자가 검증·수정
+            - 마케팅 원론·심리·행동(I클러스터)을 가장 자주, 전문직 일반(A~F·H)이 두 번째,
+              업종 케이스(G클러스터)는 3개 통틀어 최대 1개
+            - 케이스 스터디(6-6)는 3개 통틀어 최대 1개. 쓰더라도
+              "#1. 처음 상황 → #2. 바꾼 것 → #3. 왜 통했나 → #4. 결과" 고정 구조 절대 금지
+              (역순/대화체/스토리형/비교형 중 택1, 소제목 매번 새로)
+            - 본문 길이: 3개가 서로 달라야 하고 최소 1개는 중간(150~300자) 이상,
+              모두 짧게(50~150자) 금지
 
-               **포맷·구조 규칙 — 가장 중요:**
-               - 3개 중 케이스 스터디(6-6)는 최대 1개. 나머지는 다른 템플릿(6-5 인사이트형, 6-7 안티체크리스트, 6-8 프레임워크, 6-9 시행착오 등)
-               - 케이스 스터디를 쓰더라도 "#1. 처음 상황 → #2. 바꾼 것 → #3. 왜 통했나 → #4. 결과" 고정 구조 절대 금지
-               - 케이스 스터디 변형 옵션: 결과 먼저(역순), 대화체 서술, 소제목 없는 스토리형, 잘된 케이스 vs 안된 케이스 비교형
-               - 소제목도 매번 새로 만들 것. "처음 상황", "바꾼 것", "결과" 반복 금지
-               - 생성 완료 후 3개 중 구조가 비슷한 글이 있으면 반드시 재작성
-
-            4. 게시글 3개가 완성되면 반드시 아래 bash 명령으로 파일을 저장하세요:
-
+            ### 1번 글
+            - `recent_posts.json`와만 안 겹치게 1개 생성
+            - 아래 명령으로 저장 (segments는 본문 order_index 0 + 댓글들):
             ```bash
             python3 -c "
             import json
-            posts = [
-              {
-                'topic': '실제 주제1',
-                'hook_pattern': 3,
-                'segments': [
-                  {'order_index': 0, 'content': '본문 내용'},
-                  {'order_index': 1, 'content': '댓글1 내용'},
-                ]
-              },
-              {
-                'topic': '실제 주제2',
-                'hook_pattern': 1,
-                'segments': [
-                  {'order_index': 0, 'content': '본문 내용'},
-                  {'order_index': 1, 'content': '댓글1 내용'},
-                ]
-              },
-              {
-                'topic': '실제 주제3',
-                'hook_pattern': 6,
-                'segments': [
-                  {'order_index': 0, 'content': '본문 내용'},
-                  {'order_index': 1, 'content': '댓글1 내용'},
-                ]
-              }
-            ]
-            with open('/tmp/posts_batch.json', 'w') as f:
-                json.dump(posts, f, ensure_ascii=False, indent=2)
-            print('저장 완료')
+            post = {'topic': '실제 주제', 'hook_pattern': 3,
+                    'segments': [{'order_index': 0, 'content': '본문'},
+                                 {'order_index': 1, 'content': '댓글1'}]}
+            json.dump(post, open('/tmp/post_1.json','w'), ensure_ascii=False, indent=2)
+            print('post_1 저장')
             "
             ```
 
-            저장 후 반드시 확인:
+            ### 2번 글
+            - 먼저 1번 글을 다시 읽으세요:
             ```bash
-            cat /tmp/posts_batch.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d)}개 저장됨')"
+            cat /tmp/post_1.json
+            ```
+            - `recent_posts.json` **그리고 방금 읽은 1번 글**과 주제·훅·템플릿·클러스터·
+              구조가 모두 다르게 1개 생성 → `/tmp/post_2.json`에 같은 형식으로 저장
+              (변수명 post, 파일명만 post_2.json)
+
+            ### 3번 글
+            - 먼저 1번·2번 글을 다시 읽으세요:
+            ```bash
+            cat /tmp/post_1.json /tmp/post_2.json
+            ```
+            - `recent_posts.json` **그리고 1번·2번 글 모두**와 겹치지 않게 1개 생성
+              → `/tmp/post_3.json`에 저장
+
+            ### 마지막: 3개 병합
+            세 글의 구조가 비슷하면 해당 글을 재작성한 뒤, 아래로 병합하세요:
+            ```bash
+            python3 -c "
+            import json
+            posts = [json.load(open(f'/tmp/post_{i}.json')) for i in (1,2,3)]
+            json.dump(posts, open('/tmp/posts_batch.json','w'), ensure_ascii=False, indent=2)
+            print(f'{len(posts)}개 병합 완료')
+            "
+            cat /tmp/posts_batch.json | python3 -c "import sys,json; print(len(json.load(sys.stdin)),'개')"
             ```
 
             **Supabase 저장은 하지 마세요. 파일 저장만 합니다.**
