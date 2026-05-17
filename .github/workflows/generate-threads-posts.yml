@@ -114,7 +114,7 @@ jobs:
             python3 -c "
             import json
             post = {'persona':'growth_hacker','topic':'실제 주제','hook_pattern':3,
-                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 핵심 미공개+"이유는 답글에 이어서 —" 마무리 / 단독형: 완결. 링크/CTA 없음'}]}
+                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 — 안내 문구(이어서/답글에) 없음 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post["segments"] += [{"order_index":1,"content":"핵심 공개"},{"order_index":2,"content":"심화"}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/growth_hacker_1.json','w'), ensure_ascii=False, indent=2)
             print('growth_hacker_1 저장')
@@ -176,7 +176,7 @@ jobs:
             python3 -c "
             import json
             post = {'persona':'strategist','topic':'실제 주제','hook_pattern':2,
-                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 핵심 미공개+"이유는 답글에 이어서 —" 마무리 / 단독형: 완결. 링크/CTA 없음'}]}
+                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 — 안내 문구(이어서/답글에) 없음 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post["segments"] += [{"order_index":1,"content":"핵심 공개"},{"order_index":2,"content":"심화"}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/strategist_1.json','w'), ensure_ascii=False, indent=2)
             print('strategist_1 저장')
@@ -238,7 +238,7 @@ jobs:
             python3 -c "
             import json
             post = {'persona':'field_expert','topic':'실제 주제','hook_pattern':1,
-                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 핵심 미공개+"이유는 답글에 이어서 —" 마무리 / 단독형: 완결. 링크/CTA 없음'}]}
+                    'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 — 안내 문구(이어서/답글에) 없음 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post["segments"] += [{"order_index":1,"content":"핵심 공개"},{"order_index":2,"content":"심화"}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/field_expert_1.json','w'), ensure_ascii=False, indent=2)
             print('field_expert_1 저장')
