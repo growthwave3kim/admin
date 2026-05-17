@@ -73,8 +73,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-opus-4-7
-          claude_args: '--allowedTools Bash'
+          claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
             당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
@@ -128,8 +127,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-opus-4-7
-          claude_args: '--allowedTools Bash'
+          claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
             당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
@@ -183,8 +181,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-opus-4-7
-          claude_args: '--allowedTools Bash'
+          claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
             당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
