@@ -73,6 +73,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-opus-4-7
           claude_args: '--allowedTools Bash'
           show_full_output: true
           prompt: |
@@ -127,6 +128,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-opus-4-7
           claude_args: '--allowedTools Bash'
           show_full_output: true
           prompt: |
@@ -181,6 +183,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-opus-4-7
           claude_args: '--allowedTools Bash'
           show_full_output: true
           prompt: |
@@ -308,26 +311,50 @@ jobs:
         run: |
           python3 - <<'EOF'
           import json
+          from collections import defaultdict
 
-          LABELS = {
-              "growth_hacker": "그로스해커형",
-              "strategist": "심리전략가형",
-              "field_expert": "필드전문가형",
-          }
+          PERSONAS = [
+              ("growth_hacker",  "🔵 GROWTH_HACKER  · 그로스해커형"),
+              ("strategist",     "🟡 STRATEGIST     · 심리전략가형"),
+              ("field_expert",   "🟢 FIELD_EXPERT   · 필드전문가형"),
+          ]
 
           with open("/tmp/posts_batch.json") as f:
               posts = json.load(f)
 
-          for i, post in enumerate(posts, 1):
-              persona = post.get("persona", "-")
-              label = LABELS.get(persona, persona)
-              print(f"\n{'='*60}")
-              print(f"  게시글 {i} · [{label}] {post['topic']}")
-              print(f"  훅 패턴: {post.get('hook_pattern', '-')}")
-              print(f"{'='*60}")
-              for seg in sorted(post["segments"], key=lambda s: s["order_index"]):
-                  tag = "📌 본문" if seg["order_index"] == 0 else f"💬 댓글{seg['order_index']}"
-                  print(f"\n[{tag}]")
-                  print(seg["content"])
-          print(f"\n{'='*60}")
+          grouped = defaultdict(list)
+          for post in posts:
+              grouped[post.get("persona", "unknown")].append(post)
+
+          total = 0
+          for persona_key, persona_label in PERSONAS:
+              group = grouped.get(persona_key, [])
+              if not group:
+                  continue
+
+              print(f"\n{'█'*64}")
+              print(f"  {persona_label}  ({len(group)}개)")
+              print(f"{'█'*64}")
+
+              for idx, post in enumerate(group, 1):
+                  segs = sorted(post["segments"], key=lambda s: s["order_index"])
+                  seg_count = len(segs)
+                  print(f"\n  ┌─ [{idx}/{len(group)}]  {post['topic']}")
+                  print(f"  │  훅 패턴 {post.get('hook_pattern', '-')} · 세그먼트 {seg_count}개")
+                  print(f"  └{'─'*58}")
+
+                  for seg in segs:
+                      if seg["order_index"] == 0:
+                          tag = "📌 본문"
+                      else:
+                          tag = f"💬 댓글 {seg['order_index']}"
+                      print(f"\n  [{tag}]")
+                      for line in seg["content"].splitlines():
+                          print(f"  {line}")
+
+                  total += 1
+
+          print(f"\n{'─'*64}")
+          print(f"  ✅ 총 {total}개 생성 완료")
+          print(f"{'─'*64}")
           EOF
