@@ -2,6 +2,7 @@ pre-commit:
   commands:
     biome:
       glob: "*.{ts,tsx,js,jsx,json,css}"
+      exclude: '\.omc/'
       run: pnpm biome check --write --unsafe {staged_files}
       stage_fixed: true
 

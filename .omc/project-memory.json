@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778949338861,
+  "lastScanned": 1779063378731,
   "projectRoot": "/Users/minishtech/workspace/dohyun/growthwave-admin",
   "techStack": {
     "languages": [
@@ -85,7 +85,7 @@
       "path": "dist",
       "purpose": "Distribution/build output",
       "fileCount": 6,
-      "lastAccessed": 1778949338832,
+      "lastAccessed": 1779063378702,
       "keyFiles": [
         "favicon.svg",
         "icons.svg",
@@ -98,7 +98,7 @@
       "path": "public",
       "purpose": "Public files",
       "fileCount": 5,
-      "lastAccessed": 1778949338834,
+      "lastAccessed": 1779063378703,
       "keyFiles": [
         "favicon.svg",
         "icons.svg",
@@ -111,7 +111,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 3,
-      "lastAccessed": 1778949338842,
+      "lastAccessed": 1779063378709,
       "keyFiles": [
         "index.css",
         "main.tsx",
@@ -122,25 +122,25 @@
       "path": "supabase",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1778949338843,
+      "lastAccessed": 1779063378710,
       "keyFiles": []
     },
     "dist/assets": {
       "path": "dist/assets",
       "purpose": "Static assets",
-      "fileCount": 97,
-      "lastAccessed": 1778949338847,
+      "fileCount": 100,
+      "lastAccessed": 1779063378710,
       "keyFiles": [
-        "ClientFormDialog-DWGbNYYZ.js",
-        "ConfirmDialog-BYxNXWCT.js",
-        "DatePicker-DXPBEDUL.js"
+        "ClientFormDialog-cjPlK9td.js",
+        "ConfirmDialog-CdKLi9SC.js",
+        "DatePicker-DNVoD-xz.js"
       ]
     },
     "src/assets": {
       "path": "src/assets",
       "purpose": "Static assets",
       "fileCount": 3,
-      "lastAccessed": 1778949338849,
+      "lastAccessed": 1779063378711,
       "keyFiles": [
         "hero.png",
         "react.svg",
@@ -151,14 +151,14 @@
       "path": "src/components",
       "purpose": "UI components",
       "fileCount": 0,
-      "lastAccessed": 1778949338849,
+      "lastAccessed": 1779063378711,
       "keyFiles": []
     },
     "src/lib": {
       "path": "src/lib",
       "purpose": "Library code",
       "fileCount": 4,
-      "lastAccessed": 1778949338850,
+      "lastAccessed": 1779063378712,
       "keyFiles": [
         "database.types.ts",
         "queryClient.ts",
@@ -169,7 +169,7 @@
       "path": "src/routes",
       "purpose": "Route handlers",
       "fileCount": 6,
-      "lastAccessed": 1778949338851,
+      "lastAccessed": 1779063378712,
       "keyFiles": [
         "__root.tsx",
         "_authed.lazy.tsx",
@@ -180,7 +180,7 @@
       "path": "src/test",
       "purpose": "Test files",
       "fileCount": 1,
-      "lastAccessed": 1778949338851,
+      "lastAccessed": 1779063378712,
       "keyFiles": [
         "setup.ts"
       ]
@@ -188,8 +188,8 @@
     "supabase/migrations": {
       "path": "supabase/migrations",
       "purpose": "Database migrations",
-      "fileCount": 16,
-      "lastAccessed": 1778949338851,
+      "fileCount": 17,
+      "lastAccessed": 1779063378712,
       "keyFiles": [
         "001_initial.sql",
         "002_expenses.sql",
@@ -199,195 +199,15 @@
   },
   "hotPaths": [
     {
-      "path": "CONTENT_STRATEGY.md",
-      "accessCount": 80,
-      "lastAccessed": 1778954169613,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/threads/$postId/index.lazy.tsx",
-      "accessCount": 33,
-      "lastAccessed": 1778953546937,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/threads/index.lazy.tsx",
-      "accessCount": 27,
-      "lastAccessed": 1778952172865,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/contacts/index.lazy.tsx",
-      "accessCount": 15,
-      "lastAccessed": 1778758950791,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/tasks/index.lazy.tsx",
-      "accessCount": 12,
-      "lastAccessed": 1778738895777,
-      "type": "file"
-    },
-    {
-      "path": "src/features/threads/queries.ts",
-      "accessCount": 12,
-      "lastAccessed": 1778952079965,
-      "type": "file"
-    },
-    {
       "path": "supabase/functions/publish-threads/index.ts",
-      "accessCount": 12,
-      "lastAccessed": 1778953341209,
+      "accessCount": 1,
+      "lastAccessed": 1779247430774,
       "type": "file"
     },
     {
       "path": "src/features/threads/types.ts",
-      "accessCount": 10,
-      "lastAccessed": 1778951845407,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed.lazy.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1778738830426,
-      "type": "file"
-    },
-    {
-      "path": "src/features/tasks/components/KanbanCard.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1778739062345,
-      "type": "file"
-    },
-    {
-      "path": "src/lib/database.types.ts",
-      "accessCount": 8,
-      "lastAccessed": 1778951874076,
-      "type": "file"
-    },
-    {
-      "path": "src/features/dashboard/components/TopClients.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1778738795237,
-      "type": "file"
-    },
-    {
-      "path": "src/components/layout/LNB.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1778759156743,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/inquiries/$submissionId/index.lazy.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1778759238436,
-      "type": "file"
-    },
-    {
-      "path": ".claude/settings.json",
-      "accessCount": 4,
-      "lastAccessed": 1778949009235,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/threads/index.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1778952070833,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/inquiries/index.lazy.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1778759197373,
-      "type": "file"
-    },
-    {
-      "path": "supabase/migrations/001_initial.sql",
-      "accessCount": 3,
-      "lastAccessed": 1778948434965,
-      "type": "file"
-    },
-    {
-      "path": "src/features/inquiries/types.ts",
-      "accessCount": 2,
-      "lastAccessed": 1778759179706,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 2,
-      "lastAccessed": 1778948399839,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/contacts/index.tsx",
       "accessCount": 1,
-      "lastAccessed": 1778758951084,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/threads/$postId/index.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1778758956953,
-      "type": "file"
-    },
-    {
-      "path": "src/routeTree.gen.ts",
-      "accessCount": 1,
-      "lastAccessed": 1778758957487,
-      "type": "file"
-    },
-    {
-      "path": "src/features/inquiries/queries.ts",
-      "accessCount": 1,
-      "lastAccessed": 1778759067381,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/inquiries/index.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1778759081848,
-      "type": "file"
-    },
-    {
-      "path": "src/routes/_authed/inquiries/$submissionId/index.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1778759116184,
-      "type": "file"
-    },
-    {
-      "path": "src/lib/supabase.ts",
-      "accessCount": 1,
-      "lastAccessed": 1778948372550,
-      "type": "file"
-    },
-    {
-      "path": ".claude/CLAUDE.md",
-      "accessCount": 1,
-      "lastAccessed": 1778948379994,
-      "type": "file"
-    },
-    {
-      "path": ".env.example",
-      "accessCount": 1,
-      "lastAccessed": 1778948391795,
-      "type": "file"
-    },
-    {
-      "path": "supabase/migrations/016_storage_expense_attachments_rls.sql",
-      "accessCount": 1,
-      "lastAccessed": 1778948421816,
-      "type": "file"
-    },
-    {
-      "path": "supabase/migrations/017_threads_posts_persona.sql",
-      "accessCount": 1,
-      "lastAccessed": 1778951598059,
-      "type": "file"
-    },
-    {
-      "path": "src/components/ui/tabs.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1778952045349,
+      "lastAccessed": 1779247434927,
       "type": "file"
     }
   ],
