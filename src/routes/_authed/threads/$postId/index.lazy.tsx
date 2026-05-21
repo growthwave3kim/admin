@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi, Link } from '@tanstack/react-router'
-import { ArrowLeft, ExternalLink, MessageCircle, Plus, Send, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, MessageCircle, Plus, Send, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import {
   createThreadsPostSegments,
+  deleteThreadsPost,
   deleteThreadsPostSegments,
   fetchThreadsPost,
   publishToThreads,
@@ -54,6 +55,7 @@ function ThreadsPostDetailPage() {
   const [segments, setSegments] = useState<ThreadsPostSegment[]>([])
   const [deletedIds, setDeletedIds] = useState<string[]>([])
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const isPublished = post?.status === 'published'
 
   useEffect(() => {
@@ -113,6 +115,16 @@ function ThreadsPostDetailPage() {
     onError: () => toast.error('발행에 실패했습니다. Threads 토큰을 확인하세요.'),
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteThreadsPost(postId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['threads-posts'] })
+      toast.success('삭제되었습니다')
+      navigate({ to: '/threads' })
+    },
+    onError: () => toast.error('삭제에 실패했습니다'),
+  })
+
   const updateSegment = (id: string, content: string) => {
     setSegments((prev) => prev.map((s) => (s.id === id ? { ...s, content } : s)))
   }
@@ -164,6 +176,13 @@ function ThreadsPostDetailPage() {
             isPublished && 'cursor-default opacity-60',
           )}
         />
+        <button
+          type="button"
+          onClick={() => setIsDeleteDialogOpen(true)}
+          className="flex items-center gap-1 text-gray-400 text-xs hover:text-red-500 dark:hover:text-red-400"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
         {isPublished && post.thread_post_url && (
           <a
             href={post.thread_post_url}
@@ -340,6 +359,33 @@ function ThreadsPostDetailPage() {
             >
               <Send className="h-3.5 w-3.5" />
               {publishMutation.isPending ? '발행 중...' : '발행하기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>게시글 삭제</DialogTitle>
+            <DialogDescription>삭제된 게시글은 복구할 수 없습니다.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={deleteMutation.isPending}
+            >
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate()}
+            >
+              {deleteMutation.isPending ? '삭제 중...' : '삭제'}
             </Button>
           </DialogFooter>
         </DialogContent>

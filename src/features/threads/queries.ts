@@ -79,6 +79,13 @@ export const deleteThreadsPostSegments = async (ids: string[]) => {
   if (error) throw error
 }
 
+export const deleteThreadsPost = async (id: string) => {
+  const { error: segError } = await supabase.from('threads_post_segments').delete().eq('post_id', id)
+  if (segError) throw segError
+  const { error } = await supabase.from('threads_posts').delete().eq('id', id)
+  if (error) throw error
+}
+
 export const publishToThreads = async (postId: string) => {
   const { data, error } = await supabase.functions.invoke('publish-threads', {
     body: { post_id: postId },

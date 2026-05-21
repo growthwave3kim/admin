@@ -1,11 +1,22 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi } from '@tanstack/react-router'
 import { format } from 'date-fns'
-import { ExternalLink, MessageSquare } from 'lucide-react'
+import { ExternalLink, MessageSquare, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { Pagination } from '@/components/common/Pagination'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { fetchThreadsPostsPage } from '@/features/threads/queries'
+import { deleteThreadsPost, fetchThreadsPostsPage } from '@/features/threads/queries'
 import { THREADS_PERSONA_LABELS, type ThreadsPersona, type ThreadsPost } from '@/features/threads/types'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +40,18 @@ function ThreadsListPage() {
   const navigate = routeApi.useNavigate()
   const page = search.page ?? 1
   const persona = search.persona ?? 'all'
+  const qc = useQueryClient()
+  const [deletingPost, setDeletingPost] = useState<{ id: string; preview: string } | null>(null)
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteThreadsPost(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['threads-posts'] })
+      setDeletingPost(null)
+      toast.success('삭제되었습니다')
+    },
+    onError: () => toast.error('삭제에 실패했습니다'),
+  })
 
   const { data, isLoading } = useInfiniteQuery({
     queryKey: ['threads-posts', persona],
@@ -77,6 +100,7 @@ function ThreadsListPage() {
               <col className="w-28" />
               <col className="w-28" />
               <col className="w-28" />
+              <col className="w-10" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900">
               <tr className="border-gray-200 border-b dark:border-gray-800">
@@ -98,13 +122,14 @@ function ThreadsListPage() {
                 <th className="px-4 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wide dark:text-gray-400">
                   링크
                 </th>
+                <th className="px-2 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
               {isLoading ? (
                 ['a', 'b', 'c', 'd'].map((k) => (
                   <tr key={k} className="h-[52px]">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                       <td key={i} className="px-4 py-2">
                         <div className="h-3 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
                       </td>
@@ -113,7 +138,7 @@ function ThreadsListPage() {
                 ))
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-20">
+                  <td colSpan={7} className="py-20">
                     <div className="flex flex-col items-center gap-3 text-gray-300 dark:text-gray-600">
                       <MessageSquare className="h-8 w-8" />
                       <p className="text-sm">생성된 게시글이 없습니다</p>
@@ -167,6 +192,21 @@ function ThreadsListPage() {
                         <span className="text-gray-300 dark:text-gray-600">-</span>
                       )}
                     </td>
+                    <td className="px-2 py-3">
+                      <button
+                        type="button"
+                        className="rounded p-1 text-gray-300 opacity-0 transition-colors hover:text-red-400 group-hover:opacity-100 dark:text-gray-600 dark:hover:text-red-400"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeletingPost({
+                            id: post.id,
+                            preview: (post.preview || post.topic || '').replace(/\n+/g, ' ').slice(0, 60),
+                          })
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -181,6 +221,38 @@ function ThreadsListPage() {
           />
         </div>
       </div>
+
+      <Dialog open={!!deletingPost} onOpenChange={(open) => !open && setDeletingPost(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>게시글 삭제</DialogTitle>
+            <DialogDescription>삭제된 게시글은 복구할 수 없습니다.</DialogDescription>
+          </DialogHeader>
+          {deletingPost && (
+            <p className="truncate rounded-md bg-gray-50 px-3 py-2 text-gray-600 text-xs dark:bg-gray-800/60 dark:text-gray-400">
+              {deletingPost.preview || '(내용 없음)'}
+            </p>
+          )}
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeletingPost(null)}
+              disabled={deleteMutation.isPending}
+            >
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={deleteMutation.isPending}
+              onClick={() => deletingPost && deleteMutation.mutate(deletingPost.id)}
+            >
+              {deleteMutation.isPending ? '삭제 중...' : '삭제'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
