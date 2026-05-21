@@ -1,11 +1,12 @@
 export type ThreadsPostStatus = 'draft' | 'published'
 
-export type ThreadsPersona = 'growth_hacker' | 'strategist' | 'field_expert'
+export type ThreadsPersona = 'growth_hacker' | 'strategist' | 'field_expert' | 'agency_brand'
 
 export const THREADS_PERSONA_LABELS: Record<ThreadsPersona, string> = {
   growth_hacker: '그로스해커형',
   strategist: '심리전략가형',
   field_expert: '필드전문가형',
+  agency_brand: '그로스웨이브',
 }
 
 export const THREADS_PERSONAS = Object.keys(THREADS_PERSONA_LABELS) as ThreadsPersona[]

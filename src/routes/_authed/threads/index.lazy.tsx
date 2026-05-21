@@ -14,6 +14,7 @@ const PERSONA_TABS: { value: ThreadsPersona | 'all'; label: string }[] = [
   { value: 'growth_hacker', label: THREADS_PERSONA_LABELS.growth_hacker },
   { value: 'strategist', label: THREADS_PERSONA_LABELS.strategist },
   { value: 'field_expert', label: THREADS_PERSONA_LABELS.field_expert },
+  { value: 'agency_brand', label: THREADS_PERSONA_LABELS.agency_brand },
 ]
 
 export const Route = createLazyFileRoute('/_authed/threads/')({
