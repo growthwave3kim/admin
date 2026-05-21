@@ -56,10 +56,27 @@ export const updateThreadsPost = async (
   return data as ThreadsPost
 }
 
-export const saveThreadsPostSegments = async (segments: Pick<ThreadsPostSegment, 'id' | 'content'>[]) => {
+export const saveThreadsPostSegments = async (
+  segments: Pick<ThreadsPostSegment, 'id' | 'content' | 'order_index'>[],
+) => {
   await Promise.all(
-    segments.map(({ id, content }) => supabase.from('threads_post_segments').update({ content }).eq('id', id)),
+    segments.map(({ id, content, order_index }) =>
+      supabase.from('threads_post_segments').update({ content, order_index }).eq('id', id),
+    ),
   )
+}
+
+export const createThreadsPostSegments = async (
+  segments: Pick<ThreadsPostSegment, 'post_id' | 'order_index' | 'content'>[],
+) => {
+  const { error } = await supabase.from('threads_post_segments').insert(segments)
+  if (error) throw error
+}
+
+export const deleteThreadsPostSegments = async (ids: string[]) => {
+  if (ids.length === 0) return
+  const { error } = await supabase.from('threads_post_segments').delete().in('id', ids)
+  if (error) throw error
 }
 
 export const publishToThreads = async (postId: string) => {

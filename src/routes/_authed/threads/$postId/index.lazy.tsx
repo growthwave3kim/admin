@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createLazyFileRoute, getRouteApi, Link } from '@tanstack/react-router'
-import { ArrowLeft, ExternalLink, MessageCircle, Send } from 'lucide-react'
+import { ArrowLeft, ExternalLink, MessageCircle, Plus, Send, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  createThreadsPostSegments,
+  deleteThreadsPostSegments,
   fetchThreadsPost,
   publishToThreads,
   saveThreadsPostSegments,
@@ -50,6 +52,7 @@ function ThreadsPostDetailPage() {
 
   const [topic, setTopic] = useState('')
   const [segments, setSegments] = useState<ThreadsPostSegment[]>([])
+  const [deletedIds, setDeletedIds] = useState<string[]>([])
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false)
   const isPublished = post?.status === 'published'
 
@@ -62,16 +65,40 @@ function ThreadsPostDetailPage() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      await updateThreadsPost(postId, { topic })
-      await saveThreadsPostSegments(segments.map((s) => ({ id: s.id, content: s.content })))
+      const renumbered = segments.map((s, i) => ({ ...s, order_index: i }))
+      const existing = renumbered.filter((s) => !s.id.startsWith('temp-'))
+      const created = renumbered.filter((s) => s.id.startsWith('temp-'))
+      await Promise.all([
+        updateThreadsPost(postId, { topic }),
+        deleteThreadsPostSegments(deletedIds),
+        saveThreadsPostSegments(existing.map(({ id, content, order_index }) => ({ id, content, order_index }))),
+      ])
+      if (created.length > 0) {
+        await createThreadsPostSegments(
+          created.map(({ content, order_index }) => ({ post_id: postId, content, order_index })),
+        )
+      }
     },
     onSuccess: () => {
+      setDeletedIds([])
       qc.invalidateQueries({ queryKey: ['threads-post', postId] })
       qc.invalidateQueries({ queryKey: ['threads-posts'] })
       toast.success('저장되었습니다')
     },
     onError: () => toast.error('저장에 실패했습니다'),
   })
+
+  const addReplySegment = () => {
+    setSegments((prev) => [
+      ...prev,
+      { id: `temp-${Date.now()}`, post_id: postId, order_index: prev.length, content: '', reply_thread_id: null },
+    ])
+  }
+
+  const deleteReplySegment = (seg: ThreadsPostSegment) => {
+    if (!seg.id.startsWith('temp-')) setDeletedIds((prev) => [...prev, seg.id])
+    setSegments((prev) => prev.filter((s) => s.id !== seg.id))
+  }
 
   const publishMutation = useMutation({
     mutationFn: async () => {
@@ -224,7 +251,7 @@ function ThreadsPostDetailPage() {
 
             {/* 댓글 목록 */}
             {replySegments.length > 0 ? (
-              <div className="px-4 pt-3 pb-4">
+              <div className="px-4 pt-3 pb-2">
                 {replySegments.map((seg, idx) => (
                   <ReplySegment
                     key={seg.id}
@@ -233,14 +260,29 @@ function ThreadsPostDetailPage() {
                     total={replySegments.length}
                     isPublished={isPublished}
                     onChange={updateSegment}
+                    onDelete={!isPublished ? () => deleteReplySegment(seg) : undefined}
                     relativeTime={relativeTime}
                   />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-2 py-10">
+              <div className="flex flex-col items-center gap-2 py-8">
                 <MessageCircle className="h-7 w-7 text-gray-200 dark:text-gray-700" />
                 <p className="text-gray-400 text-sm">아직 댓글이 없습니다</p>
+              </div>
+            )}
+
+            {/* 댓글 추가 버튼 */}
+            {!isPublished && (
+              <div className="px-4 pb-4">
+                <button
+                  type="button"
+                  onClick={addReplySegment}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 border-dashed py-2.5 text-gray-400 text-xs transition-colors hover:border-gray-300 hover:text-gray-500 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:text-gray-400"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  댓글 추가
+                </button>
               </div>
             )}
           </div>
@@ -346,10 +388,11 @@ type ReplySegmentProps = {
   total: number
   isPublished: boolean
   onChange: (id: string, content: string) => void
+  onDelete?: () => void
   relativeTime: string
 }
 
-function ReplySegment({ segment, index, total, isPublished, onChange, relativeTime }: ReplySegmentProps) {
+function ReplySegment({ segment, index, total, isPublished, onChange, onDelete, relativeTime }: ReplySegmentProps) {
   const isLast = index === total - 1
   const showCounter = total > 1
 
@@ -390,10 +433,23 @@ function ReplySegment({ segment, index, total, isPublished, onChange, relativeTi
             />
           </svg>
           <span className="ml-0.5 text-[13px] text-gray-400">{relativeTime}</span>
-          {showCounter && (
-            <span className="ml-auto shrink-0 text-[12px] text-gray-400">
-              {index + 1}/{total}
-            </span>
+          {(showCounter || onDelete) && (
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+              {showCounter && (
+                <span className="text-[12px] text-gray-400">
+                  {index + 1}/{total}
+                </span>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="rounded p-0.5 text-gray-300 transition-colors hover:text-red-400 dark:text-gray-600 dark:hover:text-red-400"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
