@@ -38,7 +38,7 @@ jobs:
                   "Authorization": f"Bearer {SERVICE_KEY}",
               }
               query = (
-                  "threads_posts?select=topic,hook_pattern,persona,created_at,"
+                  "threads_posts?select=topic,hook_pattern,persona,topic_tag,created_at,"
                   "threads_post_segments(content,order_index)"
                   "&order=created_at.desc&limit=30"
               )
@@ -56,6 +56,7 @@ jobs:
                       "persona": row.get("persona"),
                       "topic": row.get("topic"),
                       "hook_pattern": row.get("hook_pattern"),
+                      "topic_tag": row.get("topic_tag"),
                       "created_at": row.get("created_at"),
                       "segment_count": len(segs),
                       "body_preview": (body or "")[:120],
@@ -94,49 +95,36 @@ jobs:
           claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
-            당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
+            당신은 Threads 바이럴 콘텐츠 전문가입니다. growth_hacker 페르소나로 **2개**를 생성합니다.
 
-            먼저 전략 문서와 직전 글을 읽으세요:
+            먼저 전략 문서, 페르소나 프롬프트, 직전 글을 읽으세요:
             ```bash
             cat CONTENT_STRATEGY.md
+            cat prompts/growth_hacker.md
             cat /tmp/recent_posts.json
             ```
 
-            ## 페르소나: growth_hacker (그로스해커형)
-            - 어미: **`~함`체** (담백·직설. "확인해야 함", "데이터가 말해줌"). 다른 어미 금지.
-            - 타겟 독자: 마케팅은 하고 있는데 숫자가 안 나오는 전문직 개업자. 첫 줄이 이 사람의 현실을 찌르는 장면이어야 함.
-            - 주제: **트랙 A(전문직 특화) 1개 + 트랙 B(마케팅 인사이트) 1개** — CONTENT_STRATEGY.md 10번 뱅크 방향 참고, 새 각도로 변주.
-            - CONTENT_STRATEGY.md 3번(페르소나)·10번(주제 트랙) 규칙을 따르세요.
+            > **자동화 생성 안내**: `시작 전 필수 체크`와 `오늘 설정` 섹션은 수동 생성용이므로 건너뜁니다.
+            > 트랙·구조·훅 패턴·본문 길이·마무리 형식 등 모든 항목을 스스로 결정하고 바로 생성합니다.
 
             ## 중복 검사 범위 (중요)
             - `recent_posts.json`에서 **`persona`가 `growth_hacker`인 글**하고만 주제 중복을 피하세요.
             - **주제명(topic)뿐 아니라 `body_preview`의 내용·각도·핵심 메시지까지 겹치지 않게.**
             - 다른 페르소나 글은 신경 쓰지 않습니다.
 
-            ## 글 작성 순서 (내용 먼저, 구조 나중)
-            1. **내용 먼저**: 이 페르소나가 오늘 가장 하고 싶은 말 하나를 결정한다.
-            2. **구조는 사후**: 결정한 내용을 CONTENT_STRATEGY.md 규칙으로 정제한다.
-
-            ## 공통 규칙
-            - **본문·댓글 어디에도 외부 링크/CTA 금지.**
-            - **2개 중 1개는 체이닝 유도형** (댓글 1에서 핵심 공개, 최대 6개), **1개는 리드 단독형**.
-            - **마무리 다양화**: 질문/도발 단정/역설/직접 호명/다음 편 예고 중 선택. 2개 같은 방식 금지. 질문형 연속 2개 절대 금지.
-            - **첫 줄은 장면·상황으로** — 주제/결론 선언형 첫 줄 금지. 컨설팅 리포트체 금지.
-            - 수치는 맥락 있을 때만. 출처 없는 수치 금지 → 범위·관찰로 대체.
-            - N/N 표기 금지. 2개의 주제·각도·훅·구조·본문 길이·마무리가 서로 달라야 함.
-
-            ## AI 티 금지
-            - "A가 아니라 B다" 반전 대구 글당 최대 1회
-            - "공통점이 하나 있다" / "차이는 여기서 갈린다" / "결국 두 가지" 금지
-            - 모든 문장 15~30자 균일 금지 → 리듬 들쭉날쭉하게
-            - "문제 있는 고객 → 나 등장 → 해결" 3막 반복 금지
+            ## 생성 규칙
+            - **트랙 A 1개 + 트랙 B 1개** 생성.
+            - **2개 중 1개는 체이닝 유도형, 1개는 리드 단독형.**
+            - 2개의 주제·각도·훅 패턴·구조·본문 길이·마무리가 서로 달라야 함.
+            - N/N 표기 금지. 본문·댓글 어디에도 외부 링크/CTA 금지.
+            - 질문형 마무리 연속 2개 절대 금지.
 
             ## 1번 글
             growth_hacker 직전 글과 안 겹치게 1개 생성 후 저장:
             ```bash
             python3 -c "
             import json
-            post = {'persona':'growth_hacker','topic':'실제 주제','hook_pattern':3,
+            post = {'persona':'growth_hacker','topic':'실제 주제','hook_pattern':3,'topic_tag':'선택한태그',
                     'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post['segments'] += [{'order_index':1,'content':'핵심 공개'}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/growth_hacker_1.json','w'), ensure_ascii=False, indent=2)
@@ -188,6 +176,7 @@ jobs:
               rec = supabase_post("threads_posts", {
                   "topic": post["topic"],
                   "hook_pattern": post.get("hook_pattern"),
+                  "topic_tag": post.get("topic_tag"),
                   "persona": post["persona"],
                   "status": "draft",
               })
@@ -227,49 +216,36 @@ jobs:
           claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
-            당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
+            당신은 Threads 바이럴 콘텐츠 전문가입니다. strategist 페르소나로 **2개**를 생성합니다.
 
-            먼저 전략 문서와 직전 글을 읽으세요:
+            먼저 전략 문서, 페르소나 프롬프트, 직전 글을 읽으세요:
             ```bash
             cat CONTENT_STRATEGY.md
+            cat prompts/strategist.md
             cat /tmp/recent_posts.json
             ```
 
-            ## 페르소나: strategist (심리전략가형)
-            - 어미: **`~입니다`/`~합니다`체** 기본. **반말(`~야`/`~거야`/`~이야`) 허용** — 한 글 안에서 혼용 금지.
-            - 타겟 독자: 마케팅이 뭔지 알 것 같은데 왜 나는 안 되지 싶은 전문직 개업자.
-            - 주제: **트랙 A(전문직 특화) 1개 + 트랙 B(마케팅 인사이트) 1개** — CONTENT_STRATEGY.md 10번 뱅크 방향 참고.
-            - CONTENT_STRATEGY.md 3번(페르소나)·10번(주제 트랙) 규칙을 따르세요.
+            > **자동화 생성 안내**: `시작 전 필수 체크`와 `오늘 설정` 섹션은 수동 생성용이므로 건너뜁니다.
+            > 트랙·구조·훅 패턴·본문 길이·마무리 형식 등 모든 항목을 스스로 결정하고 바로 생성합니다.
 
             ## 중복 검사 범위 (중요)
             - `recent_posts.json`에서 **`persona`가 `strategist`인 글**하고만 주제 중복을 피하세요.
             - **주제명(topic)뿐 아니라 `body_preview`의 내용·각도·핵심 메시지까지 겹치지 않게.**
             - 다른 페르소나 글은 신경 쓰지 않습니다.
 
-            ## 글 작성 순서 (내용 먼저, 구조 나중)
-            1. **내용 먼저**: 이 페르소나가 오늘 가장 하고 싶은 말 하나를 결정한다.
-            2. **구조는 사후**: 결정한 내용을 CONTENT_STRATEGY.md 규칙으로 정제한다.
-
-            ## 공통 규칙
-            - **본문·댓글 어디에도 외부 링크/CTA 금지.**
-            - **2개 중 1개는 체이닝 유도형** (댓글 1에서 핵심 공개, 최대 6개), **1개는 리드 단독형**.
-            - **마무리 다양화**: 질문/도발 단정/역설/직접 호명/다음 편 예고 중 선택. 2개 같은 방식 금지. 질문형 연속 2개 절대 금지.
-            - **첫 줄은 장면·상황으로** — 주제/결론 선언형 첫 줄 금지. 컨설팅 리포트체 금지.
-            - 수치는 맥락 있을 때만. 출처 없는 수치 금지 → 범위·관찰로 대체.
-            - N/N 표기 금지. 2개의 주제·각도·훅·구조·본문 길이·마무리가 서로 달라야 함.
-
-            ## AI 티 금지
-            - "A가 아니라 B다" 반전 대구 글당 최대 1회
-            - "공통점이 하나 있다" / "차이는 여기서 갈린다" / "결국 두 가지" 금지
-            - 모든 문장 15~30자 균일 금지 → 리듬 들쭉날쭉하게
-            - "문제 있는 고객 → 나 등장 → 해결" 3막 반복 금지
+            ## 생성 규칙
+            - **트랙 A 1개 + 트랙 B 1개** 생성.
+            - **2개 중 1개는 체이닝 유도형, 1개는 리드 단독형.**
+            - 2개의 주제·각도·훅 패턴·구조·본문 길이·마무리가 서로 달라야 함.
+            - N/N 표기 금지. 본문·댓글 어디에도 외부 링크/CTA 금지.
+            - 질문형 마무리 연속 2개 절대 금지.
 
             ## 1번 글
             strategist 직전 글과 안 겹치게 1개 생성 후 저장:
             ```bash
             python3 -c "
             import json
-            post = {'persona':'strategist','topic':'실제 주제','hook_pattern':2,
+            post = {'persona':'strategist','topic':'실제 주제','hook_pattern':2,'topic_tag':'선택한태그',
                     'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post['segments'] += [{'order_index':1,'content':'핵심 공개'}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/strategist_1.json','w'), ensure_ascii=False, indent=2)
@@ -321,6 +297,7 @@ jobs:
               rec = supabase_post("threads_posts", {
                   "topic": post["topic"],
                   "hook_pattern": post.get("hook_pattern"),
+                  "topic_tag": post.get("topic_tag"),
                   "persona": post["persona"],
                   "status": "draft",
               })
@@ -360,48 +337,36 @@ jobs:
           claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
-            당신은 Threads 바이럴 콘텐츠 전문가입니다. 아래 페르소나로 **2개**를 생성합니다.
+            당신은 Threads 바이럴 콘텐츠 전문가입니다. field_expert 페르소나로 **2개**를 생성합니다.
 
-            먼저 전략 문서와 직전 글을 읽으세요:
+            먼저 전략 문서, 페르소나 프롬프트, 직전 글을 읽으세요:
             ```bash
             cat CONTENT_STRATEGY.md
+            cat prompts/field_expert.md
             cat /tmp/recent_posts.json
             ```
 
-            ## 페르소나: field_expert (필드전문가형)
-            - 어미: **`~한다`체** (자신감·사례 중심. "다르다", "허물어야 한다"). 다른 어미 금지.
-            - 타겟 독자: 전문직 마케팅이 실제로 어떻게 작동하는지 궁금한 개업자. 사례·현장 이야기에 반응함.
-            - 주제: **트랙 A(전문직 케이스) 1개 + 트랙 B(마케팅 인사이트) 1개** — CONTENT_STRATEGY.md 10번 뱅크, 업종 로테이션(2번 규칙).
-            - CONTENT_STRATEGY.md 3번(페르소나)·10번(주제 트랙)·2번(업종 로테이션) 규칙을 따르세요.
+            > **자동화 생성 안내**: `시작 전 필수 체크`와 `오늘 설정` 섹션은 수동 생성용이므로 건너뜁니다.
+            > 트랙·업종·구조·훅 패턴·본문 길이·마무리 형식 등 모든 항목을 스스로 결정하고 바로 생성합니다.
 
             ## 중복 검사 범위 (중요)
             - `recent_posts.json`에서 **`persona`가 `field_expert`인 글**하고만 주제·업종 중복을 피하세요.
             - **주제명(topic)뿐 아니라 `body_preview`의 내용·각도·핵심 메시지까지 겹치지 않게.**
             - 다른 페르소나 글은 신경 쓰지 않습니다.
 
-            ## 글 작성 순서 (내용 먼저, 구조 나중)
-            1. **내용 먼저**: 이 페르소나가 오늘 가장 하고 싶은 말 하나를 결정한다.
-            2. **구조는 사후**: 결정한 내용을 CONTENT_STRATEGY.md 규칙으로 정제한다.
-
-            ## 공통 규칙
-            - **본문·댓글 어디에도 외부 링크/CTA 금지.**
-            - **2개 중 1개는 체이닝 유도형** (댓글 1에서 핵심 공개, 최대 6개), **1개는 리드 단독형**.
-            - **마무리 다양화**: 질문/도발 단정/역설/직접 호명/다음 편 예고 중 선택. 2개 같은 방식 금지.
-            - **첫 줄은 장면·상황으로** — 주제/결론 선언형 첫 줄 금지. 컨설팅 리포트체 금지.
-            - 수치는 맥락 있을 때만. 출처 없는 수치 금지 → 범위·관찰로 대체.
-            - N/N 표기 금지. 2개의 주제·각도·훅·구조·본문 길이·마무리가 서로 달라야 함.
-
-            ## AI 티 금지
-            - "A가 아니라 B다" 반전 대구 글당 최대 1회
-            - "공통점이 하나 있다" / "차이는 여기서 갈린다" / "결국 두 가지" 금지
-            - 모든 문장 15~30자 균일 금지 → 리듬 들쭉날쭉하게
+            ## 생성 규칙
+            - **트랙 B(마케팅 인사이트) 1개 + 트랙 A(전문직 케이스) 1개** 순서로 생성.
+            - **2개 중 1개는 체이닝 유도형, 1개는 리드 단독형.**
+            - 2개의 주제·업종·각도·훅 패턴·구조·본문 길이·마무리가 서로 달라야 함.
+            - N/N 표기 금지. 본문·댓글 어디에도 외부 링크/CTA 금지.
+            - 질문형 마무리 연속 2개 절대 금지.
 
             ## 1번 글 — 트랙 B(마케팅 인사이트)
             field_expert 직전 글과 안 겹치게 1개 생성 후 저장:
             ```bash
             python3 -c "
             import json
-            post = {'persona':'field_expert','topic':'실제 주제','hook_pattern':1,
+            post = {'persona':'field_expert','topic':'실제 주제','hook_pattern':1,'topic_tag':'선택한태그',
                     'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post['segments'] += [{'order_index':1,'content':'핵심 공개'}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/field_expert_1.json','w'), ensure_ascii=False, indent=2)
@@ -453,6 +418,7 @@ jobs:
               rec = supabase_post("threads_posts", {
                   "topic": post["topic"],
                   "hook_pattern": post.get("hook_pattern"),
+                  "topic_tag": post.get("topic_tag"),
                   "persona": post["persona"],
                   "status": "draft",
               })
@@ -492,59 +458,36 @@ jobs:
           claude_args: '--allowedTools Bash --model claude-opus-4-7'
           show_full_output: true
           prompt: |
-            당신은 Threads 바이럴 콘텐츠 전문가입니다. 그로스웨이브 브랜드 계정으로 **2개**를 생성합니다.
+            당신은 Threads 바이럴 콘텐츠 전문가입니다. agency_brand(그로스웨이브) 페르소나로 **2개**를 생성합니다.
 
-            먼저 전략 문서와 직전 글을 읽으세요:
+            먼저 전략 문서, 페르소나 프롬프트, 직전 글을 읽으세요:
             ```bash
             cat CONTENT_STRATEGY.md
+            cat prompts/agency_brand.md
             cat /tmp/recent_posts.json
             ```
 
-            ## 페르소나: agency_brand (그로스웨이브 공식 계정)
-            - 어미: **`~해요` / `~거든요` / `~더라고요`** (대행사 담당자 구어체). `~합니다`체나 반말과 섞지 말 것.
-            - 1인칭: "저희가", "우리 팀이" 사용 가능.
-            - 핵심 톤: **자랑이 아니라 관찰**. "저희가 잘했어요"가 아니라 "저희가 보니까 이렇더라고요".
-            - 타겟: 마케팅 대행사를 찾고 있거나 혼자 하다가 한계를 느끼는 전문직 개업자.
-            - 주제: **트랙 A(클라이언트 실전 케이스) 1개 + 트랙 B(대행사 관점 인사이트) 1개**
+            > **자동화 생성 안내**: `시작 전 필수 체크`와 `오늘 설정` 섹션은 수동 생성용이므로 건너뜁니다.
+            > 케이스 선택·구조·훅 패턴·본문 길이·마무리 형식 등 모든 항목을 스스로 결정하고 바로 생성합니다.
+            > **케이스 소재는 반드시 `agency_brand.md`의 케이스 뱅크에 있는 것만 사용합니다. 없는 케이스를 만들어내지 말 것.**
 
             ## 중복 검사 범위 (중요)
             - `recent_posts.json`에서 **`persona`가 `agency_brand`인 글**하고만 주제·케이스 중복을 피하세요.
             - 다른 페르소나 글은 신경 쓰지 않습니다.
 
-            ## 케이스 소재 뱅크 (2개 각각 다른 케이스 선택, 장면·대사 하나만 뽑아 변주)
-            [세무사] 블로그 7개월, 세법 해설만 가득, 대표 얼굴·이름 없음. 첫 미팅에서 "저 블로그 열심히 썼는데"라고 했는데 그 블로그에 대표 사진이 없었음. 구체 사례+대표 소개 추가 후 두 달 만에 "블로그 보고 연락드려요" 첫 문의.
-            [변호사] 팔로워 수백명인데 상담예약 없음. 게시글마다 "상담 문의는 DM으로" 붙어있음. 미팅에서 "변호사가 인간적인 면 보이면 품위유지의무 위반 아니냐"고 진지하게 물어봄. 신뢰 글 추가 후 "글 보고 오래 봤는데 한번 상담받고 싶다" 첫 문의.
-            [한의사] 개원 3년차, 입소문 있는데 새 환자 안 옴. "한의원은 효과 믿는 사람만 오는 거 아니냐" → 실제 새 환자 첫 방문 이유 물어보니 "인터넷에서 찾다가"가 가장 많았음.
-            [노무사] B2B라 SNS 효과 없을 거라 생각. "노무사가 SNS 하면 직원들이 보는 거 아니냐"는 우려 → 실제 DM은 사장님들한테서. "글 보고 이 분이 뭔지 알 것 같아서".
-            [공통 패턴] 첫 미팅 반복 대사: "전에 대행사 써봤는데 효과 없었어요" / "우리 업종은 SNS가 안 돼요" (이 말 하는 분들이 가장 빠르게 결과 나오는 케이스 있음) / 계정 열면 공통: 정보는 있는데 사람이 없음.
-
-            ## 글 작성 순서 (내용 먼저, 구조 나중)
-            1. **케이스 선택**: 뱅크에서 장면 하나·대사 하나 선택. 직전 agency_brand 글과 다른 케이스.
-            2. **내용 먼저**: 그 케이스에서 하고 싶은 관찰 하나. 그 관찰을 꺼내는 자연스러운 첫 줄.
-            3. **구조는 사후**: CONTENT_STRATEGY.md 규칙으로 정제.
-
-            ## 공통 규칙
-            - **본문·댓글 어디에도 외부 링크/CTA 금지.**
-            - **2개 중 1개는 체이닝 유도형** (댓글 1에서 핵심 공개, 최대 6개), **1개는 리드 단독형**.
-            - **마무리 다양화**: 질문/단정/여운/상황 중 선택. 2개 같은 방식 금지.
-            - **첫 줄은 장면·상황으로** — 주제/결론 선언형 금지.
-            - 가짜 수치 금지 → 범위·관찰로 ("거의 두 배", "열에 여덟은").
-            - "안녕하세요" / "오늘은" / "결론적으로" / "공개합니다" / "요약하자면" 금지.
-            - 대행사 자랑 톤 금지 → 관찰 톤으로.
-            - 모든 문장 균일 금지 → 리듬 들쭉날쭉하게.
-
-            ## AI 티 금지
-            - "저희가 잘했다"가 아니라 "저희가 보니까 이렇더라"
-            - "문제 있는 고객 → 우리 등장 → 해결" 3막 구조 반복 금지
-            - "A가 아니라 B다" 반전 대구 글당 1회 이하
-            - "공통점이 하나 있다" / "결국 두 가지" / "차이는 여기서 갈린다" 금지
+            ## 생성 규칙
+            - **트랙 A(클라이언트 케이스) 1개 + 트랙 B(대행사 관점 인사이트) 1개** 생성.
+            - **트랙 A는 체이닝 유도형 우선, 트랙 B는 리드 단독형 우선.**
+            - 2개의 케이스·주제·각도·구조·본문 길이·마무리가 서로 달라야 함.
+            - N/N 표기 금지. 본문·댓글 어디에도 외부 링크/CTA 금지.
+            - 질문형 마무리 연속 2개 절대 금지.
 
             ## 1번 글 — 트랙 A(클라이언트 케이스)
             agency_brand 직전 글과 안 겹치게 1개 생성 후 저장:
             ```bash
             python3 -c "
             import json
-            post = {'persona':'agency_brand','topic':'실제 주제','hook_pattern':1,
+            post = {'persona':'agency_brand','topic':'실제 주제','hook_pattern':1,'topic_tag':'선택한태그',
                     'segments':[{'order_index':0,'content':'리드 글 — 체이닝형: 가장 궁금한 지점에서 툭 끊기 / 단독형: 완결. 링크/CTA 없음'}]}
             # 체이닝 유도형이면 post['segments'] += [{'order_index':1,'content':'핵심 공개'}, ...] 추가(최대 6개)
             json.dump(post, open('/tmp/agency_brand_1.json','w'), ensure_ascii=False, indent=2)
@@ -596,6 +539,7 @@ jobs:
               rec = supabase_post("threads_posts", {
                   "topic": post["topic"],
                   "hook_pattern": post.get("hook_pattern"),
+                  "topic_tag": post.get("topic_tag"),
                   "persona": post["persona"],
                   "status": "draft",
               })

@@ -28,6 +28,7 @@ export type ThreadsPost = {
   persona: ThreadsPersona | null
   topic: string
   hook_pattern: number | null
+  topic_tag: string | null
   thread_post_id: string | null
   thread_post_url: string | null
 }
